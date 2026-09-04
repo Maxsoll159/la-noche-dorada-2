@@ -23,6 +23,7 @@ function Candado() {
       aria-hidden
       width="26"
       height="26"
+      className="shrink-0"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -62,6 +63,7 @@ function IconoVoto() {
       aria-hidden
       width="16"
       height="16"
+      className="shrink-0"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -89,13 +91,18 @@ function Lado({
   izquierda: boolean;
 }) {
   return (
+    // En móvil la foto va encima del nombre. En fila no cabe: descontando la
+    // foto y el rombo del VS quedan menos de 20 px de ancho para el texto, y
+    // nombres como "JH de la Cruz 777" se parten letra por letra.
     <div
-      className={`flex flex-1 items-center gap-5 ${
-        izquierda ? "justify-start" : "flex-row-reverse justify-start"
+      className={`flex min-w-0 flex-1 flex-col items-center gap-2 text-center sm:flex-row sm:gap-5 sm:text-left ${
+        izquierda
+          ? "sm:justify-start"
+          : "sm:flex-row-reverse sm:justify-start sm:text-right"
       }`}
     >
       <span
-        className={`relative block h-[104px] w-[56px] shrink-0 overflow-hidden rounded-sm border sm:h-[128px] sm:w-[68px] ${
+        className={`relative block h-[96px] w-[52px] shrink-0 overflow-hidden rounded-sm border sm:h-[128px] sm:w-[68px] ${
           lidera ? "border-2 border-oro" : "border-linea opacity-70"
         }`}
       >
@@ -103,24 +110,24 @@ function Lado({
           src={foto}
           alt={nombre}
           fill
-          sizes="70px"
+          sizes="(min-width: 640px) 68px, 52px"
           className="object-cover object-top"
         />
       </span>
       <div
-        className={`flex min-w-0 flex-1 flex-col gap-1 ${
-          izquierda ? "items-start text-left" : "items-end text-right"
+        className={`flex w-full min-w-0 flex-col items-center gap-1 sm:w-auto sm:flex-1 ${
+          izquierda ? "sm:items-start" : "sm:items-end"
         }`}
       >
         <p
-          className={`font-display text-[36px] leading-none tabular-nums sm:text-[44px] ${
+          className={`font-display text-[27px] leading-none tabular-nums sm:text-[44px] ${
             lidera ? "text-oro" : "text-tenue"
           }`}
         >
           {pct === null ? "—" : `${pct}%`}
         </p>
         <p
-          className={`font-display text-[17px] uppercase leading-tight sm:text-[20px] ${
+          className={`w-full font-display text-[13px] uppercase leading-tight break-words hyphens-auto sm:text-[20px] ${
             lidera ? "text-oro-claro" : "text-crema"
           }`}
         >
@@ -157,8 +164,10 @@ function Card({
         c.estelar ? "border-oro bg-oro-tinte" : "border-linea bg-carbon"
       }`}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-linea bg-[#08080b] px-5 py-3 sm:px-7">
-        <p className="flex items-center gap-2.5 font-cond text-[11px] font-bold uppercase tracking-[0.22em]">
+      {/* flex-wrap y tracking más corto en móvil: los tres rótulos juntos no
+          entran en una card de 312 px y se salían del borde. */}
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-b border-linea bg-[#08080b] px-3 py-3 sm:px-7">
+        <p className="flex items-center gap-2 font-cond text-[10px] font-bold uppercase tracking-[0.12em] sm:gap-2.5 sm:text-[11px] sm:tracking-[0.22em]">
           <span className="text-oro">Combate {c.n}</span>
           {c.billing && (
             <>
@@ -167,7 +176,7 @@ function Card({
             </>
           )}
         </p>
-        <p className="flex items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.14em]">
+        <p className="flex items-center gap-2 font-cond text-[10px] font-bold uppercase tracking-[0.1em] sm:text-[11px] sm:tracking-[0.14em]">
           {activo ? (
             <>
               <span
@@ -186,7 +195,7 @@ function Card({
         </p>
       </header>
 
-      <div className="flex items-center gap-3.5 px-5 py-6 sm:gap-5 sm:px-7">
+      <div className="flex items-center gap-2 px-3 py-5 sm:gap-5 sm:px-7 sm:py-6">
         <Lado
           nombre={c.a.nombre}
           foto={c.a.foto}
@@ -194,12 +203,12 @@ function Card({
           lidera={activo && pctA >= 50}
           izquierda
         />
-        <span className="relative grid size-[56px] shrink-0 place-items-center sm:size-[68px]">
+        <span className="relative grid size-[42px] shrink-0 place-items-center sm:size-[68px]">
           <span
             aria-hidden
             className="absolute inset-0 rotate-45 rounded-[3px] border border-oro bg-noche/90"
           />
-          <span className="relative font-display text-[16px] text-oro sm:text-[19px]">
+          <span className="relative font-display text-[13px] text-oro sm:text-[19px]">
             VS
           </span>
         </span>
@@ -234,7 +243,7 @@ function Card({
         />
       </div>
 
-      <footer className="bg-[#08080b] px-5 py-5 sm:px-7">
+      <footer className="bg-[#08080b] px-3 py-5 sm:px-7">
         {!activo ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {(["a", "b"] as const).map((lado) => (

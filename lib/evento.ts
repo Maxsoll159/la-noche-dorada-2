@@ -18,6 +18,19 @@
 } as const;
 
 /**
+ * Video de la gala de presentación, donde se anunció la cartelera y se hicieron
+ * los careos. `inicio` es el segundo en el que arranca la reproducción: viene
+ * del enlace compartido (22:09), bájalo a 0 si quieres el video desde el
+ * principio.
+ */
+export const PRESENTACION = {
+  videoId: "0aHy3gq3Tr4",
+  titulo: "Presentación de la Noche Dorada 2",
+  canal: "Max-Web",
+  inicio: 1329,
+} as const;
+
+/**
  * La votación llega en una segunda fase. Mientras esté en false, la sección de
  * pronósticos se muestra bloqueada: sin porcentajes y con los botones inertes.
  * Al ponerlo en true se activa la interacción tal como está construida.

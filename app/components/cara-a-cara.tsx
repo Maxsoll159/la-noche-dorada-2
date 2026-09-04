@@ -137,12 +137,12 @@ export function CaraACara() {
 
   return (
     <div className="flex w-full flex-col items-center gap-11">
-      {/* En móvil los dos peleadores van enfrentados y la tabla debajo: apilarlos
-          en columna rompía la lectura de "cara a cara". */}
+      {/* En móvil quedan solo los dos peleadores enfrentados: el VS y la tabla
+          se esconden porque a ese ancho la ficha ocupaba más que las fotos. */}
       <div className="grid w-full grid-cols-2 overflow-hidden rounded-sm border border-linea bg-[#0e0e12] lg:grid-cols-[1fr_auto_1fr]">
         <Panel peleador={combate.a} lado="izq" />
 
-        <div className="order-last col-span-2 flex flex-col items-center justify-center gap-4 border-t border-linea px-5 py-7 lg:order-none lg:col-span-1 lg:w-[292px] lg:border-t-0 lg:border-x">
+        <div className="hidden flex-col items-center justify-center gap-4 border-linea px-5 py-7 lg:flex lg:w-[292px] lg:border-x">
           <p className="font-display text-[56px] leading-none texto-oro">VS</p>
           <p className="text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
             {combate.billing ?? `Combate ${combate.n}`} · 3 rounds
@@ -189,49 +189,64 @@ export function CaraACara() {
       </div>
 
       <div className="flex w-full flex-col items-center gap-5">
-        <p className="font-cond text-[12px] font-bold uppercase tracking-[0.26em] text-oro-profundo">
+        <p className="text-center font-cond text-[12px] font-bold uppercase tracking-[0.26em] text-oro-profundo">
           Toca un peleador para ver su combate
         </p>
-        {/* Ancho fijo por ficha para que queden chicas, y max-w que fuerza
-            8 por fila: sin el tope quedaban 13 en la primera y 3 en la segunda. */}
-        <ul className="mx-auto flex max-w-[644px] flex-wrap items-start justify-center gap-2.5 sm:gap-3">
-          {PELEADORES.map((p) => {
-            const sel = COMBATE_DE.get(p.slug) === numero;
-            return (
-              <li key={p.slug} className="w-[62px] sm:w-[70px]">
-                <button
-                  type="button"
-                  onClick={() => setNumero(COMBATE_DE.get(p.slug) ?? numero)}
-                  aria-pressed={sel}
-                  className="flex w-full cursor-pointer flex-col items-center gap-2 outline-none"
+        {/* Hasta lg: los 16 en una sola línea con scroll lateral, con
+            degradados a los costados que avisan que la tira sigue. En
+            escritorio vuelven a las dos filas centradas, y el max-w fuerza
+            8 por fila: sin el tope quedaban 13 en la primera y 3 en la otra. */}
+        <div className="relative w-full">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-noche to-transparent lg:hidden"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-noche to-transparent lg:hidden"
+          />
+          <ul className="tira mx-auto flex w-full items-start gap-2.5 px-6 pb-3.5 sm:gap-3 lg:max-w-[644px] lg:flex-wrap lg:justify-center lg:px-0 lg:pb-0">
+            {PELEADORES.map((p) => {
+              const sel = COMBATE_DE.get(p.slug) === numero;
+              return (
+                <li
+                  key={p.slug}
+                  className="w-[62px] shrink-0 snap-center sm:w-[70px]"
                 >
-                  <span
-                    className={`relative block aspect-[3/4] w-full overflow-hidden rounded-sm border transition ${
-                      sel
-                        ? "border-2 border-oro opacity-100"
-                        : "border-linea opacity-55 hover:opacity-100"
-                    }`}
+                  <button
+                    type="button"
+                    onClick={() => setNumero(COMBATE_DE.get(p.slug) ?? numero)}
+                    aria-pressed={sel}
+                    className="flex w-full cursor-pointer flex-col items-center gap-2 outline-none"
                   >
-                    <Image
-                      src={p.foto}
-                      alt=""
-                      fill
-                      sizes="70px"
-                      className="object-cover object-top"
-                    />
-                  </span>
-                  <span
-                    className={`text-center font-cond text-[10px] font-semibold uppercase leading-tight tracking-[0.04em] ${
-                      sel ? "text-oro" : "text-tenue"
-                    }`}
-                  >
-                    {p.nombre}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                    <span
+                      className={`relative block aspect-[3/4] w-full overflow-hidden rounded-sm border transition ${
+                        sel
+                          ? "border-2 border-oro opacity-100"
+                          : "border-linea opacity-55 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={p.foto}
+                        alt=""
+                        fill
+                        sizes="70px"
+                        className="object-cover object-top"
+                      />
+                    </span>
+                    <span
+                      className={`text-center font-cond text-[10px] font-semibold uppercase leading-tight tracking-[0.04em] ${
+                        sel ? "text-oro" : "text-tenue"
+                      }`}
+                    >
+                      {p.nombre}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </div>
   );

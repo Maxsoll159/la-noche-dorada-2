@@ -5,6 +5,7 @@ import { DondeVerlo } from "./components/donde-verlo";
 import { Entradas } from "./components/entradas";
 import { Hero } from "./components/hero";
 import { Patrocinador } from "./components/patrocinador";
+import { Presentacion } from "./components/presentacion";
 import { Pronosticos } from "./components/pronosticos";
 import { Seccion } from "./components/seccion";
 import { Sede } from "./components/sede";
@@ -27,6 +28,14 @@ export default function Page() {
           <CaraACara />
         </Seccion>
         <Combates />
+        <Seccion
+          id="presentacion"
+          antetitulo="La gala"
+          titulo="La presentación"
+          bajada="La noche en que se anunció la cartelera completa: los dieciséis creadores en el escenario, cara a cara por primera vez."
+        >
+          <Presentacion />
+        </Seccion>
         <Seccion
           id="pronosticos"
           antetitulo="Segunda fase · Próximamente"
