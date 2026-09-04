@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta */
+  --color-noche: #0b0b0d;
+  --color-carbon: #101015;
+  --color-superficie: #14141a;
+  --color-superficie-2: #1c1c22;
+  --color-linea: #2a2a31;
+  --color-oro: #d4af37;
+  --color-oro-claro: #f7e3a1;
+  --color-oro-profundo: #8c6b22;
+  --color-oro-tinte: #171208;
+  --color-crema: #f5eedc;
+  --color-tenue: #a39b8a;
+  --color-kick: #53fc18;
+
+  /* Tipografía */
+  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
+  --font-body: var(--font-barlow), system-ui, sans-serif;
+  --font-cond: var(--font-barlow-cond), "Arial Narrow", sans-serif;
+
+  /* Ancho de contenido: 1200 del diseño */
+  --spacing-contenido: 75rem;
+}
+
+@layer base {
+  html {
+    /* Los enlaces del menú son anclas: con esto el salto va animado.
+       Las secciones llevan scroll-mt para no quedar bajo el header fijo. */
+    scroll-behavior: smooth;
+    /* Barra de scroll en Firefox */
+    scrollbar-color: var(--color-oro-profundo) #08080a;
+    scrollbar-width: thin;
+  }
+
+  body {
+    background-color: var(--color-noche);
+    color: var(--color-crema);
+    font-family: var(--font-body);
+  }
+
+  /* Barra de scroll en WebKit/Blink */
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #08080a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to bottom,
+      var(--color-oro-claro),
+      var(--color-oro),
+      var(--color-oro-profundo)
+    );
+    border: 2px solid #08080a;
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-oro-claro);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: #08080a;
+  }
+
+  ::selection {
+    background: var(--color-oro);
+    color: var(--color-noche);
+  }
+
+  /* Anillo dorado al navegar con teclado, en vez del azul del navegador */
+  :focus-visible {
+    outline: 2px solid var(--color-oro);
+    outline-offset: 3px;
+  }
+
+  /* Los títulos del diseño van en Anton, siempre en mayúsculas */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+}
+
+@utility filete-oro {
+  /* Hairline dorado que separa secciones, se apaga en los extremos.
+     El barrido recorre el brillo de izquierda a derecha. */
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-oro),
+    transparent
+  );
+  background-size: 55% 100%;
+  background-repeat: no-repeat;
+  animation: barrido 7s linear infinite;
+}
+
+@keyframes barrido {
+  from {
+    background-position: -55% 0;
+  }
+  to {
+    background-position: 155% 0;
+  }
+}
+
+@utility texto-oro {
+  /* Degradado metálico de los titulares grandes */
+  background: linear-gradient(
+    to bottom,
+    #fbf0c9 0%,
+    #f7e3a1 32%,
+    #d4af37 68%,
+    #a8842b 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes latido {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@utility latido {
+  animation: latido 1.6s ease-in-out infinite;
+}
+
+/* Entrada de los bloques que ya están en pantalla al cargar (el hero).
+   Se combina con animationDelay en línea para escalonar los elementos. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility entrada {
+  animation: aparecer 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Revelado al hacer scroll. Es una transición y no una animación para que el
+   observador solo tenga que añadir una clase. */
+@utility revelar {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@utility revelado {
+  opacity: 1;
+  transform: none;
+}
+
+/* Respiración del resplandor dorado del hero */
+@keyframes respirar {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.07);
+  }
+}
+
+@utility respirar {
+  animation: respirar 7s ease-in-out infinite;
+}
+
+/* Vaivén del indicador de scroll */
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@utility flotar {
+  animation: flotar 2.2s ease-in-out infinite;
+}
+
+/* Quien pide menos movimiento recibe el resultado final, sin recorrido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
