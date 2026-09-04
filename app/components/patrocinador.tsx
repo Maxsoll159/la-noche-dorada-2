@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { EVENTO } from "@/lib/evento";
 import { Seccion } from "./seccion";
 
@@ -22,7 +22,7 @@ export function Patrocinador() {
         className="group flex w-full flex-col items-center gap-6 rounded-sm border border-oro-profundo bg-carbon px-6 py-12 transition duration-300 hover:-translate-y-1 hover:border-oro hover:bg-oro-tinte"
       >
         <Image
-          src="/marca/stake.png"
+          src="/marca/stake.webp"
           alt={EVENTO.patrocinador}
           width={260}
           height={102}

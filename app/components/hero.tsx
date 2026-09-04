@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { EVENTO } from "@/lib/evento";
 import { CuentaRegresiva } from "./cuenta-regresiva";
 
@@ -49,7 +49,7 @@ export function Hero() {
           fuera del recorte y no compita con el logo del hero. */}
       <div aria-hidden className="absolute inset-0 -z-30">
         <Image
-          src="/cartel-oficial.jpg"
+          src="/cartel-oficial.webp"
           alt=""
           fill
           priority
@@ -102,7 +102,7 @@ export function Hero() {
           {EVENTO.nombre} — {EVENTO.fechaLarga} en el {EVENTO.sede}
         </h1>
         <Image
-          src="/marca/logo-noche-dorada.png"
+          src="/marca/logo-noche-dorada.webp"
           alt={EVENTO.nombre}
           width={455}
           height={406}

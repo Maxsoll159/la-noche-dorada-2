@@ -1,4 +1,4 @@
-export const EVENTO = {
+﻿export const EVENTO = {
   nombre: "La Noche Dorada II",
   edicion: "Segunda edición",
   /** 28/11/2026 7:00 pm en hora de Perú (UTC-5). La hora aún no está confirmada por la organización. */
@@ -138,8 +138,8 @@ const p = (
   slug,
   nombre,
   pais,
-  foto: `/peleadores/${slug}.png`,
-  ...(CON_CUERPO.has(slug) && { cuerpo: `/peleadores/cuerpo-${slug}.png` }),
+  foto: `/peleadores/${slug}.webp`,
+  ...(CON_CUERPO.has(slug) && { cuerpo: `/peleadores/cuerpo-${slug}.webp` }),
   ...FICHAS[slug],
 });
 
@@ -148,7 +148,7 @@ export const COMBATES: Combate[] = [
     n: "08",
     billing: "Combate estelar",
     estelar: true,
-    arte: "/combates/arte-08.png",
+    arte: "/combates/arte-08.webp",
     a: p("jh", "JH de la Cruz 777", "CO"),
     b: p("canita", "Cañita", "PE"),
     pctA: 58,
@@ -157,14 +157,14 @@ export const COMBATES: Combate[] = [
   {
     n: "07",
     billing: "Semifondo",
-    arte: "/combates/arte-07.png",
+    arte: "/combates/arte-07.webp",
     a: p("shelao", "Shelao", "CL"),
     b: p("piero", "Piero Arenas", "PE"),
     pctA: 46,
   },
   {
     n: "06",
-    arte: "/combates/arte-06.png",
+    arte: "/combates/arte-06.webp",
     a: p("zully", "Zully", "PE"),
     b: p("may", "May Osorio", "CO"),
     pctA: 61,
@@ -172,21 +172,21 @@ export const COMBATES: Combate[] = [
   },
   {
     n: "05",
-    arte: "/combates/arte-05.png",
+    arte: "/combates/arte-05.webp",
     a: p("bebote", "Bebote", "PE"),
     b: p("kingteka", "Kingteka", "PE"),
     pctA: 52,
   },
   {
     n: "04",
-    arte: "/combates/arte-04.png",
+    arte: "/combates/arte-04.webp",
     a: p("jeque", "El Jeque", "PE"),
     b: p("jota", "Jota Shoy", "PE"),
     pctA: 44,
   },
   {
     n: "03",
-    arte: "/combates/arte-03.png",
+    arte: "/combates/arte-03.webp",
     a: p("pulsera", "Sr. Pulsera", "PE"),
     b: p("sacha", "Sacha Uzumaki", "PE"),
     pctA: 63,
@@ -194,14 +194,14 @@ export const COMBATES: Combate[] = [
   },
   {
     n: "02",
-    arte: "/combates/arte-02.png",
+    arte: "/combates/arte-02.webp",
     a: p("emetsuki", "Emetsuki", "CO"),
     b: p("daniela", "Daniela Taquire", "PE"),
     pctA: 71,
   },
   {
     n: "01",
-    arte: "/combates/arte-01.png",
+    arte: "/combates/arte-01.webp",
     a: p("pepita", "Pepita", "PE"),
     b: p("pauchikita", "Pauchikita", "PE"),
     pctA: 47,

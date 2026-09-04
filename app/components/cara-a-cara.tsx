@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useState } from "react";
@@ -96,7 +96,7 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
       {/* Marca del evento como sello en la esquina, por encima del recorte:
           detrás del peleador se transparentaba sobre la ropa oscura. */}
       <Image
-        src="/marca/logo-noche-dorada.png"
+        src="/marca/logo-noche-dorada.webp"
         alt=""
         aria-hidden
         width={455}

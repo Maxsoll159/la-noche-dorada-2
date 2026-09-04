@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { EVENTO } from "@/lib/evento";
 import { Seccion } from "./seccion";
 
@@ -22,7 +22,7 @@ export function Sede() {
       <div className="grid w-full gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
         <figure className="relative overflow-hidden rounded-sm border border-linea">
           <Image
-            src="/mapa-dibos.png"
+            src="/mapa-dibos.webp"
             alt={`Mapa de ubicación del ${EVENTO.sede} en ${EVENTO.distrito}`}
             width={1200}
             height={860}

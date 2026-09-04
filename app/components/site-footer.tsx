@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { EVENTO, NAV } from "@/lib/evento";
 import { FileteOro } from "./filete-oro";
 
@@ -28,7 +28,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-11 lg:flex-row lg:gap-16">
           <div className="flex max-w-sm flex-col gap-4">
             <Image
-              src="/marca/logo-noche-dorada.png"
+              src="/marca/logo-noche-dorada.webp"
               alt={EVENTO.nombre}
               width={455}
               height={406}

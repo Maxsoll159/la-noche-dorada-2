@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -80,7 +80,7 @@ export function SiteHeader() {
           onClick={() => setAbierto(false)}
         >
           <Image
-            src="/marca/logo-noche-dorada.png"
+            src="/marca/logo-noche-dorada.webp"
             alt={EVENTO.nombre}
             width={455}
             height={406}
