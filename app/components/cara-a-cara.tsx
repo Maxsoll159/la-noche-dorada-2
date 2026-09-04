@@ -57,7 +57,13 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
   return (
     // Alto fijo en vez de proporción: el recorte de origen es muy vertical
     // (250x470) y con la proporción exacta el panel se volvía altísimo.
-    <div className="relative h-[290px] overflow-hidden bg-[#0e0e12] sm:h-[410px] lg:h-[460px]">
+    <div
+      className={`relative h-[290px] overflow-hidden bg-[#0e0e12] sm:h-[410px] lg:h-[460px] ${
+        // Sin el VS en el medio, la línea dorada es la que dice que estos dos
+        // se enfrentan; en escritorio ese trabajo lo hace la columna central.
+        esIzq ? "border-r border-oro-profundo lg:border-r-0" : ""
+      }`}
+    >
       <div
         aria-hidden
         className="absolute inset-0 bg-[radial-gradient(70%_70%_at_50%_42%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
@@ -139,7 +145,7 @@ export function CaraACara() {
     <div className="flex w-full flex-col items-center gap-11">
       {/* En móvil quedan solo los dos peleadores enfrentados: el VS y la tabla
           se esconden porque a ese ancho la ficha ocupaba más que las fotos. */}
-      <div className="grid w-full grid-cols-2 overflow-hidden rounded-sm border border-linea bg-[#0e0e12] lg:grid-cols-[1fr_auto_1fr]">
+      <div className="grid w-full grid-cols-2 overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] lg:grid-cols-[1fr_auto_1fr] lg:border-linea">
         <Panel peleador={combate.a} lado="izq" />
 
         <div className="hidden flex-col items-center justify-center gap-4 border-linea px-5 py-7 lg:flex lg:w-[292px] lg:border-x">
