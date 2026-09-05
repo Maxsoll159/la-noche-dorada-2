@@ -27,6 +27,14 @@ export default function Page() {
         >
           <CaraACara />
         </Seccion>
+        <Seccion
+          id="pronosticos"
+          antetitulo="Votación abierta"
+          titulo="Pronósticos"
+          bajada="Elige a tu favorito en cada uno de los ocho combates, arma tu quiniela y compártela antes de la gran noche."
+        >
+          <Pronosticos />
+        </Seccion>
         <Combates />
         <Seccion
           id="presentacion"
@@ -35,14 +43,6 @@ export default function Page() {
           bajada="La noche en que se anunció la cartelera completa: los dieciséis creadores en el escenario, cara a cara por primera vez."
         >
           <Presentacion />
-        </Seccion>
-        <Seccion
-          id="pronosticos"
-          antetitulo="Votación abierta"
-          titulo="Pronósticos"
-          bajada="Elige a tu favorito en cada uno de los ocho combates, arma tu quiniela y compártela antes de la gran noche."
-        >
-          <Pronosticos />
         </Seccion>
         <Entradas />
         <Sede />

@@ -356,7 +356,7 @@ export function Pronosticos() {
       (c) => `${c.n} · ${votos[c.n] === "a" ? c.a.nombre : c.b.nombre}`,
     );
     const texto = [
-      `Mi quiniela para ${EVENTO.nombre}:`,
+      `Mis pronósticos para ${EVENTO.nombre}:`,
       ...elegidos,
       window.location.origin,
     ].join("\n");
@@ -377,16 +377,16 @@ export function Pronosticos() {
   return (
     <div className="flex w-full flex-col items-center gap-7">
       {!activo ? (
-        <div className="flex w-full flex-col items-center gap-5 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-8 text-center sm:flex-row sm:text-left">
+        <div className="flex w-full flex-col items-center gap-4 rounded-sm border border-oro-profundo bg-oro-tinte px-4 py-6 text-center sm:flex-row sm:gap-5 sm:px-7 sm:py-8 sm:text-left">
           <span className="text-oro">
             <Candado />
           </span>
           <div className="flex-1">
-            <p className="font-display text-[22px] uppercase leading-tight text-oro-claro">
+            <p className="font-display text-[19px] uppercase leading-tight text-oro-claro sm:text-[22px]">
               La votación abre en la segunda fase
             </p>
-            <p className="font-cond text-[13px] font-semibold uppercase tracking-[0.14em] text-tenue">
-              Podrás armar tu quiniela de los ocho combates y compartirla
+            <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.12em] text-tenue sm:text-[13px] sm:tracking-[0.14em]">
+              Podrás elegir a tu favorito en los ocho combates y compartirlo
             </p>
           </div>
           <span className="shrink-0 rounded-full border border-oro bg-noche/60 px-4 py-2 font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro">
@@ -394,15 +394,15 @@ export function Pronosticos() {
           </span>
         </div>
       ) : !usuario ? (
-        <div className="flex w-full flex-col items-center gap-6 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-8 text-center lg:flex-row lg:text-left">
+        <div className="flex w-full flex-col items-center gap-5 rounded-sm border border-oro-profundo bg-oro-tinte px-4 py-6 text-center sm:px-7 sm:py-8 lg:flex-row lg:gap-6 lg:text-left">
           <span className="text-oro">
             <Trofeo />
           </span>
           <div className="flex-1">
-            <p className="font-display text-[22px] uppercase leading-tight text-oro-claro">
-              Arma tu quiniela
+            <p className="font-display text-[19px] uppercase leading-tight text-oro-claro sm:text-[22px]">
+              Arma tus pronósticos
             </p>
-            <p className="font-cond text-[13px] font-semibold uppercase tracking-[0.14em] text-tenue">
+            <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.12em] text-tenue sm:text-[13px] sm:tracking-[0.14em]">
               Entra con Google y elige a tu favorito en los ocho combates
             </p>
           </div>
@@ -410,21 +410,25 @@ export function Pronosticos() {
         </div>
       ) : (
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-col items-center gap-6 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-6 lg:flex-row lg:gap-9">
-            <div className="flex items-center gap-4">
-              <span className="text-oro">
+          {/* Hasta lg va apilada y a lo ancho: el trofeo con el conteo arriba,
+              la barra de los ocho combates en medio y el botón abajo a ancho
+              completo. En una fila los tres bloques no entran sin que el
+              contador se parta y la barra quede en un hilo. */}
+          <div className="flex w-full flex-col items-center gap-5 rounded-sm border border-oro-profundo bg-oro-tinte px-4 py-5 sm:px-7 sm:py-6 lg:flex-row lg:gap-9">
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <span className="shrink-0 text-oro">
                 <Trofeo />
               </span>
               <div>
-                <p className="font-display text-[22px] uppercase leading-tight text-oro-claro">
-                  Tu quiniela
+                <p className="font-display text-[19px] uppercase leading-tight text-oro-claro sm:text-[22px]">
+                  Tus pronósticos
                 </p>
-                <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.16em] text-tenue">
-                  {hechos} de {COMBATES.length} combates pronosticados
+                <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.14em] text-tenue sm:tracking-[0.16em]">
+                  {hechos} de {COMBATES.length} combates elegidos
                 </p>
               </div>
             </div>
-            <ol className="flex flex-1 items-center gap-1.5" aria-hidden>
+            <ol className="flex w-full flex-1 items-center gap-1.5" aria-hidden>
               {COMBATES.map((c) => (
                 <li
                   key={c.n}
@@ -438,9 +442,9 @@ export function Pronosticos() {
               type="button"
               onClick={compartir}
               disabled={hechos === 0}
-              className="flex shrink-0 cursor-pointer items-center gap-2 rounded-sm bg-oro px-6 py-3 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-6 py-3.5 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 sm:py-3 lg:w-auto"
             >
-              {copiado ? "Copiada" : "Compartir quiniela"}
+              {copiado ? "Copiados" : "Compartir"}
             </button>
           </div>
 
