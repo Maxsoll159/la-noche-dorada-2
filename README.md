@@ -89,14 +89,14 @@ entrar no lleva a ninguna parte.
 
 - Crea un proyecto y ve a *APIs y servicios → Pantalla de consentimiento de
   OAuth*. Tipo **Externo**, nombre "La Noche Dorada II", correo de soporte.
+  (Este paso ya está hecho: Google devuelve el código correctamente.)
 - **Publica la pantalla de consentimiento** (pasarla de *Testing* a
   *Producción*). Si se queda en pruebas, solo podrán entrar los correos que
   agregues a mano como testers.
-- *Credenciales → Crear credenciales → ID de cliente de OAuth → Aplicación web*:
-  - Orígenes de JavaScript autorizados: `http://localhost:3000` y el dominio
-    real (`https://lanochedorada.pe`).
-  - URI de redireccionamiento autorizado:
-    `https://hokvyjamnbbaxqirfbww.supabase.co/auth/v1/callback`
+- *Credenciales → Crear credenciales → ID de cliente de OAuth → Aplicación web*.
+  El único valor que importa es el URI de redireccionamiento autorizado, que
+  apunta a Supabase y no al sitio (el intercambio lo hace Supabase, no la web):
+  `https://hokvyjamnbbaxqirfbww.supabase.co/auth/v1/callback`
 - Copia el **Client ID** y el **Client secret**.
 
 **2. En Supabase** (*Authentication*)
@@ -105,9 +105,22 @@ entrar no lleva a ninguna parte.
 - *Sign In / Providers → Email*: **deshabilítalo**. Viene activo por defecto y
   es lo único que impide que alguien se registre con correo y contraseña en vez
   de con Google.
-- *URL Configuration*:
-  - Site URL: el dominio real.
-  - Redirect URLs: `http://localhost:3000/**` y `https://lanochedorada.pe/**`.
+- *URL Configuration*. Ojo aquí: si la URL de vuelta no está en la lista,
+  Supabase **no da error** — manda el `code` al Site URL y el acceso se pierde.
+  Acabar en `http://localhost:3000/?code=...` desde producción es exactamente
+  ese síntoma.
+  - Site URL: `https://la-noche-dorada-2.vercel.app`. Es solo el respaldo, pero
+    si se queda en `http://localhost:3000` cualquier hueco en la lista de abajo
+    despacha a los usuarios a su propia máquina.
+  - Redirect URLs, con la **ruta exacta**, una por entorno:
+    - `https://la-noche-dorada-2.vercel.app/auth/callback`
+    - `http://localhost:3000/auth/callback`
+    - `https://la-noche-dorada-2-*.vercel.app/auth/callback` (deploys de
+      preview de Vercel)
+
+  La comparación es sobre la URL entera, query incluida. Por eso `redirectTo`
+  no lleva parámetros: así basta la ruta exacta y no hace falta un comodín
+  `/**`, que la propia documentación de Supabase desaconseja en producción.
 
 **3. Al desplegar**
 
@@ -115,6 +128,12 @@ Las dos variables de `.env.local` van también en el hosting (en Vercel,
 *Settings → Environment Variables*). Son claves públicas a propósito: viajan al
 navegador y lo que se puede hacer con ellas lo decide la RLS. La `service_role`
 no se usa en este proyecto y no debe acabar en ninguna variable `NEXT_PUBLIC_`.
+
+Aparte, `NEXT_PUBLIC_SITIO` no está puesta en Vercel, así que el canónico, el
+`sitemap.xml` y el `robots.txt` de producción anuncian `https://lanochedorada.pe`
+—el dominio definitivo— y no donde el sitio vive hoy. No afecta a la votación.
+Cuando se decida el dominio de salida, o se apunta el real al despliegue o se
+pone `NEXT_PUBLIC_SITIO=https://la-noche-dorada-2.vercel.app`.
 
 ## Apagar la votación
 

@@ -142,7 +142,11 @@ export function useVotacion(activo: boolean) {
 
   const entrar = useCallback(async () => {
     const supabase = clienteNavegador();
-    const vuelta = `${window.location.origin}/auth/callback?siguiente=${encodeURIComponent("/#pronosticos")}`;
+    // Sin query params a propósito: Supabase compara esta URL entera contra su
+    // lista blanca de Redirect URLs, así que cualquier `?loquesea` obligaría a
+    // poner un comodín `/**` en vez de la ruta exacta. Si no casa, no avisa:
+    // manda el código al Site URL y el acceso se pierde.
+    const vuelta = `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: vuelta },
