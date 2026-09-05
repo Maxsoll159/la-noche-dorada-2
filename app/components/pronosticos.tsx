@@ -1,21 +1,14 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   COMBATES,
+  EVENTO,
   PRONOSTICOS_ACTIVOS,
   type Combate,
 } from "@/lib/evento";
-
-const CLAVE = "nd2:quiniela";
-type Votos = Record<string, "a" | "b">;
-
-const inicial: Votos = PRONOSTICOS_ACTIVOS
-  ? Object.fromEntries(
-      COMBATES.filter((c) => c.votado).map((c) => [c.n, c.votado!]),
-    )
-  : {};
+import { estaAbierto, useVotacion, type Conteo, type Lado } from "@/lib/votacion";
 
 function Candado() {
   return (
@@ -74,6 +67,49 @@ function IconoVoto() {
       <path d="m9 12 2 2 4-4" />
       <path d="M3 17V9l9-6 9 6v8l-9 4-9-4Z" />
     </svg>
+  );
+}
+
+/** La G de Google, con sus cuatro colores de marca. */
+function LogoGoogle() {
+  return (
+    <svg aria-hidden width="18" height="18" viewBox="0 0 48 48" className="shrink-0">
+      <path
+        fill="#4285F4"
+        d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.7v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3Z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 46c6 0 11-2 14.6-5.2l-7.1-5.6c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.1H4.3v5.8C7.9 41.2 15.4 46 24 46Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M11.6 28.2a13.2 13.2 0 0 1 0-8.4v-5.8H4.3a22 22 0 0 0 0 20l7.3-5.8Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 2.9 30 1 24 1 15.4 1 7.9 5.8 4.3 12.9l7.3 5.8C13.3 13.4 18.2 9.5 24 9.5Z"
+      />
+    </svg>
+  );
+}
+
+function BotonGoogle({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-sm bg-crema px-6 py-3 font-cond text-[13px] font-bold uppercase tracking-[0.13em] text-noche transition-colors hover:bg-white"
+    >
+      <LogoGoogle />
+      {children}
+    </button>
   );
 }
 
@@ -140,23 +176,29 @@ function Lado({
 
 function Card({
   c,
+  conteo,
   voto,
+  enviando,
   onVotar,
 }: {
   c: Combate;
-  voto?: "a" | "b";
-  onVotar: (lado: "a" | "b") => void;
+  conteo?: Conteo;
+  voto?: Lado;
+  enviando: boolean;
+  onVotar: (lado: Lado) => void;
 }) {
   const activo = PRONOSTICOS_ACTIVOS;
-
-  // El voto propio mueve la barra 2 puntos hacia el elegido, para que la
-  // interacción se sienta sin falsear el conteo de la comunidad.
-  const pctA = Math.min(
-    98,
-    Math.max(2, c.pctA + (voto === "a" ? 2 : voto === "b" ? -2 : 0)),
-  );
-  // Bloqueado no hay conteo que mostrar: barra al centro y porcentajes en raya.
-  const anchoA = activo ? pctA : 50;
+  // Sin un solo voto no hay porcentaje que enseñar: un 50/50 inventado sería
+  // mentira, así que los dos lados van en raya y la barra queda gris.
+  const pctA = activo && conteo ? conteo.pctA : null;
+  const anchoA = pctA ?? 50;
+  const lideraA = pctA !== null && pctA >= 50;
+  const lideraB = pctA !== null && pctA < 50;
+  const abierto = activo && estaAbierto(conteo);
+  // Todavía no llegó el conteo de la base: los botones no deben dejar votar
+  // contra un combate del que no sabemos si sigue abierto.
+  const esperando = activo && !conteo;
+  const bloqueado = !activo || esperando || !abierto;
 
   return (
     <article
@@ -177,7 +219,11 @@ function Card({
           )}
         </p>
         <p className="flex items-center gap-2 font-cond text-[10px] font-bold uppercase tracking-[0.1em] sm:text-[11px] sm:tracking-[0.14em]">
-          {activo ? (
+          {!activo ? (
+            <span className="text-oro-profundo">Próximamente</span>
+          ) : esperando ? (
+            <span className="text-tenue">Cargando</span>
+          ) : (
             <>
               <span
                 aria-hidden
@@ -186,11 +232,9 @@ function Card({
                 }`}
               />
               <span className={voto ? "text-oro" : "text-tenue"}>
-                {voto ? "Ya votaste" : "Votación abierta"}
+                {!abierto ? "Votación cerrada" : voto ? "Ya votaste" : "Votación abierta"}
               </span>
             </>
-          ) : (
-            <span className="text-oro-profundo">Próximamente</span>
           )}
         </p>
       </header>
@@ -199,8 +243,8 @@ function Card({
         <Lado
           nombre={c.a.nombre}
           foto={c.a.foto}
-          pct={activo ? pctA : null}
-          lidera={activo && pctA >= 50}
+          pct={pctA}
+          lidera={lideraA}
           izquierda
         />
         <span className="relative grid size-[42px] shrink-0 place-items-center sm:size-[68px]">
@@ -215,8 +259,8 @@ function Card({
         <Lado
           nombre={c.b.nombre}
           foto={c.b.foto}
-          pct={activo ? 100 - pctA : null}
-          lidera={activo && pctA < 50}
+          pct={pctA === null ? null : 100 - pctA}
+          lidera={lideraB}
           izquierda={false}
         />
       </div>
@@ -225,33 +269,35 @@ function Card({
         <span
           style={{ width: `${anchoA}%` }}
           className={`block transition-[width] duration-500 ${
-            !activo
-              ? "bg-[#3a3a44]"
-              : pctA >= 50
-                ? "bg-gradient-to-r from-oro-profundo to-oro-claro"
-                : "bg-[#3a3a44]"
+            lideraA
+              ? "bg-gradient-to-r from-oro-profundo to-oro-claro"
+              : "bg-[#3a3a44]"
           }`}
         />
         <span
           className={`block flex-1 transition-[width] duration-500 ${
-            !activo
-              ? "bg-[#2a2a31]"
-              : pctA < 50
-                ? "bg-gradient-to-l from-oro-profundo to-oro-claro"
-                : "bg-[#3a3a44]"
+            lideraB
+              ? "bg-gradient-to-l from-oro-profundo to-oro-claro"
+              : "bg-[#3a3a44]"
           }`}
         />
       </div>
 
       <footer className="bg-[#08080b] px-3 py-5 sm:px-7">
-        {!activo ? (
+        {bloqueado ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {(["a", "b"] as const).map((lado) => (
               <button
                 key={lado}
                 type="button"
                 disabled
-                title="La votación se habilita en la segunda fase"
+                title={
+                  !activo
+                    ? "La votación se habilita en la segunda fase"
+                    : esperando
+                      ? "Cargando la votación"
+                      : "La votación de este combate ya cerró"
+                }
                 className="flex items-center justify-center gap-2 rounded-sm border border-linea px-3 py-3.5 text-center font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.08em] text-tenue opacity-50"
               >
                 <Candado />
@@ -269,8 +315,9 @@ function Card({
             </p>
             <button
               type="button"
+              disabled={enviando}
               onClick={() => onVotar(voto)}
-              className="cursor-pointer font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-tenue underline transition-colors hover:text-oro"
+              className="cursor-pointer font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-tenue underline transition-colors hover:text-oro disabled:cursor-wait disabled:opacity-50"
             >
               Cambiar voto
             </button>
@@ -281,8 +328,9 @@ function Card({
               <button
                 key={lado}
                 type="button"
+                disabled={enviando}
                 onClick={() => onVotar(lado)}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-oro-profundo px-3 py-3.5 text-center font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.08em] text-oro transition-colors hover:border-oro hover:bg-oro-tinte"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-oro-profundo px-3 py-3.5 text-center font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.08em] text-oro transition-colors hover:border-oro hover:bg-oro-tinte disabled:cursor-wait disabled:opacity-50"
               >
                 <IconoVoto />
                 Votar por {c[lado].nombre}
@@ -297,71 +345,38 @@ function Card({
 
 export function Pronosticos() {
   const activo = PRONOSTICOS_ACTIVOS;
-  const [votos, setVotos] = useState<Votos>(inicial);
-
-  // La quiniela vive en el navegador hasta que exista backend de votación.
-  useEffect(() => {
-    if (!activo) return;
-    try {
-      const guardado = localStorage.getItem(CLAVE);
-      if (guardado) setVotos(JSON.parse(guardado));
-    } catch {
-      /* modo privado o storage bloqueado: seguimos con el estado inicial */
-    }
-  }, [activo]);
-
-  const votar = (n: string, lado: "a" | "b") => {
-    if (!activo) return;
-    setVotos((prev) => {
-      const siguiente = { ...prev };
-      if (siguiente[n] === lado) delete siguiente[n];
-      else siguiente[n] = lado;
-      try {
-        localStorage.setItem(CLAVE, JSON.stringify(siguiente));
-      } catch {
-        /* sin persistencia disponible */
-      }
-      return siguiente;
-    });
-  };
+  const { usuario, conteos, votos, cargando, enviando, error, votar, entrar, salir } =
+    useVotacion(activo);
+  const [copiado, setCopiado] = useState(false);
 
   const hechos = Object.keys(votos).length;
 
+  const compartir = async () => {
+    const elegidos = COMBATES.filter((c) => votos[c.n]).map(
+      (c) => `${c.n} · ${votos[c.n] === "a" ? c.a.nombre : c.b.nombre}`,
+    );
+    const texto = [
+      `Mi quiniela para ${EVENTO.nombre}:`,
+      ...elegidos,
+      window.location.origin,
+    ].join("\n");
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: EVENTO.nombre, text: texto });
+      } else {
+        await navigator.clipboard.writeText(texto);
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 2200);
+      }
+    } catch {
+      /* el usuario canceló el diálogo de compartir, o no dio permiso */
+    }
+  };
+
   return (
     <div className="flex w-full flex-col items-center gap-7">
-      {activo ? (
-        <div className="flex w-full flex-col items-center gap-6 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-6 lg:flex-row lg:gap-9">
-          <div className="flex items-center gap-4">
-            <span className="text-oro">
-              <Trofeo />
-            </span>
-            <div>
-              <p className="font-display text-[22px] uppercase leading-tight text-oro-claro">
-                Tu quiniela
-              </p>
-              <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.16em] text-tenue">
-                {hechos} de {COMBATES.length} combates pronosticados
-              </p>
-            </div>
-          </div>
-          <ol className="flex flex-1 items-center gap-1.5" aria-hidden>
-            {COMBATES.map((c) => (
-              <li
-                key={c.n}
-                className={`h-2 flex-1 rounded-full transition-colors ${
-                  votos[c.n] ? "bg-oro" : "bg-[#2a2a31]"
-                }`}
-              />
-            ))}
-          </ol>
-          <button
-            type="button"
-            className="flex shrink-0 cursor-pointer items-center gap-2 rounded-sm bg-oro px-6 py-3 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro"
-          >
-            Compartir quiniela
-          </button>
-        </div>
-      ) : (
+      {!activo ? (
         <div className="flex w-full flex-col items-center gap-5 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-8 text-center sm:flex-row sm:text-left">
           <span className="text-oro">
             <Candado />
@@ -378,6 +393,89 @@ export function Pronosticos() {
             Próximamente
           </span>
         </div>
+      ) : !usuario ? (
+        <div className="flex w-full flex-col items-center gap-6 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-8 text-center lg:flex-row lg:text-left">
+          <span className="text-oro">
+            <Trofeo />
+          </span>
+          <div className="flex-1">
+            <p className="font-display text-[22px] uppercase leading-tight text-oro-claro">
+              Arma tu quiniela
+            </p>
+            <p className="font-cond text-[13px] font-semibold uppercase tracking-[0.14em] text-tenue">
+              Entra con Google y elige a tu favorito en los ocho combates
+            </p>
+          </div>
+          <BotonGoogle onClick={entrar}>Entrar con Google</BotonGoogle>
+        </div>
+      ) : (
+        <div className="flex w-full flex-col gap-4">
+          <div className="flex w-full flex-col items-center gap-6 rounded-sm border border-oro-profundo bg-oro-tinte px-7 py-6 lg:flex-row lg:gap-9">
+            <div className="flex items-center gap-4">
+              <span className="text-oro">
+                <Trofeo />
+              </span>
+              <div>
+                <p className="font-display text-[22px] uppercase leading-tight text-oro-claro">
+                  Tu quiniela
+                </p>
+                <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.16em] text-tenue">
+                  {hechos} de {COMBATES.length} combates pronosticados
+                </p>
+              </div>
+            </div>
+            <ol className="flex flex-1 items-center gap-1.5" aria-hidden>
+              {COMBATES.map((c) => (
+                <li
+                  key={c.n}
+                  className={`h-2 flex-1 rounded-full transition-colors ${
+                    votos[c.n] ? "bg-oro" : "bg-[#2a2a31]"
+                  }`}
+                />
+              ))}
+            </ol>
+            <button
+              type="button"
+              onClick={compartir}
+              disabled={hechos === 0}
+              className="flex shrink-0 cursor-pointer items-center gap-2 rounded-sm bg-oro px-6 py-3 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {copiado ? "Copiada" : "Compartir quiniela"}
+            </button>
+          </div>
+
+          <p className="flex flex-wrap items-center justify-end gap-3 font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-tenue">
+            <span className="flex items-center gap-2">
+              {usuario.user_metadata.avatar_url && (
+                <Image
+                  src={usuario.user_metadata.avatar_url}
+                  alt=""
+                  width={22}
+                  height={22}
+                  unoptimized
+                  className="rounded-full border border-oro-profundo"
+                />
+              )}
+              {usuario.user_metadata.full_name ?? usuario.email}
+            </span>
+            <button
+              type="button"
+              onClick={salir}
+              className="cursor-pointer underline transition-colors hover:text-oro"
+            >
+              Cerrar sesión
+            </button>
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <p
+          role="status"
+          className="w-full rounded-sm border border-[#7a2b2b] bg-[#1c0d0d] px-5 py-3 text-center font-cond text-[13px] font-semibold uppercase tracking-[0.12em] text-[#ffb4b4]"
+        >
+          {error}
+        </p>
       )}
 
       <div className="grid w-full gap-5 lg:grid-cols-2">
@@ -385,16 +483,20 @@ export function Pronosticos() {
           <Card
             key={c.n}
             c={c}
+            conteo={conteos[c.n]}
             voto={votos[c.n]}
+            enviando={enviando === c.n}
             onVotar={(lado) => votar(c.n, lado)}
           />
         ))}
       </div>
 
       <p className="text-center font-cond text-[12px] font-semibold uppercase tracking-[0.2em] text-oro-profundo">
-        {activo
-          ? "Porcentajes de demostración · La votación real se activa al publicar · Un voto por combate"
-          : "Los pronósticos de la comunidad se habilitan en la segunda fase del sitio"}
+        {!activo
+          ? "Los pronósticos de la comunidad se habilitan en la segunda fase del sitio"
+          : cargando
+            ? "Cargando los pronósticos de la comunidad"
+            : `Un voto por combate · Puedes cambiarlo hasta el ${EVENTO.fechaLarga.toLowerCase()} · Nadie ve a quién votaste`}
       </p>
     </div>
   );

@@ -31,11 +31,15 @@ export const PRESENTACION = {
 } as const;
 
 /**
- * La votación llega en una segunda fase. Mientras esté en false, la sección de
- * pronósticos se muestra bloqueada: sin porcentajes y con los botones inertes.
- * Al ponerlo en true se activa la interacción tal como está construida.
+ * Interruptor de la votación. En false la sección se muestra bloqueada: sin
+ * porcentajes y con los botones inertes, sin hablar con Supabase. En true la
+ * sección lee los conteos reales y deja votar.
+ *
+ * Antes de publicarlo en true hace falta que Google esté habilitado como
+ * proveedor de Auth en Supabase; si no, el botón de iniciar sesión no lleva a
+ * ninguna parte. Los pasos están en README.md.
  */
-export const PRONOSTICOS_ACTIVOS = false;
+export const PRONOSTICOS_ACTIVOS = true;
 
 export type Peleador = {
   slug: string;
@@ -112,7 +116,7 @@ export function edadEn(nacimientoISO: string, referenciaISO: string): number {
  * transparente. Todas se exportan normalizadas a proporción 0.8 con la silueta
  * centrada y apoyada al pie, así entran igual en la card sin importar que la
  * foto original fuera de medio cuerpo o de busto.
- * Faltan: may, jota, daniela, pepita.
+ * Ya están los dieciséis.
  */
 const CON_CUERPO = new Set([
   "jh",
@@ -127,9 +131,18 @@ const CON_CUERPO = new Set([
   "sacha",
   "emetsuki",
   "pauchikita",
+  "may",
+  "jota",
+  "daniela",
+  "pepita",
 ]);
 
 export type Combate = {
+  /**
+   * "01".."08", el rótulo del cartel. Es también la clave con la que este
+   * combate se cruza con la tabla `combates` de Supabase: los porcentajes y
+   * el voto del usuario llegan de ahí, no de este archivo.
+   */
   n: string;
   /** Rótulo de cartel: estelar, semifondo o vacío */
   billing?: string;
@@ -137,10 +150,6 @@ export type Combate = {
   arte: string;
   a: Peleador;
   b: Peleador;
-  /** Porcentaje del peleador A. Dato de demostración hasta que se abra la votación real. */
-  pctA: number;
-  /** "a" | "b" si el usuario ya votó. Simula el estado guardado. */
-  votado?: "a" | "b";
 };
 
 const p = (
@@ -164,8 +173,6 @@ export const COMBATES: Combate[] = [
     arte: "/combates/arte-08.webp",
     a: p("jh", "JH de la Cruz 777", "CO"),
     b: p("canita", "Cañita", "PE"),
-    pctA: 58,
-    votado: "a",
   },
   {
     n: "07",
@@ -173,51 +180,42 @@ export const COMBATES: Combate[] = [
     arte: "/combates/arte-07.webp",
     a: p("shelao", "Shelao", "CL"),
     b: p("piero", "Piero Arenas", "PE"),
-    pctA: 46,
   },
   {
     n: "06",
     arte: "/combates/arte-06.webp",
     a: p("zully", "Zully", "PE"),
     b: p("may", "May Osorio", "CO"),
-    pctA: 61,
-    votado: "a",
   },
   {
     n: "05",
     arte: "/combates/arte-05.webp",
     a: p("bebote", "Bebote", "PE"),
     b: p("kingteka", "Kingteka", "PE"),
-    pctA: 52,
   },
   {
     n: "04",
     arte: "/combates/arte-04.webp",
     a: p("jeque", "El Jeque", "PE"),
     b: p("jota", "Jota Shoy", "PE"),
-    pctA: 44,
   },
   {
     n: "03",
     arte: "/combates/arte-03.webp",
     a: p("pulsera", "Sr. Pulsera", "PE"),
     b: p("sacha", "Sacha Uzumaki", "PE"),
-    pctA: 63,
-    votado: "a",
   },
   {
     n: "02",
     arte: "/combates/arte-02.webp",
     a: p("emetsuki", "Emetsuki", "CO"),
     b: p("daniela", "Daniela Taquire", "PE"),
-    pctA: 71,
   },
   {
     n: "01",
     arte: "/combates/arte-01.webp",
     a: p("pepita", "Pepita", "PE"),
     b: p("pauchikita", "Pauchikita", "PE"),
-    pctA: 47,
   },
 ];
 

@@ -38,9 +38,9 @@ export default function Page() {
         </Seccion>
         <Seccion
           id="pronosticos"
-          antetitulo="Segunda fase · Próximamente"
+          antetitulo="Votación abierta"
           titulo="Pronósticos"
-          bajada="Pronto podrás elegir a tu favorito en cada uno de los ocho combates, armar tu quiniela y compartirla antes de la gran noche."
+          bajada="Elige a tu favorito en cada uno de los ocho combates, arma tu quiniela y compártela antes de la gran noche."
         >
           <Pronosticos />
         </Seccion>
