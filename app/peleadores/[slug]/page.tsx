@@ -347,23 +347,25 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                 style={{ animationDelay: "580ms" }}
                 className="entrada flex flex-col items-center gap-3"
               >
-                <ul className="flex flex-wrap justify-center gap-2.5">
+                <ul className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
                   {peleador.redes.map((r) => (
                     <li key={r.url}>
                       <a
                         href={r.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="group flex w-[168px] items-center gap-2.5 rounded-sm border border-linea bg-carbon px-3 py-2.5 transition duration-300 hover:-translate-y-0.5 hover:border-oro hover:bg-oro-tinte sm:w-[186px]"
+                        className="group flex items-center gap-2 rounded-sm border border-linea bg-carbon px-3 py-2 transition duration-300 hover:-translate-y-0.5 hover:border-oro hover:bg-oro-tinte sm:w-[186px] sm:gap-2.5 sm:py-2.5"
                       >
                         <span className="grid size-8 shrink-0 place-items-center rounded-sm border border-oro-profundo text-oro transition-colors duration-300 group-hover:border-oro">
                           <IconoRed plataforma={r.plataforma} grande />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block font-cond text-[9px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
+                          <span className="block whitespace-nowrap font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-crema sm:text-[9px] sm:tracking-[0.18em] sm:text-oro-profundo">
                             {r.plataforma}
                           </span>
-                          <span className="block truncate font-cond text-[12px] font-semibold text-crema">
+                          {/* El handle solo desde sm: en móvil la tarjeta no
+                              da el ancho y salía truncado en las 5. */}
+                          <span className="hidden truncate font-cond text-[12px] font-semibold text-crema sm:block">
                             {r.usuario}
                           </span>
                         </span>

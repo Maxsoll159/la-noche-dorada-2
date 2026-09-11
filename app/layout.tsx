@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Barlow, Barlow_Condensed } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const anton = Anton({
@@ -84,7 +85,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es-PE"
       className={`${anton.variable} ${barlow.variable} ${barlowCondensed.variable} antialiased`}
     >
-      <body className="min-h-screen bg-noche text-crema">{children}</body>
+      <body className="min-h-screen bg-noche text-crema">
+        {children}
+        {/* Analítica de Vercel. La subruta `/next` es la del App Router: se
+            encarga sola de registrar los cambios de ruta del router cliente.
+            En desarrollo no envía nada, solo deja trazas en consola. */}
+        <Analytics />
+      </body>
     </html>
   );
 }
