@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Barlow, Barlow_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const anton = Anton({
@@ -91,6 +92,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             encarga sola de registrar los cambios de ruta del router cliente.
             En desarrollo no envía nada, solo deja trazas en consola. */}
         <Analytics />
+        {/* Core Web Vitals de visitas reales. Mide lo que de verdad sufre el
+            usuario, a diferencia de Lighthouse, que es un laboratorio. Aquí
+            interesa sobre todo el LCP del hero, que carga el cartel. */}
+        <SpeedInsights />
       </body>
     </html>
   );
