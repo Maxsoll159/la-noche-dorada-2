@@ -1,48 +1,11 @@
 ﻿"use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
-import {
-  BANDERAS,
-  COMBATES,
-  EVENTO,
-  PELEADORES,
-  edadEn,
-  type Peleador,
-} from "@/lib/evento";
+import { BANDERAS, COMBATES, PELEADORES, type Peleador } from "@/lib/evento";
 import { Bandera } from "./bandera";
-
-/** Coma decimal: la ficha se lee en español. */
-const coma = (n: number, decimales: number) =>
-  n.toFixed(decimales).replace(".", ",");
-
-const marca = (p: Peleador) => (p.aprox ? "*" : "");
-
-/**
- * Cada fila devuelve null cuando el dato no está publicado y la tabla pinta el
- * guion.
- */
-const FILAS_TAPE: {
-  etiqueta: string;
-  valor: (p: Peleador) => string | null;
-}[] = [
-  {
-    etiqueta: "Edad",
-    valor: (p) =>
-      p.nacimiento ? `${edadEn(p.nacimiento, EVENTO.inicioISO)}` : null,
-  },
-  {
-    etiqueta: "Altura",
-    valor: (p) => (p.altura ? `${coma(p.altura, 2)} m${marca(p)}` : null),
-  },
-  {
-    etiqueta: "Peso",
-    valor: (p) => (p.peso ? `${coma(p.peso, 1)} kg${marca(p)}` : null),
-  },
-];
-
-/** Hay alturas y pesos que no salen de una balanza: se marcan con asterisco. */
-const HAY_APROX = PELEADORES.some((p) => p.aprox);
+import { FichaTape, NotaAprox } from "./ficha-tape";
 
 /** slug de cada peleador -> número del combate en el que pelea */
 const COMBATE_DE = new Map(
@@ -55,10 +18,13 @@ const COMBATE_DE = new Map(
 function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) {
   const esIzq = lado === "izq";
   return (
-    // Alto fijo en vez de proporción: el recorte de origen es muy vertical
-    // (250x470) y con la proporción exacta el panel se volvía altísimo.
-    <div
-      className={`relative h-[290px] overflow-hidden bg-[#0e0e12] sm:h-[410px] lg:h-[460px] ${
+    // Toda la foto es el enlace a la ficha. Alto fijo en vez de proporción:
+    // el recorte de origen es muy vertical (250x470) y con la proporción
+    // exacta el panel se volvía altísimo.
+    <Link
+      href={`/peleadores/${peleador.slug}`}
+      aria-label={`Ver la ficha de ${peleador.nombre}`}
+      className={`group relative block h-[290px] overflow-hidden bg-[#0e0e12] sm:h-[410px] lg:h-[460px] ${
         // Sin el VS en el medio, la línea dorada es la que dice que estos dos
         // se enfrentan; en escritorio ese trabajo lo hace la columna central.
         esIzq ? "border-r border-oro-profundo lg:border-r-0" : ""
@@ -68,8 +34,13 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
         aria-hidden
         className="absolute inset-0 bg-[radial-gradient(70%_70%_at_50%_42%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
       />
+      {/* El nodo con `key` tiene que ser HIJO ÚNICO de su envoltorio: si
+          convive con hermanos sin key, React no da de baja el anterior y los
+          peleadores se van apilando uno encima de otro a cada cambio.
+          La key remonta el nodo y eso vuelve a disparar la animación. */}
+      <div className="absolute inset-0">
+      <span key={peleador.slug} className="cambio absolute inset-0">
       <Image
-        key={peleador.slug}
         src={peleador.cuerpo ?? peleador.foto}
         alt={peleador.nombre}
         fill
@@ -79,12 +50,14 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
         // sin scale ni ajustes por foto — antes un scale fijo le cortaba la
         // cabeza a los que ya venían llenos de cuadro.
         // El brillo compensa que son tomas de estudio muy oscuras.
-        className={
+        className={`transition-transform duration-500 group-hover:scale-[1.04] ${
           peleador.cuerpo
             ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
             : "object-cover object-top brightness-110"
-        }
+        }`}
       />
+      </span>
+      </div>
       {/* Transparente a la altura de la cara y profundo al pie: ahí es donde
           la figura se disuelve, y necesita negro real para camuflar el corte. */}
       <div
@@ -99,6 +72,14 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
             : "bg-gradient-to-l from-transparent via-transparent to-[#0e0e12]/60"
         }`}
       />
+      {/* Haz dorado barriendo el marco. Va en su propio contenedor porque la
+          máscara recorta al contorno y el degradado gira dentro de ella. */}
+      <span aria-hidden className="marco-vivo">
+        <span className="marco-vivo-haz" />
+      </span>
+      <span aria-hidden className="marco-vivo">
+        <span className="marco-vivo-haz marco-vivo-opuesto" />
+      </span>
       {/* Marca del evento como sello en la esquina, por encima del recorte:
           detrás del peleador se transparentaba sobre la ropa oscura. */}
       <Image
@@ -110,8 +91,11 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
         sizes="90px"
         className="pointer-events-none absolute left-2.5 top-2.5 w-[42px] opacity-90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] sm:left-4 sm:top-4 sm:w-[60px] lg:w-[72px]"
       />
+      {/* Mismo motivo que arriba: el nodo con key va solo. */}
+      <div className="absolute inset-x-3 bottom-3.5 sm:inset-x-5 sm:bottom-6">
       <div
-        className={`absolute inset-x-3 bottom-3.5 flex flex-col gap-1.5 sm:inset-x-5 sm:bottom-6 sm:gap-2 ${
+        key={peleador.slug}
+        className={`cambio-texto flex flex-col gap-1.5 sm:gap-2 ${
           esIzq ? "items-start" : "items-end"
         }`}
       >
@@ -130,8 +114,28 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
           {peleador.nombre}
         </h3>
         <span aria-hidden className="h-[3px] w-8 bg-oro sm:w-11" />
+        {/* Ya no es un enlace: el enlace es el panel entero. Se pinta como
+            botón para que se vea que la foto lleva a algún sitio. */}
+        <span className="mt-1 flex items-center gap-2 rounded-sm border border-oro bg-oro-tinte px-3 py-1.5 font-cond text-[10px] font-bold uppercase tracking-[0.14em] text-oro transition-colors duration-300 group-hover:bg-oro group-hover:text-noche sm:px-3.5 sm:py-2 sm:text-[11px]">
+          Ver ficha
+          <svg
+            aria-hidden
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="transition-transform duration-300 group-hover:translate-x-0.5"
+          >
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </span>
       </div>
-    </div>
+      </div>
+    </Link>
   );
 }
 
@@ -143,55 +147,48 @@ export function CaraACara() {
 
   return (
     <div className="flex w-full flex-col items-center gap-11">
-      {/* En móvil quedan solo los dos peleadores enfrentados: el VS y la tabla
-          se esconden porque a ese ancho la ficha ocupaba más que las fotos. */}
-      <div className="grid w-full grid-cols-2 overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] lg:grid-cols-[1fr_auto_1fr] lg:border-linea">
-        <Panel peleador={combate.a} lado="izq" />
+      <div className="flex w-full flex-col gap-4">
+        {/* En móvil la columna central no entra en la rejilla: el VS y la
+            ficha salen de ahí, y la ficha reaparece completa justo debajo. */}
+        <div className="grid w-full grid-cols-2 overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] lg:grid-cols-[1fr_auto_1fr] lg:border-linea">
+          <Panel peleador={combate.a} lado="izq" />
 
-        <div className="hidden flex-col items-center justify-center gap-4 border-linea px-5 py-7 lg:flex lg:w-[292px] lg:border-x">
-          <p className="font-display text-[56px] leading-none texto-oro">VS</p>
-          <p className="text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
-            {combate.billing ?? `Combate ${combate.n}`} · 3 rounds
-          </p>
+          <div className="hidden flex-col items-center justify-center gap-4 border-linea px-5 py-7 lg:flex lg:w-[292px] lg:border-x">
+            {/* El VS no lleva key: es lo único que no cambia entre combates y
+                reanimarlo solo haría parpadear el centro del panel. */}
+            <p className="font-display text-[56px] leading-none texto-oro">VS</p>
+            <div className="w-full">
+            <div
+              key={combate.n}
+              className="cambio-texto flex w-full flex-col items-center gap-4"
+            >
+              <p className="text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
+                {combate.billing ?? `Combate ${combate.n}`} · 3 rounds
+              </p>
+              <FichaTape combate={combate} />
+              <NotaAprox />
+            </div>
+            </div>
+          </div>
 
-          <dl className="w-full overflow-hidden rounded-sm border border-linea">
-            {FILAS_TAPE.map((fila, i) => (
-              <div
-                key={fila.etiqueta}
-                className={`flex items-center gap-2 px-3 py-1.5 ${
-                  i % 2 === 0 ? "bg-[#131318]" : "bg-[#0f0f14]"
-                } ${i < FILAS_TAPE.length - 1 ? "border-b border-linea" : ""}`}
-              >
-                {/* El dato conocido va en crema; el guion se queda apagado */}
-                <dd
-                  className={`flex-1 text-left font-display text-[15px] ${
-                    fila.valor(combate.a) ? "text-crema" : "text-tenue"
-                  }`}
-                >
-                  {fila.valor(combate.a) ?? "—"}
-                </dd>
-                <dt className="w-[74px] text-center font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-oro">
-                  {fila.etiqueta}
-                </dt>
-                <dd
-                  className={`flex-1 text-right font-display text-[15px] ${
-                    fila.valor(combate.b) ? "text-crema" : "text-tenue"
-                  }`}
-                >
-                  {fila.valor(combate.b) ?? "—"}
-                </dd>
-              </div>
-            ))}
-          </dl>
-
-          <p className="text-center font-cond text-[9px] font-semibold uppercase leading-relaxed tracking-[0.18em] text-oro-profundo">
-            {HAY_APROX
-              ? "* Dato no oficial · El pesaje de la velada manda"
-              : "Altura y peso del último pesaje oficial"}
-          </p>
+          <Panel peleador={combate.b} lado="der" />
         </div>
 
-        <Panel peleador={combate.b} lado="der" />
+        {/* La misma ficha en móvil. El dato existe para 12 de los 16 y hasta
+            ahora solo aparecía a partir de lg, que es justo donde NO está la
+            mayor parte del tráfico de un evento como este. */}
+        <div className="lg:hidden">
+          <div
+            key={combate.n}
+            className="cambio-texto flex flex-col items-center gap-2.5"
+          >
+            <p className="text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
+              {combate.billing ?? `Combate ${combate.n}`} · 3 rounds
+            </p>
+            <FichaTape combate={combate} />
+            <NotaAprox />
+          </div>
+        </div>
       </div>
 
       <div className="flex w-full flex-col items-center gap-5">

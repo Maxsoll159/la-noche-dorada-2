@@ -14,6 +14,12 @@ export type Conteo = {
   pctA: number | null;
   /** Pasada esta hora la base rechaza cualquier voto. */
   cierraEn: string;
+  /**
+   * Lado que ganó el combate. Nulo hasta que la organización lo carga después
+   * de la velada (`update combates set ganador = 'a' ...`). En cuanto deja de
+   * ser nulo, la sección pasa de "votación" a "resultados".
+   */
+  ganador: Lado | null;
 };
 
 type FilaCombate = {
@@ -22,9 +28,10 @@ type FilaCombate = {
   votos_b: number;
   pct_a: number | null;
   cierra_en: string;
+  ganador: string | null;
 };
 
-const COLUMNAS = "numero, votos_a, votos_b, pct_a, cierra_en";
+const COLUMNAS = "numero, votos_a, votos_b, pct_a, cierra_en, ganador";
 
 /**
  * Voto que el visitante quiso emitir sin haber iniciado sesión. Se guarda
@@ -39,12 +46,36 @@ function aConteo(fila: FilaCombate): Conteo {
     votosB: fila.votos_b,
     pctA: fila.pct_a,
     cierraEn: fila.cierra_en,
+    // La base solo admite 'a' o 'b' (check `combates_ganador_check`), pero
+    // llega como texto: se estrecha aquí para no arrastrar un string suelto.
+    ganador: fila.ganador === "a" || fila.ganador === "b" ? fila.ganador : null,
   };
 }
 
 /** true mientras el combate siga admitiendo votos. */
 export function estaAbierto(conteo: Conteo | undefined) {
   return conteo ? new Date(conteo.cierraEn).getTime() > Date.now() : false;
+}
+
+/**
+ * Aciertos sobre los combates que ya tienen ganador cargado.
+ *
+ * `resueltos` cuenta todos los combates fallados, haya votado o no el usuario:
+ * así "acertaste 5 de 8" se lee contra la cartelera y no contra cuántos se
+ * animó a pronosticar.
+ */
+export function puntaje(
+  conteos: Record<string, Conteo>,
+  votos: Record<string, Lado>,
+) {
+  let resueltos = 0;
+  let aciertos = 0;
+  for (const [numero, conteo] of Object.entries(conteos)) {
+    if (!conteo.ganador) continue;
+    resueltos += 1;
+    if (votos[numero] === conteo.ganador) aciertos += 1;
+  }
+  return { resueltos, aciertos };
 }
 
 /**
@@ -109,7 +140,7 @@ export function useVotacion(activo: boolean) {
       // Ojo: dentro de este callback no se llama a supabase. La consulta de
       // los votos va en el efecto de abajo, colgada del id del usuario.
       setUsuario(sesion?.user ?? null);
-      // Al cerrar sesión la quiniela deja de ser de nadie: se vacía aquí y no
+      // Al cerrar sesión los pronósticos dejan de ser de nadie: se vacían aquí y no
       // en el efecto de abajo, que solo sabe traer.
       if (!sesion?.user) setVotos({});
     });

@@ -8,7 +8,13 @@ import {
   PRONOSTICOS_ACTIVOS,
   type Combate,
 } from "@/lib/evento";
-import { estaAbierto, useVotacion, type Conteo, type Lado } from "@/lib/votacion";
+import {
+  estaAbierto,
+  puntaje,
+  useVotacion,
+  type Conteo,
+  type Lado,
+} from "@/lib/votacion";
 
 function Candado() {
   return (
@@ -30,12 +36,13 @@ function Candado() {
   );
 }
 
-function Trofeo() {
+function Trofeo({ className = "" }: { className?: string }) {
   return (
     <svg
       aria-hidden
       width="30"
       height="30"
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -119,13 +126,18 @@ function Lado({
   pct,
   lidera,
   izquierda,
+  resultado,
 }: {
   nombre: string;
   foto: string;
   pct: number | null;
   lidera: boolean;
   izquierda: boolean;
+  /** Solo cuando el combate ya tiene ganador cargado. */
+  resultado?: "gano" | "perdio";
 }) {
+  // Con resultado manda el resultado; antes, quién va arriba en la votación.
+  const destacado = resultado ? resultado === "gano" : lidera;
   return (
     // En móvil la foto va encima del nombre. En fila no cabe: descontando la
     // foto y el rombo del VS quedan menos de 20 px de ancho para el texto, y
@@ -138,8 +150,12 @@ function Lado({
       }`}
     >
       <span
-        className={`relative block h-[96px] w-[52px] shrink-0 overflow-hidden rounded-sm border sm:h-[128px] sm:w-[68px] ${
-          lidera ? "border-2 border-oro" : "border-linea opacity-70"
+        className={`relative block h-[96px] w-[52px] shrink-0 overflow-hidden rounded-sm border transition sm:h-[128px] sm:w-[68px] ${
+          resultado === "perdio"
+            ? "border-linea opacity-40 grayscale"
+            : destacado
+              ? "border-2 border-oro"
+              : "border-linea opacity-70"
         }`}
       >
         <Image
@@ -157,18 +173,23 @@ function Lado({
       >
         <p
           className={`font-display text-[27px] leading-none tabular-nums sm:text-[44px] ${
-            lidera ? "text-oro" : "text-tenue"
+            destacado ? "text-oro" : "text-tenue"
           }`}
         >
           {pct === null ? "—" : `${pct}%`}
         </p>
         <p
           className={`w-full font-display text-[13px] uppercase leading-tight break-words hyphens-auto sm:text-[20px] ${
-            lidera ? "text-oro-claro" : "text-crema"
+            destacado ? "text-oro-claro" : "text-crema"
           }`}
         >
           {nombre}
         </p>
+        {resultado === "gano" && (
+          <span className="mt-0.5 rounded-full bg-oro px-2.5 py-[3px] font-cond text-[10px] font-bold uppercase tracking-[0.16em] text-noche">
+            Ganó
+          </span>
+        )}
       </div>
     </div>
   );
@@ -199,6 +220,10 @@ function Card({
   // contra un combate del que no sabemos si sigue abierto.
   const esperando = activo && !conteo;
   const bloqueado = !activo || esperando || !abierto;
+  // Con el ganador cargado la card deja de ser una votación y pasa a ser un
+  // resultado: manda sobre cualquier otro estado.
+  const ganador = activo ? (conteo?.ganador ?? null) : null;
+  const acerto = ganador !== null && voto === ganador;
 
   return (
     <article
@@ -223,6 +248,14 @@ function Card({
             <span className="text-oro-profundo">Próximamente</span>
           ) : esperando ? (
             <span className="text-tenue">Cargando</span>
+          ) : ganador ? (
+            <>
+              <span
+                aria-hidden
+                className="inline-block size-[7px] rounded-full bg-oro"
+              />
+              <span className="text-oro">Resultado final</span>
+            </>
           ) : (
             <>
               <span
@@ -246,6 +279,9 @@ function Card({
           pct={pctA}
           lidera={lideraA}
           izquierda
+          resultado={
+            ganador ? (ganador === "a" ? "gano" : "perdio") : undefined
+          }
         />
         <span className="relative grid size-[42px] shrink-0 place-items-center sm:size-[68px]">
           <span
@@ -262,6 +298,9 @@ function Card({
           pct={pctA === null ? null : 100 - pctA}
           lidera={lideraB}
           izquierda={false}
+          resultado={
+            ganador ? (ganador === "b" ? "gano" : "perdio") : undefined
+          }
         />
       </div>
 
@@ -284,7 +323,30 @@ function Card({
       </div>
 
       <footer className="bg-[#08080b] px-3 py-5 sm:px-7">
-        {bloqueado ? (
+        {ganador ? (
+          <div
+            className={`flex flex-wrap items-center justify-between gap-3 rounded-sm border px-4 py-3 ${
+              acerto ? "border-oro bg-[#1f1808]" : "border-linea bg-carbon"
+            }`}
+          >
+            <p className="flex items-center gap-2.5 font-cond text-[13px] font-bold uppercase tracking-[0.12em] text-oro-claro">
+              <span className="text-oro">
+                <Trofeo className="size-[19px]" />
+              </span>
+              Ganó {ganador === "a" ? c.a.nombre : c.b.nombre}
+            </p>
+            {/* Sin voto no hay veredicto que dar: la card solo informa. */}
+            {voto && (
+              <span
+                className={`font-cond text-[11px] font-bold uppercase tracking-[0.14em] ${
+                  acerto ? "text-oro" : "text-tenue"
+                }`}
+              >
+                {acerto ? "Acertaste" : `Votaste por ${voto === "a" ? c.a.nombre : c.b.nombre}`}
+              </span>
+            )}
+          </div>
+        ) : bloqueado ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {(["a", "b"] as const).map((lado) => (
               <button
@@ -350,13 +412,24 @@ export function Pronosticos() {
   const [copiado, setCopiado] = useState(false);
 
   const hechos = Object.keys(votos).length;
+  // En cuanto la organización carga ganadores, el módulo deja de contar
+  // "cuántos elegiste" y pasa a contar "cuántos acertaste".
+  const { resueltos, aciertos } = puntaje(conteos, votos);
+  const hayResultados = resueltos > 0;
 
   const compartir = async () => {
-    const elegidos = COMBATES.filter((c) => votos[c.n]).map(
-      (c) => `${c.n} · ${votos[c.n] === "a" ? c.a.nombre : c.b.nombre}`,
-    );
+    const elegidos = COMBATES.filter((c) => votos[c.n]).map((c) => {
+      const nombre = votos[c.n] === "a" ? c.a.nombre : c.b.nombre;
+      const ganador = conteos[c.n]?.ganador;
+      // Una marca por línea cuando ya hay resultado, para que lo compartido
+      // se lea solo sin tener que abrir el sitio.
+      const marca = !ganador ? "" : votos[c.n] === ganador ? " ✅" : " ❌";
+      return `${c.n} · ${nombre}${marca}`;
+    });
     const texto = [
-      `Mis pronósticos para ${EVENTO.nombre}:`,
+      hayResultados
+        ? `Acerté ${aciertos} de ${resueltos} en ${EVENTO.nombre}:`
+        : `Mis pronósticos para ${EVENTO.nombre}:`,
       ...elegidos,
       window.location.origin,
     ].join("\n");
@@ -421,28 +494,38 @@ export function Pronosticos() {
               </span>
               <div>
                 <p className="font-display text-[19px] uppercase leading-tight text-oro-claro sm:text-[22px]">
-                  Tus pronósticos
+                  {hayResultados ? "Tu puntaje" : "Tus pronósticos"}
                 </p>
                 <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.14em] text-tenue sm:tracking-[0.16em]">
-                  {hechos} de {COMBATES.length} combates elegidos
+                  {hayResultados
+                    ? `Acertaste ${aciertos} de ${resueltos} combates resueltos`
+                    : `${hechos} de ${COMBATES.length} combates elegidos`}
                 </p>
               </div>
             </div>
             <ol className="flex w-full flex-1 items-center gap-1.5" aria-hidden>
-              {COMBATES.map((c) => (
-                <li
-                  key={c.n}
-                  className={`h-2 flex-1 rounded-full transition-colors ${
-                    votos[c.n] ? "bg-oro" : "bg-[#2a2a31]"
-                  }`}
-                />
-              ))}
+              {COMBATES.map((c) => {
+                const ganador = conteos[c.n]?.ganador;
+                const fallado = ganador && votos[c.n] && votos[c.n] !== ganador;
+                return (
+                  <li
+                    key={c.n}
+                    className={`h-2 flex-1 rounded-full transition-colors ${
+                      fallado
+                        ? "bg-[#7a2b2b]"
+                        : votos[c.n]
+                          ? "bg-oro"
+                          : "bg-[#2a2a31]"
+                    }`}
+                  />
+                );
+              })}
             </ol>
             <button
               type="button"
               onClick={compartir}
               disabled={hechos === 0}
-              className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-6 py-3.5 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 sm:py-3 lg:w-auto"
+              className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-6 py-3.5 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-10 sm:py-3"
             >
               {copiado ? "Copiados" : "Compartir"}
             </button>
@@ -500,7 +583,11 @@ export function Pronosticos() {
           ? "Los pronósticos de la comunidad se habilitan en la segunda fase del sitio"
           : cargando
             ? "Cargando los pronósticos de la comunidad"
-            : `Un voto por combate · Puedes cambiarlo hasta el ${EVENTO.fechaLarga.toLowerCase()} · Nadie ve a quién votaste`}
+            : resueltos === COMBATES.length
+              ? `Resultados finales de ${EVENTO.nombre} · Los porcentajes son lo que pronosticó la comunidad`
+              : hayResultados
+                ? `${resueltos} de ${COMBATES.length} combates resueltos · El resto sigue abierto`
+                : `Un voto por combate · Puedes cambiarlo hasta el ${EVENTO.fechaLarga.toLowerCase()} · Nadie ve a quién votaste`}
       </p>
     </div>
   );

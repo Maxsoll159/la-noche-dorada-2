@@ -31,7 +31,7 @@ export default function Page() {
           id="pronosticos"
           antetitulo="Votación abierta"
           titulo="Pronósticos"
-          bajada="Elige a tu favorito en cada uno de los ocho combates, arma tu quiniela y compártela antes de la gran noche."
+          bajada="Elige a tu favorito en cada uno de los ocho combates, arma tus pronósticos y compártelos antes de la gran noche."
         >
           <Pronosticos />
         </Seccion>

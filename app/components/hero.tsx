@@ -79,17 +79,6 @@ export function Hero() {
         {/* El hero está sobre el pliegue, así que entra con animación y retardo
             escalonado en vez de esperar al observador de scroll. */}
         <p
-          style={{ animationDelay: "80ms" }}
-          className="entrada flex items-center gap-2.5 rounded-full border border-oro-profundo bg-noche/80 px-4 py-2 font-cond text-[12px] font-bold uppercase tracking-[0.2em]"
-        >
-          <span
-            aria-hidden
-            className="latido inline-block size-2 rounded-full bg-[#D91023]"
-          />
-          Entradas en Ticketmaster
-        </p>
-
-        <p
           style={{ animationDelay: "180ms" }}
           className="entrada flex items-center gap-3.5 font-cond text-[13px] font-semibold uppercase tracking-[0.38em] text-oro"
         >
@@ -107,8 +96,10 @@ export function Hero() {
           width={455}
           height={406}
           priority
-          style={{ animationDelay: "260ms" }}
-          className="entrada w-full max-w-[520px] drop-shadow-[0_18px_60px_rgba(0,0,0,0.6)]"
+          // Dos retardos: el de la entrada y el del flotado, que arranca
+          // recién cuando la entrada termina (260ms + 850ms).
+          style={{ animationDelay: "260ms, 1110ms" }}
+          className="entrada-flotante w-full max-w-[520px] drop-shadow-[0_18px_60px_rgba(0,0,0,0.6)]"
         />
 
         <p

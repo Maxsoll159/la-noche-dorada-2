@@ -1,4 +1,4 @@
-import { COMBATES, EVENTO, PELEADORES } from "@/lib/evento";
+import { COMBATES, EVENTO, PATROCINADORES, PELEADORES } from "@/lib/evento";
 
 /**
  * JSON-LD del evento. Es lo que le permite a Google mostrar fecha, sede y
@@ -41,11 +41,11 @@ export function DatosEstructurados() {
       "@type": "Organization",
       name: EVENTO.productora,
     },
-    sponsor: {
+    sponsor: PATROCINADORES.map((p) => ({
       "@type": "Organization",
-      name: EVENTO.patrocinador,
-      url: EVENTO.patrocinadorUrl,
-    },
+      name: p.nombre,
+      url: p.url,
+    })),
     offers: {
       "@type": "Offer",
       url: EVENTO.entradasUrl,

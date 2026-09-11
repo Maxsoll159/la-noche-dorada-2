@@ -139,7 +139,9 @@ export function DondeVerlo() {
         </svg>
       </a>
 
-      <div className="flex w-full flex-col gap-4">
+      {/* Separación de la tarjeta de Kick: los dos bloques son hijos sueltos de
+          `Seccion` y su envoltorio no lleva gap, así que se tocaban. */}
+      <div className="mt-5 flex w-full flex-col gap-5">
         <p className="flex items-center gap-3 font-cond text-[13px] font-bold uppercase tracking-[0.26em] text-oro">
           <svg
             aria-hidden

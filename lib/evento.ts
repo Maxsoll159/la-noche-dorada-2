@@ -13,9 +13,41 @@
   streamUrl: "https://kick.com/elzeein",
   streamCanal: "/elzeein",
   productora: "Vastion",
-  patrocinador: "Stake.pe",
-  patrocinadorUrl: "https://stake.pe",
 } as const;
+
+/**
+ * Marcas patrocinadoras, en el orden en que se pintan.
+ *
+ * El logo tiene que venir en versión CLARA: el módulo va sobre fondo oscuro y
+ * un wordmark negro desaparece. `ancho` se ajusta marca por marca para que
+ * todas queden ópticamente del mismo alto (~90 px) pese a tener proporciones
+ * distintas; `w`/`h` son las del archivo, para que Next reserve el espacio.
+ */
+export const PATROCINADORES: readonly {
+  nombre: string;
+  url: string;
+  logo: string;
+  w: number;
+  h: number;
+  ancho: number;
+}[] = [
+  {
+    nombre: "Stake.pe",
+    url: "https://stake.pe",
+    logo: "/marca/stake.webp",
+    w: 260,
+    h: 102,
+    ancho: 240,
+  },
+  {
+    nombre: "Pragmatic Play",
+    url: "https://www.pragmaticplay.com",
+    logo: "/marca/pragmatic-play.webp",
+    w: 1600,
+    h: 695,
+    ancho: 220,
+  },
+];
 
 /**
  * Video de la gala de presentación, donde se anunció la cartelera y se hicieron
@@ -57,27 +89,70 @@ export type Peleador = {
   peso?: number;
   /** Altura y peso NO salen de un pesaje oficial: la ficha los marca con *. */
   aprox?: boolean;
+  /**
+   * Reseña editorial, 2 o 3 frases: quién es y qué se juega en esta pelea.
+   * Sin esto, las 16 páginas de peleador son la misma plantilla con otra foto
+   * y compiten entre ellas en buscadores. Mientras esté vacía, el bloque
+   * sencillamente no se pinta.
+   */
+  resena?: string;
+  /**
+   * Perfiles públicos. `usuario` se deriva de la URL, no se escribe a mano.
+   * `seguidores` es TEXTO ya formateado ("3,6 M"), no un número: la cifra
+   * cambia a diario, así que se muestra siempre junto a `REDES_ACTUALIZADAS`
+   * para que se lea como una foto fija y no como un dato en vivo.
+   */
+  redes?: {
+    plataforma: string;
+    url: string;
+    usuario: string;
+    seguidores?: string;
+  }[];
 };
 
 /**
  * Ficha física de cada peleador.
  *
- * Solo jh, shelao y may tienen altura y peso de un pesaje oficial: el de
- * Stream Fighters 4 (18/10/2025, publicado por El Espectador). Es otra velada
- * de hace casi un año, así que hay que reemplazarlos con el pesaje de La Noche
- * Dorada II en cuanto se publique.
+ * Solo jh y may conservan altura y peso de un pesaje oficial: el de Stream
+ * Fighters 4 (18/10/2025, publicado por El Espectador). Es otra velada de hace
+ * casi un año, así que hay que reemplazarlos con el pesaje de La Noche Dorada
+ * II en cuanto se publique.
  *
- * El resto de alturas viene de agregadores de biografías y clips, no de una
- * balanza: van con `aprox` para que la ficha las marque con asterisco. Ojo con
- * cada una, están flojas a propósito y conviene reemplazarlas:
+ * Shelao salía de ese mismo pesaje (88,2 kg), pero su peso se reemplazó por
+ * 102 kg de fuente no documentada. `aprox` es por peleador, no por dato, así
+ * que eso pone el asterisco también sobre su altura, que sí es oficial. Si el
+ * 102 llega a venir de un pesaje, se quita el flag y la ficha vuelve a ser
+ * oficial entera.
+ *
+ * El resto de alturas y pesos no sale de una balanza oficial: van con `aprox`
+ * para que la ficha los marque con asterisco. Ojo con cada uno, están flojos a
+ * propósito y conviene reemplazarlos:
  *   canita  — 1,80 de un agregador; en TikTok circula 1,60 como burla.
+ *             71 kg sin fuente documentada.
  *   piero   — 1,79 en una nota, 1,84 en una cuenta de fans. Se contradicen.
+ *             90 kg sin fuente documentada.
  *   sacha   — 1,80 lo dice él; su papá lo desmiente en video.
- *   daniela — 1,51 de un clip de TikTok.
- *   zully   — 1,65 / 55 kg de Sunoti, único con peso no oficial.
+ *             80 kg sin fuente documentada.
+ *   daniela — 1,51 de un clip de TikTok. 53 kg sin fuente documentada.
+ *             Su edad se dio en 20, contra los 21 que salían de la fecha que
+ *             había; mandan los 20 y la fecha pasó a ser relleno.
+ *   emetsuki— 1,62 / 57 kg sin fuente documentada. Su edad (25) sí cuadra con
+ *             la fecha de nacimiento que ya estaba.
+ *   zully   — 1,65 / 55 kg de Sunoti.
+ *   pulsera — 1,70 / 68 kg sin fuente documentada.
+ *   jeque   — 32 años, 1,80 / 80 kg sin fuente documentada.
+ *   jota    — 1,72 / 82 kg sin fuente documentada.
+ *   kingteka— 1,70 / 114 kg sin fuente documentada. Su edad se dio en 29,
+ *             contra los 28 que salían de la fecha que había; mandan los 29 y
+ *             la fecha pasó a ser relleno.
+ *   bebote  — 25 años, 1,82 / 76 kg sin fuente documentada. La edad se corrigió
+ *             desde los 22 que se habían cargado antes.
+ *   pepita  — 1,55 / 48 kg sin fuente documentada.
+ *   pauchi. — 19 años, 1,64 / 56 kg sin fuente documentada.
+ *   shelao  — 102 kg sin fuente documentada; su altura sí es oficial.
  *
- * Sin ningún dato publicado, en ninguna calidad: bebote, jeque, pepita,
- * pauchikita, kingteka, jota, pulsera y emetsuki (estos cuatro solo edad).
+ * Ya no queda nadie sin ningún dato. Queda un solo hueco en las dieciséis
+ * fichas: pepita no tiene edad.
  */
 const FICHAS: Record<
   string,
@@ -87,17 +162,34 @@ const FICHAS: Record<
   // Solo el año 2000 está corroborado (la prensa le puso 24 años en 2024 y
   // 2025); el 1 de enero es el relleno de la fuente, así que la edad puede
   // bailar un año.
-  canita: { nacimiento: "2000-01-01", altura: 1.8, aprox: true },
-  shelao: { nacimiento: "1990-06-08", altura: 1.88, peso: 88.2 },
-  piero: { nacimiento: "2000-08-01", altura: 1.79, aprox: true },
+  canita: { nacimiento: "2000-01-01", altura: 1.8, peso: 71, aprox: true },
+  shelao: { nacimiento: "1990-06-08", altura: 1.88, peso: 102, aprox: true },
+  piero: { nacimiento: "2000-08-01", altura: 1.79, peso: 90, aprox: true },
   zully: { nacimiento: "2004-11-07", altura: 1.65, peso: 55, aprox: true },
   may: { nacimiento: "2001-12-21", altura: 1.58, peso: 58.1 },
-  kingteka: { nacimiento: "1998-02-23" },
-  jota: { nacimiento: "1996-05-07" },
-  pulsera: { nacimiento: "1998-11-16" },
-  sacha: { nacimiento: "2004-06-15", altura: 1.8, aprox: true },
-  emetsuki: { nacimiento: "2001-03-18" },
-  daniela: { nacimiento: "2005-07-09", altura: 1.51, aprox: true },
+  // Bebote tampoco tiene fecha de nacimiento publicada: el 1 de enero es
+  // relleno para que la ficha diga 25 en la noche del evento.
+  bebote: { nacimiento: "2001-01-01", altura: 1.82, peso: 76, aprox: true },
+  // La fecha que había (23/02/1998) daba 28 la noche del evento; se reemplazó
+  // por los 29 confirmados y el 1 de enero pasó a ser relleno. Si aparece el
+  // día real, va aquí.
+  kingteka: { nacimiento: "1997-01-01", altura: 1.7, peso: 114, aprox: true },
+  // El Jeque no tiene fecha de nacimiento publicada: el 1 de enero es relleno
+  // para que la ficha pueda decir 32 en la noche del evento. Si aparece el día
+  // real, hay que cambiarlo aquí.
+  jeque: { nacimiento: "1994-01-01", altura: 1.8, peso: 80, aprox: true },
+  jota: { nacimiento: "1996-05-07", altura: 1.72, peso: 82, aprox: true },
+  pulsera: { nacimiento: "1998-11-16", altura: 1.7, peso: 68, aprox: true },
+  sacha: { nacimiento: "2004-06-15", altura: 1.8, peso: 80, aprox: true },
+  emetsuki: { nacimiento: "2001-03-18", altura: 1.62, peso: 57, aprox: true },
+  // La fecha que había (09/07/2005) daba 21 la noche del evento; se reemplazó
+  // por los 20 confirmados. El 1 de enero es relleno: si aparece el día real,
+  // va aquí.
+  daniela: { nacimiento: "2006-01-01", altura: 1.51, peso: 53, aprox: true },
+  pepita: { altura: 1.55, peso: 48, aprox: true },
+  // Sin fecha de nacimiento publicada: el 1 de enero es relleno para que la
+  // ficha diga 19 en la noche del evento.
+  pauchikita: { nacimiento: "2007-01-01", altura: 1.64, peso: 56, aprox: true },
 };
 
 /**
@@ -152,6 +244,121 @@ export type Combate = {
   b: Peleador;
 };
 
+/**
+ * Perfiles públicos de cada peleador, en el orden en que se pintan bajo su
+ * foto. Solo se listan los localizados: quien no tenga una plataforma
+ * sencillamente no muestra ese icono, en vez de dejar un enlace muerto.
+ *
+ * Las URLs van limpias a propósito: la lista de origen traía un
+ * `?utm_source=` pegado que habría mandado un parámetro de rastreo ajeno en
+ * cada clic desde el sitio.
+ *
+ * Sin ningún perfil localizado: jeque y pepita.
+ * Nadie tiene TikTok en la lista, pese a que varios son tiktokers de origen.
+ */
+/**
+ * Fecha del corte de las cifras de seguidores. Se muestra al pie del bloque:
+ * sin ella, un número viejo parece un descuido en vez de una foto fija.
+ */
+export const REDES_ACTUALIZADAS = "septiembre de 2026";
+
+/** Handle legible a partir de la URL del perfil. */
+function usuarioDeUrl(url: string): string {
+  const ruta = new URL(url).pathname.replace(/\/$/, "");
+  const ultimo = ruta.split("/").filter(Boolean).pop() ?? "";
+  return ultimo.startsWith("@") ? ultimo : `@${ultimo}`;
+}
+
+const REDES: Record<
+  string,
+  { plataforma: string; url: string; seguidores?: string }[]
+> = {
+  canita: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@iamalexiss" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/elcanita7w7/" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@ElCanita" },
+  ],
+  jh: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@j.h.delacruz.7.7.7" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/jhde.la.cruz777/" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@jhdelacruz777joveneshoy" },
+  ],
+  shelao: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@shelao" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/crissalva40/" },
+    { plataforma: "Kick", url: "https://kick.com/shelao" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@Shelao" },
+    { plataforma: "X", url: "https://x.com/shelao40" },
+  ],
+  piero: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@pieroarenas.t" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/pieroarenast/" },
+    { plataforma: "Kick", url: "https://kick.com/pieroarenas" },
+  ],
+  zully: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@zullyy_cs" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/zullyy_cs/" },
+    { plataforma: "Kick", url: "https://kick.com/zully" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@Zullyy_cs" },
+    { plataforma: "X", url: "https://x.com/Zullyy_cs" },
+  ],
+  may: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@may_osorioo20" },
+    { plataforma: "Kick", url: "https://kick.com/mayosorio" },
+  ],
+  kingteka: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@kingtekaoficial" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/kingtekaboss/" },
+    { plataforma: "Kick", url: "https://kick.com/kingteka" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@Kingteka" },
+    { plataforma: "X", url: "https://x.com/Kingtekaboss" },
+  ],
+  bebote: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@esbebote" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/esbebote/" },
+    { plataforma: "Kick", url: "https://kick.com/bebote" },
+  ],
+  jeque: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@jequearabeperuano" },
+  ],
+  jota: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@jotadelashoy" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/jota.shoy/" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@JOTAOFFICIAL" },
+    { plataforma: "X", url: "https://x.com/jota_shoy" },
+  ],
+  daniela: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@danielataquire" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/danielataquire/" },
+    { plataforma: "Kick", url: "https://kick.com/danielataquire" },
+  ],
+  emetsuki: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@emetsukiiii" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/emetsukii/" },
+    { plataforma: "Kick", url: "https://kick.com/emetsuki" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@EmetSuki" },
+    { plataforma: "X", url: "https://x.com/EmetSuki" },
+  ],
+  sacha: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@sachauzumaki_" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/sachauzumaki__/" },
+    { plataforma: "Kick", url: "https://kick.com/sachauzumaki" },
+    { plataforma: "YouTube", url: "https://www.youtube.com/@sachauzumaki3852" },
+  ],
+  pulsera: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@srpulsera2.0" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/sr.pulsera/" },
+    { plataforma: "Kick", url: "https://kick.com/srpulsera" },
+  ],
+  pepita: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@allisonkiara_" },
+  ],
+  pauchikita: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@pauchikita_" },
+    { plataforma: "Kick", url: "https://kick.com/pauchikita" },
+  ],
+};
+
 const p = (
   slug: string,
   nombre: string,
@@ -162,6 +369,9 @@ const p = (
   pais,
   foto: `/peleadores/${slug}.webp`,
   ...(CON_CUERPO.has(slug) && { cuerpo: `/peleadores/cuerpo-${slug}.webp` }),
+  ...(REDES[slug] && {
+    redes: REDES[slug].map((r) => ({ ...r, usuario: usuarioDeUrl(r.url) })),
+  }),
   ...FICHAS[slug],
 });
 
@@ -220,6 +430,22 @@ export const COMBATES: Combate[] = [
 ];
 
 export const PELEADORES: Peleador[] = COMBATES.flatMap((c) => [c.a, c.b]);
+
+/**
+ * Todo lo que hay que saber de un peleador a partir de su slug: su combate,
+ * su rival y de qué lado del cartel está (que es la clave para cruzarlo con
+ * los conteos de Supabase). Devuelve null si el slug no existe, para que la
+ * página pueda responder 404.
+ */
+export function fichaDe(slug: string) {
+  for (const combate of COMBATES) {
+    if (combate.a.slug === slug)
+      return { combate, peleador: combate.a, rival: combate.b, lado: "a" as const };
+    if (combate.b.slug === slug)
+      return { combate, peleador: combate.b, rival: combate.a, lado: "b" as const };
+  }
+  return null;
+}
 
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
   { href: "#combates", label: "Combates" },

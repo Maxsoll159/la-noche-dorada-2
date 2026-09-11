@@ -59,7 +59,7 @@ en las pestañas abiertas. `votos` nunca se emite.
 
 ### Después de la velada
 
-Para puntuar quinielas, se marca el resultado real:
+Para puntuar los pronósticos, se marca el resultado real:
 
 ```sql
 update public.combates set ganador = 'a' where numero = '08';
