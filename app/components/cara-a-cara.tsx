@@ -7,6 +7,7 @@ import {
   BANDERAS,
   COMBATES,
   PELEADORES,
+  type Combate,
   type Peleador,
 } from "@/lib/evento";
 import { Bandera } from "./bandera";
@@ -220,6 +221,99 @@ function Ficha({
   );
 }
 
+/**
+ * Ficha comparada para pantallas chicas: valor del jugador 1 a la izquierda,
+ * el dato una sola vez al centro y valor del jugador 2 a la derecha. Arriba,
+ * los nombres con su número. Cabe en cualquier ancho porque cada fila es una
+ * sola línea de tres celdas.
+ */
+function FichaComparada({ combate }: { combate: Combate }) {
+  return (
+    <dl
+      key={combate.n}
+      className="cambio-texto overflow-hidden rounded-sm border border-linea bg-noche/70"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-linea bg-[#08080b] px-3 py-2">
+        {/* Cada nombre es el enlace a su ficha, con la palabra escrita: en
+            móvil no hay botón en las esquinas y nada decía que cada peleador
+            tiene su propia página. */}
+        {(["a", "b"] as const).map((lado) => {
+          const izq = lado === "a";
+          const p = combate[lado];
+          return (
+            <Link
+              key={lado}
+              href={`/peleadores/${p.slug}`}
+              className={`group flex min-w-0 items-center gap-2 ${
+                izq ? "" : "flex-row-reverse text-right"
+              }`}
+            >
+              <span
+                className={`grid size-4 shrink-0 place-items-center font-display text-[10px] leading-none text-white ${LADO[lado].fondo}`}
+              >
+                {LADO[lado].numero}
+              </span>
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate font-cond text-[9px] font-bold uppercase tracking-[0.14em] text-crema">
+                  {p.nombre}
+                </span>
+                <span
+                  className={`flex items-center gap-1 font-cond text-[8px] font-bold uppercase tracking-[0.16em] text-oro transition-colors group-hover:text-oro-claro ${
+                    izq ? "" : "flex-row-reverse"
+                  }`}
+                >
+                  Ver ficha
+                  <svg
+                    aria-hidden
+                    width="9"
+                    height="9"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+      {FILAS_TAPE.map((fila, i) => {
+        const a = fila.valor(combate.a);
+        const b = fila.valor(combate.b);
+        return (
+          <div
+            key={fila.etiqueta}
+            className={`flex items-center gap-2 px-3 py-2 ${i > 0 ? "border-t border-linea/70" : ""}`}
+          >
+            <dd
+              className={`flex-1 whitespace-nowrap text-left font-display text-[17px] leading-none ${
+                a ? "text-crema" : "text-tenue"
+              }`}
+            >
+              {a ?? "—"}
+            </dd>
+            <dt className="w-[68px] shrink-0 text-center font-cond text-[8px] font-bold uppercase tracking-[0.2em] text-oro">
+              {fila.etiqueta}
+            </dt>
+            <dd
+              className={`flex-1 whitespace-nowrap text-right font-display text-[17px] leading-none ${
+                b ? "text-crema" : "text-tenue"
+              }`}
+            >
+              {b ?? "—"}
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
 export function CaraACara() {
   // Guardamos el combate, no dos peleadores sueltos: al elegir a cualquiera
   // se arma automáticamente el enfrentamiento oficial con su contrincante.
@@ -308,6 +402,46 @@ export function CaraACara() {
 
           <Rotulo peleador={combate.a} lado="a" />
           <Rotulo peleador={combate.b} lado="b" />
+
+          {/* Botón "Ver ficha" sobre cada figura, solo por debajo de lg: ahí
+              las esquinas no tienen sitio para el botón y nada decía que la
+              foto lleva a la página del peleador. Va fuera del enlace de la
+              foto para quedar por encima del fundido del pie. */}
+          {(["a", "b"] as const).map((lado) => {
+            const p = combate[lado];
+            return (
+              <Link
+                key={p.slug}
+                href={`/peleadores/${p.slug}`}
+                // whitespace-nowrap: posicionado a la derecha, el ancho
+                // disponible es solo lo que queda hasta el borde y el texto
+                // se partía en dos líneas.
+                className={`cambio-texto absolute bottom-[18%] z-20 flex items-center gap-2 whitespace-nowrap rounded-sm bg-oro px-3 py-2 font-cond text-[10px] font-bold uppercase tracking-[0.16em] text-noche shadow-[0_8px_22px_rgba(0,0,0,0.6)] transition-colors hover:bg-oro-claro sm:px-3.5 sm:py-2.5 sm:text-[11px] lg:hidden ${
+                  lado === "a" ? "left-3 sm:left-5" : "right-3 flex-row-reverse sm:right-5"
+                }`}
+              >
+                <span
+                  className={`grid size-4 place-items-center rounded-[2px] font-display text-[10px] leading-none text-white ${LADO[lado].fondo}`}
+                >
+                  {LADO[lado].numero}
+                </span>
+                Ver ficha
+                <svg
+                  aria-hidden
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </Link>
+            );
+          })}
 
           {/* Rótulo del combate arriba al centro, solo en escritorio: por
               debajo de lg chocaría con los nombres de las esquinas, así que
@@ -404,9 +538,12 @@ export function CaraACara() {
           </ul>
           {/* Por debajo de lg no hay costados libres: las fichas van debajo
               de la parrilla, una a cada lado. */}
-          <div className="mt-3 flex justify-between gap-3 sm:mt-4 lg:hidden">
-            <Ficha peleador={combate.a} lado="a" />
-            <Ficha peleador={combate.b} lado="b" />
+          {/* Por debajo de lg la ficha va debajo de la parrilla como UNA sola
+              tabla comparativa. Dos tarjetas lado a lado no entraban en 360 px
+              (se salía la edad del jugador 2) y dejaban un hueco negro en el
+              medio; aquí el centro lo ocupa el dato, una sola vez. */}
+          <div className="mt-3 sm:mt-4 lg:hidden">
+            <FichaComparada combate={combate} />
           </div>
           {/* El mismo rótulo del combate que en escritorio va arriba. */}
           <p

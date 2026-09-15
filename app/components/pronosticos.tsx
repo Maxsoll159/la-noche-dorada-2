@@ -139,6 +139,7 @@ function LadoVoto({
   lidera,
   resultado,
   votado,
+  otroVotado,
   puedeVotar,
   enviando,
   onVotar,
@@ -150,6 +151,8 @@ function LadoVoto({
   /** Solo cuando el combate ya tiene ganador cargado. */
   resultado?: "gano" | "perdio";
   votado: boolean;
+  /** El usuario ya votó, pero por el otro lado: este se atenúa. */
+  otroVotado: boolean;
   puedeVotar: boolean;
   enviando: boolean;
   onVotar: () => void;
@@ -174,10 +177,12 @@ function LadoVoto({
         izquierda ? "" : "sm:flex-row-reverse sm:text-right"
       } ${
         votado
-          ? "bg-[#1f1808] ring-1 ring-inset ring-oro"
-          : puedeVotar
-            ? "cursor-pointer bg-white/[0.035] hover:bg-oro-tinte"
-            : "cursor-default"
+          ? "bg-oro/15 ring-2 ring-inset ring-oro"
+          : otroVotado && puedeVotar
+            ? "cursor-pointer bg-white/[0.035] opacity-55 hover:opacity-100 hover:bg-oro-tinte"
+            : puedeVotar
+              ? "cursor-pointer bg-white/[0.035] hover:bg-oro-tinte"
+              : "cursor-default"
       } disabled:cursor-default`}
     >
       {/* Foto con el número del lado, como en la parrilla del cara a cara */}
@@ -237,7 +242,7 @@ function LadoVoto({
           // botón, pero hacía falta la palabra.
           <span className="mt-1 flex items-center gap-1 rounded-sm border border-oro px-2.5 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-oro transition-colors group-hover:bg-oro group-hover:text-noche">
             <IconoVoto />
-            Votar
+            {otroVotado ? "Cambiar" : "Votar"}
           </span>
         ) : null}
       </span>
@@ -334,6 +339,7 @@ function Card({
           lidera={lideraA}
           resultado={ganador ? (ganador === "a" ? "gano" : "perdio") : undefined}
           votado={voto === "a"}
+          otroVotado={voto === "b"}
           puedeVotar={puedeVotar}
           enviando={enviando}
           onVotar={() => onVotar("a")}
@@ -356,6 +362,7 @@ function Card({
           lidera={lideraB}
           resultado={ganador ? (ganador === "b" ? "gano" : "perdio") : undefined}
           votado={voto === "b"}
+          otroVotado={voto === "a"}
           puedeVotar={puedeVotar}
           enviando={enviando}
           onVotar={() => onVotar("b")}
