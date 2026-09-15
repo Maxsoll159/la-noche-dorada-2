@@ -16,13 +16,11 @@ import {
   type Lado,
 } from "@/lib/votacion";
 
-function Candado() {
+function Candado({ className = "size-[26px]" }: { className?: string }) {
   return (
     <svg
       aria-hidden
-      width="26"
-      height="26"
-      className="shrink-0"
+      className={`shrink-0 ${className}`}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -78,9 +76,9 @@ function IconoVoto() {
 }
 
 /** La G de Google, con sus cuatro colores de marca. */
-function LogoGoogle() {
+function LogoGoogle({ className = "size-[18px]" }: { className?: string }) {
   return (
-    <svg aria-hidden width="18" height="18" viewBox="0 0 48 48" className="shrink-0">
+    <svg aria-hidden viewBox="0 0 48 48" className={`shrink-0 ${className}`}>
       <path
         fill="#4285F4"
         d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.7v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3Z"
@@ -120,78 +118,130 @@ function BotonGoogle({
   );
 }
 
-function Lado({
-  nombre,
-  foto,
+/**
+ * Jugador 1 a la izquierda, jugador 2 a la derecha: los mismos acentos de la
+ * parrilla del cara a cara, para que las dos secciones se lean como una.
+ */
+const NUMERO: Record<Lado, { n: number; fondo: string }> = {
+  a: { n: 1, fondo: "bg-lado-a" },
+  b: { n: 2, fondo: "bg-lado-b" },
+};
+
+/**
+ * Un lado del combate, y a la vez su botón de voto: foto, porcentaje y
+ * nombre en una sola pieza. Antes había dos botones grandes aparte en el pie
+ * de la card, y con ocho cards la sección se hacía interminable en móvil.
+ */
+function LadoVoto({
+  peleador,
+  lado,
   pct,
   lidera,
-  izquierda,
   resultado,
+  votado,
+  puedeVotar,
+  enviando,
+  onVotar,
 }: {
-  nombre: string;
-  foto: string;
+  peleador: Combate["a"];
+  lado: Lado;
   pct: number | null;
   lidera: boolean;
-  izquierda: boolean;
   /** Solo cuando el combate ya tiene ganador cargado. */
   resultado?: "gano" | "perdio";
+  votado: boolean;
+  puedeVotar: boolean;
+  enviando: boolean;
+  onVotar: () => void;
 }) {
+  const izquierda = lado === "a";
   // Con resultado manda el resultado; antes, quién va arriba en la votación.
   const destacado = resultado ? resultado === "gano" : lidera;
   return (
-    // En móvil la foto va encima del nombre. En fila no cabe: descontando la
-    // foto y el rombo del VS quedan menos de 20 px de ancho para el texto, y
-    // nombres como "JH de la Cruz 777" se parten letra por letra.
-    <div
-      className={`flex min-w-0 flex-1 flex-col items-center gap-2 text-center sm:flex-row sm:gap-5 sm:text-left ${
-        izquierda
-          ? "sm:justify-start"
-          : "sm:flex-row-reverse sm:justify-start sm:text-right"
-      }`}
+    <button
+      type="button"
+      disabled={!puedeVotar || enviando}
+      onClick={onVotar}
+      aria-pressed={votado}
+      aria-label={
+        votado
+          ? `Votaste por ${peleador.nombre}. Volver a tocar quita el voto`
+          : `Votar por ${peleador.nombre}`
+      }
+      // Panel propio, sin borde: el borde se clavaba en el rombo del VS y en
+      // la barra. El fondo suave y la etiqueta "Votar" ya dicen que se toca.
+      className={`group relative m-2 flex min-w-0 flex-col items-center gap-2 rounded-sm px-2 py-3 text-center transition-colors sm:m-3 sm:flex-row sm:gap-4 sm:px-4 sm:py-4 sm:text-left ${
+        izquierda ? "" : "sm:flex-row-reverse sm:text-right"
+      } ${
+        votado
+          ? "bg-[#1f1808] ring-1 ring-inset ring-oro"
+          : puedeVotar
+            ? "cursor-pointer bg-white/[0.035] hover:bg-oro-tinte"
+            : "cursor-default"
+      } disabled:cursor-default`}
     >
+      {/* Foto con el número del lado, como en la parrilla del cara a cara */}
       <span
-        className={`relative block h-[96px] w-[52px] shrink-0 overflow-hidden rounded-sm border transition sm:h-[128px] sm:w-[68px] ${
+        className={`relative block h-[84px] w-[46px] shrink-0 overflow-hidden rounded-sm border transition sm:h-[100px] sm:w-[54px] ${
           resultado === "perdio"
             ? "border-linea opacity-40 grayscale"
-            : destacado
+            : votado || destacado
               ? "border-2 border-oro"
-              : "border-linea opacity-70"
+              : "border-linea opacity-70 group-hover:opacity-100"
         }`}
       >
         <Image
-          src={foto}
-          alt={nombre}
+          src={peleador.foto}
+          alt=""
           fill
-          sizes="(min-width: 640px) 68px, 52px"
+          sizes="(min-width: 640px) 54px, 46px"
           className="object-cover object-top"
         />
+        <span
+          aria-hidden
+          className={`absolute left-0 top-0 grid size-4 place-items-center font-display text-[10px] leading-none text-white ${NUMERO[lado].fondo}`}
+        >
+          {NUMERO[lado].n}
+        </span>
       </span>
-      <div
-        className={`flex w-full min-w-0 flex-col items-center gap-1 sm:w-auto sm:flex-1 ${
+      <span
+        className={`flex w-full min-w-0 flex-col items-center gap-0.5 sm:w-auto sm:flex-1 ${
           izquierda ? "sm:items-start" : "sm:items-end"
         }`}
       >
-        <p
-          className={`font-display text-[27px] leading-none tabular-nums sm:text-[44px] ${
+        <span
+          className={`font-display text-[26px] leading-none tabular-nums sm:text-[36px] ${
             destacado ? "text-oro" : "text-tenue"
           }`}
         >
           {pct === null ? "—" : `${pct}%`}
-        </p>
-        <p
-          className={`w-full font-display text-[13px] uppercase leading-tight break-words hyphens-auto sm:text-[20px] ${
-            destacado ? "text-oro-claro" : "text-crema"
+        </span>
+        <span
+          className={`w-full font-display text-[12px] uppercase leading-tight break-words hyphens-auto sm:text-[16px] ${
+            destacado || votado ? "text-oro-claro" : "text-crema"
           }`}
         >
-          {nombre}
-        </p>
-        {resultado === "gano" && (
-          <span className="mt-0.5 rounded-full bg-oro px-2.5 py-[3px] font-cond text-[10px] font-bold uppercase tracking-[0.16em] text-noche">
+          {peleador.nombre}
+        </span>
+        {resultado === "gano" ? (
+          <span className="mt-1 rounded-full bg-oro px-2 py-[2px] font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-noche">
             Ganó
           </span>
-        )}
-      </div>
-    </div>
+        ) : votado ? (
+          <span className="mt-1 flex items-center gap-1 rounded-sm bg-oro px-2.5 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-noche">
+            <IconoVoto />
+            Tu voto
+          </span>
+        ) : puedeVotar ? (
+          // La etiqueta es lo que dice "esto se toca": el lado entero es el
+          // botón, pero hacía falta la palabra.
+          <span className="mt-1 flex items-center gap-1 rounded-sm border border-oro px-2.5 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-oro transition-colors group-hover:bg-oro group-hover:text-noche">
+            <IconoVoto />
+            Votar
+          </span>
+        ) : null}
+      </span>
+    </button>
   );
 }
 
@@ -200,12 +250,15 @@ function Card({
   conteo,
   voto,
   enviando,
+  conSesion,
   onVotar,
 }: {
   c: Combate;
   conteo?: Conteo;
   voto?: Lado;
   enviando: boolean;
+  /** Sin sesión, el primer toque manda a Google: se avisa antes. */
+  conSesion: boolean;
   onVotar: (lado: Lado) => void;
 }) {
   const activo = PRONOSTICOS_ACTIVOS;
@@ -219,11 +272,13 @@ function Card({
   // Todavía no llegó el conteo de la base: los botones no deben dejar votar
   // contra un combate del que no sabemos si sigue abierto.
   const esperando = activo && !conteo;
-  const bloqueado = !activo || esperando || !abierto;
   // Con el ganador cargado la card deja de ser una votación y pasa a ser un
   // resultado: manda sobre cualquier otro estado.
   const ganador = activo ? (conteo?.ganador ?? null) : null;
   const acerto = ganador !== null && voto === ganador;
+  const puedeVotar = activo && !esperando && abierto && !ganador;
+
+  const nombre = (lado: Lado) => c[lado].nombre;
 
   return (
     <article
@@ -233,7 +288,7 @@ function Card({
     >
       {/* flex-wrap y tracking más corto en móvil: los tres rótulos juntos no
           entran en una card de 312 px y se salían del borde. */}
-      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-b border-linea bg-[#08080b] px-3 py-3 sm:px-7">
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-linea bg-[#08080b] px-3 py-2.5 sm:px-5">
         <p className="flex items-center gap-2 font-cond text-[10px] font-bold uppercase tracking-[0.12em] sm:gap-2.5 sm:text-[11px] sm:tracking-[0.22em]">
           <span className="text-oro">Combate {c.n}</span>
           {c.billing && (
@@ -248,63 +303,74 @@ function Card({
             <span className="text-oro-profundo">Próximamente</span>
           ) : esperando ? (
             <span className="text-tenue">Cargando</span>
-          ) : ganador ? (
-            <>
-              <span
-                aria-hidden
-                className="inline-block size-[7px] rounded-full bg-oro"
-              />
-              <span className="text-oro">Resultado final</span>
-            </>
           ) : (
             <>
               <span
                 aria-hidden
                 className={`inline-block size-[7px] rounded-full ${
-                  voto ? "bg-oro" : "bg-[#3a3a44]"
+                  ganador || voto ? "bg-oro" : "bg-[#3a3a44]"
                 }`}
               />
-              <span className={voto ? "text-oro" : "text-tenue"}>
-                {!abierto ? "Votación cerrada" : voto ? "Ya votaste" : "Votación abierta"}
+              <span className={ganador || voto ? "text-oro" : "text-tenue"}>
+                {ganador
+                  ? "Resultado final"
+                  : !abierto
+                    ? "Votación cerrada"
+                    : voto
+                      ? "Ya votaste"
+                      : "Votación abierta"}
               </span>
             </>
           )}
         </p>
       </header>
 
-      <div className="flex items-center gap-2 px-3 py-5 sm:gap-5 sm:px-7 sm:py-6">
-        <Lado
-          nombre={c.a.nombre}
-          foto={c.a.foto}
+      {/* Los dos lados son los botones; el rombo del VS va en medio. */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-stretch">
+        <LadoVoto
+          peleador={c.a}
+          lado="a"
           pct={pctA}
           lidera={lideraA}
-          izquierda
-          resultado={
-            ganador ? (ganador === "a" ? "gano" : "perdio") : undefined
-          }
+          resultado={ganador ? (ganador === "a" ? "gano" : "perdio") : undefined}
+          votado={voto === "a"}
+          puedeVotar={puedeVotar}
+          enviando={enviando}
+          onVotar={() => onVotar("a")}
         />
-        <span className="relative grid size-[42px] shrink-0 place-items-center sm:size-[68px]">
+        {/* Con margen: el rombo gira 45° y sus puntas sobresalen de su caja, así
+            que sin aire se clavaban en los paneles de los lados. */}
+        <span className="relative mx-1 grid size-[34px] shrink-0 place-items-center self-center sm:mx-2 sm:size-[48px]">
           <span
             aria-hidden
             className="absolute inset-0 rotate-45 rounded-[3px] border border-oro bg-noche/90"
           />
-          <span className="relative font-display text-[13px] text-oro sm:text-[19px]">
+          <span className="relative font-display text-[12px] text-oro sm:text-[15px]">
             VS
           </span>
         </span>
-        <Lado
-          nombre={c.b.nombre}
-          foto={c.b.foto}
+        <LadoVoto
+          peleador={c.b}
+          lado="b"
           pct={pctA === null ? null : 100 - pctA}
           lidera={lideraB}
-          izquierda={false}
-          resultado={
-            ganador ? (ganador === "b" ? "gano" : "perdio") : undefined
-          }
+          resultado={ganador ? (ganador === "b" ? "gano" : "perdio") : undefined}
+          votado={voto === "b"}
+          puedeVotar={puedeVotar}
+          enviando={enviando}
+          onVotar={() => onVotar("b")}
         />
       </div>
 
-      <div className="flex h-2.5 w-full overflow-hidden bg-[#2a2a31]">
+      <div
+        role="img"
+        aria-label={
+          pctA === null
+            ? "Todavía sin votos"
+            : `${pctA} % para ${c.a.nombre}, ${100 - pctA} % para ${c.b.nombre}`
+        }
+        className="flex h-2 w-full overflow-hidden bg-[#2a2a31]"
+      >
         <span
           style={{ width: `${anchoA}%` }}
           className={`block transition-[width] duration-500 ${
@@ -322,83 +388,60 @@ function Card({
         />
       </div>
 
-      <footer className="bg-[#08080b] px-3 py-5 sm:px-7">
+      {/* Una sola línea de estado en vez de dos botones grandes */}
+      <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-[#08080b] px-3 py-2.5 font-cond text-[10px] font-semibold uppercase tracking-[0.12em] text-tenue sm:px-5 sm:text-[11px]">
         {ganador ? (
-          <div
-            className={`flex flex-wrap items-center justify-between gap-3 rounded-sm border px-4 py-3 ${
-              acerto ? "border-oro bg-[#1f1808]" : "border-linea bg-carbon"
-            }`}
-          >
-            <p className="flex items-center gap-2.5 font-cond text-[13px] font-bold uppercase tracking-[0.12em] text-oro-claro">
+          <>
+            <span className="flex items-center gap-2 text-oro-claro">
               <span className="text-oro">
-                <Trofeo className="size-[19px]" />
+                <Trofeo className="size-[15px]" />
               </span>
-              Ganó {ganador === "a" ? c.a.nombre : c.b.nombre}
-            </p>
+              Ganó {nombre(ganador)}
+            </span>
             {/* Sin voto no hay veredicto que dar: la card solo informa. */}
             {voto && (
-              <span
-                className={`font-cond text-[11px] font-bold uppercase tracking-[0.14em] ${
-                  acerto ? "text-oro" : "text-tenue"
-                }`}
-              >
-                {acerto ? "Acertaste" : `Votaste por ${voto === "a" ? c.a.nombre : c.b.nombre}`}
+              <span className={acerto ? "text-oro" : "text-tenue"}>
+                {acerto ? "Acertaste" : `Votaste por ${nombre(voto)}`}
               </span>
             )}
-          </div>
-        ) : bloqueado ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(["a", "b"] as const).map((lado) => (
-              <button
-                key={lado}
-                type="button"
-                disabled
-                title={
-                  !activo
-                    ? "La votación se habilita en la segunda fase"
-                    : esperando
-                      ? "Cargando la votación"
-                      : "La votación de este combate ya cerró"
-                }
-                className="flex items-center justify-center gap-2 rounded-sm border border-linea px-3 py-3.5 text-center font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.08em] text-tenue opacity-50"
-              >
-                <Candado />
-                Votar por {c[lado].nombre}
-              </button>
-            ))}
-          </div>
+          </>
+        ) : !activo ? (
+          <span className="flex items-center gap-2">
+            <Candado className="size-[14px]" />
+            La votación se habilita en la segunda fase
+          </span>
+        ) : esperando ? (
+          <span>Cargando la votación</span>
+        ) : !abierto ? (
+          <span className="flex items-center gap-2">
+            <Candado className="size-[14px]" />
+            La votación de este combate ya cerró
+          </span>
         ) : voto ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-oro bg-[#1f1808] px-4 py-3">
-            <p className="flex items-center gap-2.5 font-cond text-[13px] font-bold uppercase tracking-[0.12em] text-oro-claro">
-              <span className="text-oro">
-                <IconoVoto />
-              </span>
-              Votaste por {voto === "a" ? c.a.nombre : c.b.nombre}
-            </p>
-            <button
-              type="button"
-              disabled={enviando}
-              onClick={() => onVotar(voto)}
-              className="cursor-pointer font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-tenue underline transition-colors hover:text-oro disabled:cursor-wait disabled:opacity-50"
-            >
-              Cambiar voto
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(["a", "b"] as const).map((lado) => (
+          <>
+            <span className="text-oro-claro">Votaste por {nombre(voto)}</span>
+            <span className="flex items-center gap-3">
+              <span>Toca el otro lado para cambiar</span>
               <button
-                key={lado}
                 type="button"
                 disabled={enviando}
-                onClick={() => onVotar(lado)}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-oro-profundo px-3 py-3.5 text-center font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.08em] text-oro transition-colors hover:border-oro hover:bg-oro-tinte disabled:cursor-wait disabled:opacity-50"
+                onClick={() => onVotar(voto)}
+                className="cursor-pointer underline transition-colors hover:text-oro disabled:cursor-wait disabled:opacity-50"
               >
-                <IconoVoto />
-                Votar por {c[lado].nombre}
+                Quitar voto
               </button>
-            ))}
-          </div>
+            </span>
+          </>
+        ) : (
+          <>
+            <span>Toca un lado para votar</span>
+            {!conSesion && (
+              <span className="flex items-center gap-1.5 text-oro-profundo">
+                <LogoGoogle className="size-[11px]" />
+                Te pediremos entrar con Google
+              </span>
+            )}
+          </>
         )}
       </footer>
     </article>
@@ -431,7 +474,7 @@ export function Pronosticos() {
         ? `Acerté ${aciertos} de ${resueltos} en ${EVENTO.nombre}:`
         : `Mis pronósticos para ${EVENTO.nombre}:`,
       ...elegidos,
-      window.location.origin,
+      `${window.location.origin}/#pronosticos`,
     ].join("\n");
 
     try {
@@ -573,6 +616,7 @@ export function Pronosticos() {
             conteo={conteos[c.n]}
             voto={votos[c.n]}
             enviando={enviando === c.n}
+            conSesion={!!usuario}
             onVotar={(lado) => votar(c.n, lado)}
           />
         ))}
@@ -587,7 +631,7 @@ export function Pronosticos() {
               ? `Resultados finales de ${EVENTO.nombre} · Los porcentajes son lo que pronosticó la comunidad`
               : hayResultados
                 ? `${resueltos} de ${COMBATES.length} combates resueltos · El resto sigue abierto`
-                : `Un voto por combate · Puedes cambiarlo hasta el ${EVENTO.fechaLarga.toLowerCase()} · Nadie ve a quién votaste`}
+                : "Un voto por combate · Puedes cambiarlo hasta que cierre cada combate · Nadie ve a quién votaste"}
       </p>
     </div>
   );

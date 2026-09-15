@@ -1,11 +1,18 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { BANDERAS, COMBATES, PELEADORES, type Peleador } from "@/lib/evento";
+import {
+  BANDERAS,
+  COMBATES,
+  PELEADORES,
+  type Peleador,
+} from "@/lib/evento";
 import { Bandera } from "./bandera";
-import { FichaTape, NotaAprox } from "./ficha-tape";
+import { FILAS_TAPE, NotaAprox } from "./ficha-tape";
+
+type Lado = "a" | "b";
 
 /** slug de cada peleador -> número del combate en el que pelea */
 const COMBATE_DE = new Map(
@@ -15,88 +22,99 @@ const COMBATE_DE = new Map(
   ]),
 );
 
-function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) {
-  const esIzq = lado === "izq";
+/**
+ * Orden de la parrilla. PELEADORES viene por combates y dejaba a cada rival
+ * pegado al suyo; aquí van barajados a mano, con un orden fijo para que el
+ * servidor y el navegador pinten lo mismo. En dos filas de ocho ningún rival
+ * queda al lado ni encima del otro. Si el cartel suma a alguien que no esté
+ * en la lista, entra al final en vez de perderse.
+ */
+const ORDEN_PARRILLA = [
+  "jh", "may", "jeque", "daniela", "pauchikita", "sacha", "kingteka", "piero",
+  "bebote", "shelao", "pepita", "pulsera", "canita", "emetsuki", "jota", "zully",
+];
+const PARRILLA: Peleador[] = [
+  ...ORDEN_PARRILLA.flatMap((slug) => PELEADORES.filter((p) => p.slug === slug)),
+  ...PELEADORES.filter((p) => !ORDEN_PARRILLA.includes(p.slug)),
+];
+
+/**
+ * Jugador 1 a la izquierda, jugador 2 a la derecha, como en una pantalla de
+ * selección de personaje. El color es de interfaz: no dice nada de las
+ * esquinas oficiales del combate.
+ */
+const LADO = {
+  a: { numero: 1, borde: "border-lado-a", fondo: "bg-lado-a", tinte: "bg-lado-a/20", brillo: "shadow-[0_0_22px_rgba(226,54,44,0.5)]" },
+  b: { numero: 2, borde: "border-lado-b", fondo: "bg-lado-b", tinte: "bg-lado-b/20", brillo: "shadow-[0_0_22px_rgba(47,123,230,0.5)]" },
+} as const;
+
+/**
+ * Silueta grande de un peleador, ocupando su mitad del escenario. Toda la foto
+ * es el enlace a su ficha. En móvil las dos mitades se pisan un poco en el
+ * centro para que las figuras salgan grandes; en escritorio cada una se queda
+ * en su lado.
+ */
+function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
+  const izq = lado === "a";
   return (
-    // Toda la foto es el enlace a la ficha. Alto fijo en vez de proporción:
-    // el recorte de origen es muy vertical (250x470) y con la proporción
-    // exacta el panel se volvía altísimo.
     <Link
       href={`/peleadores/${peleador.slug}`}
       aria-label={`Ver la ficha de ${peleador.nombre}`}
-      className={`group relative block h-[290px] overflow-hidden bg-[#0e0e12] sm:h-[410px] lg:h-[460px] ${
-        // Sin el VS en el medio, la línea dorada es la que dice que estos dos
-        // se enfrentan; en escritorio ese trabajo lo hace la columna central.
-        esIzq ? "border-r border-oro-profundo lg:border-r-0" : ""
+      // Cada figura va corrida hacia su borde, incluso saliéndose un poco del
+      // cuadro: pegadas al centro se leían como una sola masa con el VS.
+      // top-[15%]: la figura mide un 85% del escenario, no el alto entero, y
+      // deja la franja de arriba libre para los nombres.
+      className={`group absolute bottom-0 top-[15%] z-10 block w-[58%] sm:w-[52%] lg:w-[46%] ${
+        izq
+          ? "-left-[10%] sm:-left-[6%] lg:-left-[3%]"
+          : "-right-[10%] sm:-right-[6%] lg:-right-[3%]"
       }`}
     >
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-[radial-gradient(70%_70%_at_50%_42%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
-      />
       {/* El nodo con `key` tiene que ser HIJO ÚNICO de su envoltorio: si
           convive con hermanos sin key, React no da de baja el anterior y los
           peleadores se van apilando uno encima de otro a cada cambio.
           La key remonta el nodo y eso vuelve a disparar la animación. */}
       <div className="absolute inset-0">
-      <span key={peleador.slug} className="cambio absolute inset-0">
-      <Image
-        src={peleador.cuerpo ?? peleador.foto}
-        alt={peleador.nombre}
-        fill
-        sizes="(min-width: 1024px) 420px, 100vw"
-        // Los recortes ya salen normalizados desde el script: misma proporción,
-        // silueta centrada y apoyada al pie. Por eso alcanza object-contain,
-        // sin scale ni ajustes por foto — antes un scale fijo le cortaba la
-        // cabeza a los que ya venían llenos de cuadro.
-        // El brillo compensa que son tomas de estudio muy oscuras.
-        className={`transition-transform duration-500 group-hover:scale-[1.04] ${
-          peleador.cuerpo
-            ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
-            : "object-cover object-top brightness-110"
-        }`}
-      />
-      </span>
+        <span key={peleador.slug} className="cambio absolute inset-0">
+          <Image
+            src={peleador.cuerpo ?? peleador.foto}
+            alt={peleador.nombre}
+            fill
+            sizes="(min-width: 1024px) 600px, 62vw"
+            // Los recortes salen normalizados: misma proporción, silueta
+            // centrada y apoyada al pie, así que alcanza object-contain.
+            // El brillo compensa que son tomas de estudio muy oscuras.
+            className={`transition-transform duration-500 group-hover:scale-[1.03] ${
+              peleador.cuerpo
+                ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
+                : "object-cover object-top brightness-110"
+            }`}
+          />
+        </span>
       </div>
-      {/* Transparente a la altura de la cara y profundo al pie: ahí es donde
-          la figura se disuelve, y necesita negro real para camuflar el corte. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(11,11,13,0.2)_0%,transparent_22%,transparent_56%,rgba(11,11,13,0.5)_76%,rgba(11,11,13,0.95)_100%)]"
-      />
-      <div
-        aria-hidden
-        className={`absolute inset-0 ${
-          esIzq
-            ? "bg-gradient-to-r from-transparent via-transparent to-[#0e0e12]/60"
-            : "bg-gradient-to-l from-transparent via-transparent to-[#0e0e12]/60"
-        }`}
-      />
-      {/* Haz dorado barriendo el marco. Va en su propio contenedor porque la
-          máscara recorta al contorno y el degradado gira dentro de ella. */}
-      <span aria-hidden className="marco-vivo">
-        <span className="marco-vivo-haz" />
-      </span>
-      <span aria-hidden className="marco-vivo">
-        <span className="marco-vivo-haz marco-vivo-opuesto" />
-      </span>
-      {/* Marca del evento como sello en la esquina, por encima del recorte:
-          detrás del peleador se transparentaba sobre la ropa oscura. */}
-      <Image
-        src="/marca/logo-noche-dorada.webp"
-        alt=""
-        aria-hidden
-        width={455}
-        height={406}
-        sizes="90px"
-        className="pointer-events-none absolute left-2.5 top-2.5 w-[42px] opacity-90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] sm:left-4 sm:top-4 sm:w-[60px] lg:w-[72px]"
-      />
-      {/* Mismo motivo que arriba: el nodo con key va solo. */}
-      <div className="absolute inset-x-3 bottom-3.5 sm:inset-x-5 sm:bottom-6">
-      <div
+    </Link>
+  );
+}
+
+/**
+ * Nombre del peleador en la esquina superior de su lado, como el marcador de
+ * un juego de pelea: por encima de la cabeza, así no pisa la foto. Va aparte
+ * de la figura, con z propio, para que en móvil el del jugador 1 no quede
+ * debajo de la foto del jugador 2 donde las dos mitades se pisan.
+ */
+function Rotulo({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
+  const izq = lado === "a";
+  return (
+    <div
+      className={`absolute top-3 z-20 max-w-[46%] sm:top-5 ${
+        izq ? "left-[3%]" : "right-[3%]"
+      }`}
+    >
+      <Link
         key={peleador.slug}
-        className={`cambio-texto flex flex-col gap-1.5 sm:gap-2 ${
-          esIzq ? "items-start" : "items-end"
+        href={`/peleadores/${peleador.slug}`}
+        className={`cambio-texto group flex flex-col gap-1 sm:gap-1.5 ${
+          izq ? "items-start text-left" : "items-end text-right"
         }`}
       >
         <p className="flex items-center gap-1.5 rounded-sm border border-oro-profundo bg-noche/80 px-2 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.14em] text-oro sm:gap-2 sm:px-2.5 sm:text-[10px]">
@@ -106,17 +124,16 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
           />
           {BANDERAS[peleador.pais].nombre}
         </p>
-        <h3
-          className={`text-[16px] leading-none text-crema sm:text-[26px] lg:text-[33px] ${
-            esIzq ? "text-left" : "text-right"
-          }`}
-        >
+        {/* Inclinado como el lettering de las pantallas de selección. Anton
+            no tiene cursiva, así que la inclinación es un skew.
+            leading holgado a propósito: `texto-oro` usa background-clip:text
+            y con la caja de línea corta se recorta la tilde de la Ñ. */}
+        <h3 className="texto-oro -skew-x-6 break-words text-[20px] leading-[1.08] drop-shadow-[0_8px_22px_rgba(0,0,0,0.85)] transition-transform duration-300 group-hover:scale-[1.02] sm:text-[30px] lg:text-[36px]">
           {peleador.nombre}
         </h3>
-        <span aria-hidden className="h-[3px] w-8 bg-oro sm:w-11" />
-        {/* Ya no es un enlace: el enlace es el panel entero. Se pinta como
-            botón para que se vea que la foto lleva a algún sitio. */}
-        <span className="mt-1 flex items-center gap-2 rounded-sm border border-oro bg-oro-tinte px-3 py-1.5 font-cond text-[10px] font-bold uppercase tracking-[0.14em] text-oro transition-colors duration-300 group-hover:bg-oro group-hover:text-noche sm:px-3.5 sm:py-2 sm:text-[11px]">
+        {/* El botón solo en escritorio: por debajo la esquina no da alto sin
+            llegar a la cabeza. El nombre y la foto ya son el enlace. */}
+        <span className="hidden items-center gap-2 rounded-sm border border-oro bg-oro-tinte px-3 py-1.5 font-cond text-[10px] font-bold uppercase tracking-[0.14em] text-oro transition-colors duration-300 group-hover:bg-oro group-hover:text-noche lg:flex">
           Ver ficha
           <svg
             aria-hidden
@@ -133,9 +150,73 @@ function Panel({ peleador, lado }: { peleador: Peleador; lado: "izq" | "der" }) 
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
         </span>
-      </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * Ficha física de un peleador: edad, altura y peso. Va fuera de la foto, que
+ * es lo que no había que tapar: en escritorio a un costado de la parrilla,
+ * en la zona de piernas que ya está en penumbra; por debajo de lg, debajo de
+ * la parrilla. Lleva el nombre chico y el número porque queda lejos del
+ * rótulo grande.
+ */
+function Ficha({
+  peleador,
+  lado,
+  className = "",
+}: {
+  peleador: Peleador;
+  lado: Lado;
+  className?: string;
+}) {
+  const izq = lado === "a";
+  const estilo = LADO[lado];
+  return (
+    <div
+      key={peleador.slug}
+      className={`cambio-texto flex flex-col gap-2 rounded-sm bg-noche/70 px-3 py-2.5 backdrop-blur-sm lg:px-4 lg:py-3.5 ${
+        izq
+          ? `items-start border-l-2 text-left ${estilo.borde}`
+          : `items-end border-r-2 text-right ${estilo.borde}`
+      } ${className}`}
+    >
+      <p
+        className={`flex items-center gap-2 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-tenue ${
+          izq ? "" : "flex-row-reverse"
+        }`}
+      >
+        <span
+          className={`grid size-4 place-items-center font-display text-[10px] leading-none text-white ${estilo.fondo}`}
+        >
+          {estilo.numero}
+        </span>
+        <span className="truncate">{peleador.nombre}</span>
+      </p>
+      <dl className={`flex gap-4 sm:gap-5 lg:flex-col lg:gap-2 ${izq ? "" : "flex-row-reverse lg:flex-col"}`}>
+        {FILAS_TAPE.map((fila) => {
+          const v = fila.valor(peleador);
+          return (
+            <div
+              key={fila.etiqueta}
+              className={`flex flex-col gap-0.5 ${izq ? "items-start" : "items-end"}`}
+            >
+              <dt className="font-cond text-[8px] font-bold uppercase tracking-[0.18em] text-oro-profundo sm:text-[9px]">
+                {fila.etiqueta}
+              </dt>
+              <dd
+                className={`whitespace-nowrap font-display text-[14px] leading-none sm:text-[18px] lg:text-[20px] ${
+                  v ? "text-crema" : "text-tenue"
+                }`}
+              >
+                {v ?? "—"}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </div>
   );
 }
 
@@ -145,112 +226,205 @@ export function CaraACara() {
   const [numero, setNumero] = useState(COMBATES[0].n);
   const combate = COMBATES.find((c) => c.n === numero) ?? COMBATES[0];
 
+  const alAzar = () => {
+    const otros = COMBATES.filter((c) => c.n !== numero);
+    setNumero(otros[Math.floor(Math.random() * otros.length)].n);
+  };
+
+  // Lado que ocupa un peleador en el combate elegido, o null si no es de este
+  const ladoDe = (slug: string): Lado | null =>
+    combate.a.slug === slug ? "a" : combate.b.slug === slug ? "b" : null;
+
   return (
-    <div className="flex w-full flex-col items-center gap-11">
-      <div className="flex w-full flex-col gap-4">
-        {/* En móvil la columna central no entra en la rejilla: el VS y la
-            ficha salen de ahí, y la ficha reaparece completa justo debajo. */}
-        <div className="grid w-full grid-cols-2 overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] lg:grid-cols-[1fr_auto_1fr] lg:border-linea">
-          <Panel peleador={combate.a} lado="izq" />
-
-          <div className="hidden flex-col items-center justify-center gap-4 border-linea px-5 py-7 lg:flex lg:w-[292px] lg:border-x">
-            {/* El VS no lleva key: es lo único que no cambia entre combates y
-                reanimarlo solo haría parpadear el centro del panel. */}
-            <p className="font-display text-[56px] leading-none texto-oro">VS</p>
-            <div className="w-full">
-            <div
-              key={combate.n}
-              className="cambio-texto flex w-full flex-col items-center gap-4"
-            >
-              <p className="text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
-                {combate.billing ?? `Combate ${combate.n}`} · 3 rounds
-              </p>
-              <FichaTape combate={combate} />
-              <NotaAprox />
-            </div>
-            </div>
-          </div>
-
-          <Panel peleador={combate.b} lado="der" />
-        </div>
-
-        {/* La misma ficha en móvil. El dato existe para 12 de los 16 y hasta
-            ahora solo aparecía a partir de lg, que es justo donde NO está la
-            mayor parte del tráfico de un evento como este. */}
-        <div className="lg:hidden">
+    <div className="flex w-full flex-col items-center gap-6">
+      {/* Sin marco ni fondo propio: el escenario se funde con el fondo de la
+          sección hacia los bordes, así no se lee como un rectángulo. */}
+      <div className="relative w-full overflow-hidden">
+        {/* ESCENARIO. Los dos peleadores frente a frente, el marcador arriba
+            y un fogonazo con el VS en el centro. La parrilla de abajo se le
+            monta encima con margen negativo, como en la pantalla de
+            selección: las piernas asoman a los costados. */}
+        {/* En escritorio la altura sigue a la ventana, con piso y techo: la
+            idea es que título, escenario y parrilla se vean juntos sin
+            hacer scroll en un monitor normal. */}
+        <div className="relative h-[340px] w-full overflow-hidden sm:h-[480px] lg:h-[clamp(460px,58vh,680px)]">
           <div
-            key={combate.n}
-            className="cambio-texto flex flex-col items-center gap-2.5"
+            aria-hidden
+            // Termina en el color de la página antes de llegar a los bordes,
+            // para que el escenario no marque un rectángulo.
+            className="absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_42%,#2a2114_0%,#151419_40%,#0b0b0d_78%)]"
+          />
+          {/* Fogonazo central entre los dos */}
+          <div
+            aria-hidden
+            className="respirar absolute inset-0 bg-[radial-gradient(26%_36%_at_50%_44%,rgba(255,246,216,0.6)_0%,rgba(212,175,55,0.3)_32%,rgba(212,175,55,0)_72%)]"
+          />
+          {/* Haces de luz que cruzan el fondo */}
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-[44%] h-px w-[170%] -translate-x-1/2 -rotate-[14deg] bg-[linear-gradient(90deg,transparent_26%,rgba(247,227,161,0.5)_50%,transparent_74%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-[44%] h-px w-[170%] -translate-x-1/2 rotate-[9deg] bg-[linear-gradient(90deg,transparent_26%,rgba(247,227,161,0.35)_50%,transparent_74%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-[44%] h-px w-[130%] -translate-x-1/2 -rotate-[38deg] bg-[linear-gradient(90deg,transparent_24%,rgba(247,227,161,0.25)_50%,transparent_76%)]"
+          />
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-[44%] h-px w-[130%] -translate-x-1/2 rotate-[52deg] bg-[linear-gradient(90deg,transparent_24%,rgba(247,227,161,0.2)_50%,transparent_76%)]"
+          />
+          {/* VS en el corazón del fogonazo, detrás de los peleadores: en móvil
+              las dos figuras se pisan en el centro y por delante les taparía
+              la cara. */}
+          <p
+            aria-hidden
+            className="texto-oro absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 -skew-x-6 font-display text-[56px] leading-none opacity-90 drop-shadow-[0_0_30px_rgba(212,175,55,0.6)] sm:text-[104px] lg:text-[130px]"
           >
-            <p className="text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
-              {combate.billing ?? `Combate ${combate.n}`} · 3 rounds
-            </p>
-            <FichaTape combate={combate} />
-            <NotaAprox />
-          </div>
-        </div>
-      </div>
+            VS
+          </p>
+          {/* Fundido superior: sin él, el degradado y los haces llegaban al
+              borde de arriba con luz y el escenario se veía cortado. Va por
+              encima del fondo y por debajo de las figuras. */}
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 z-[5] h-[32%] bg-[linear-gradient(to_bottom,rgba(11,11,13,1)_0%,rgba(11,11,13,0.6)_45%,transparent_100%)]"
+          />
 
-      <div className="flex w-full flex-col items-center gap-5">
-        <p className="text-center font-cond text-[12px] font-bold uppercase tracking-[0.26em] text-oro-profundo">
-          Toca un peleador para ver su combate
-        </p>
-        {/* Hasta lg: los 16 en una sola línea con scroll lateral, con
-            degradados a los costados que avisan que la tira sigue. En
-            escritorio vuelven a las dos filas centradas, y el max-w fuerza
-            8 por fila: sin el tope quedaban 13 en la primera y 3 en la otra. */}
-        <div className="relative w-full">
+          <Figura peleador={combate.a} lado="a" />
+          <Figura peleador={combate.b} lado="b" />
+
+          {/* Fundido al pie de TODO el escenario, no de cada figura: ahí la
+              pisa la parrilla y el corte de los recortes queda camuflado. Si
+              cada foto llevara el suyo, su caja se marcaría como un
+              rectángulo más oscuro sobre el fondo. Va sobre las figuras y
+              debajo de los rótulos. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-noche to-transparent lg:hidden"
+            className="absolute inset-x-0 bottom-0 z-[15] h-[55%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(11,11,13,0.55)_45%,rgba(11,11,13,0.98)_100%)]"
           />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-noche to-transparent lg:hidden"
-          />
-          <ul className="tira mx-auto flex w-full items-start gap-2.5 px-6 pb-3.5 sm:gap-3 lg:max-w-[644px] lg:flex-wrap lg:justify-center lg:px-0 lg:pb-0">
-            {PELEADORES.map((p) => {
-              const sel = COMBATE_DE.get(p.slug) === numero;
+
+          <Rotulo peleador={combate.a} lado="a" />
+          <Rotulo peleador={combate.b} lado="b" />
+
+          {/* Rótulo del combate arriba al centro, solo en escritorio: por
+              debajo de lg chocaría con los nombres de las esquinas, así que
+              ahí baja debajo de la parrilla. Lleva los nombres solo para el
+              lector de pantalla: en la pantalla ya están en cada esquina. */}
+          <p
+            aria-live="polite"
+            className="absolute left-1/2 top-5 z-20 hidden -translate-x-1/2 whitespace-nowrap rounded-sm border border-oro-profundo bg-noche/80 px-4 py-2 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro backdrop-blur-sm lg:block"
+          >
+            {combate.billing ?? `Combate ${combate.n}`}
+            <span className="sr-only">
+              : {combate.a.nombre} contra {combate.b.nombre}
+            </span>
+            <span className="text-oro-profundo"> · </span>3 rounds
+          </p>
+        </div>
+
+        {/* PARRILLA. Los 16 en dos filas de ocho; desde sm se abre la casilla
+            del centro con el "?" del azar y quedan 4 + ? + 4 por fila. Los dos
+            del combate elegido llevan borde de color y su número. */}
+        <div className="relative z-20 -mt-12 px-2 pb-3 sm:-mt-20 sm:px-6 sm:pb-5 lg:pb-6">
+          {/* Fichas a los costados de la parrilla, solo en escritorio: cada
+              una centrada en el hueco que queda entre el borde y la parrilla
+              de 800. */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[calc((100%-800px)/2)] items-center justify-center lg:flex">
+            <Ficha peleador={combate.a} lado="a" className="pointer-events-auto" />
+          </div>
+          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[calc((100%-800px)/2)] items-center justify-center lg:flex">
+            <Ficha peleador={combate.b} lado="b" className="pointer-events-auto" />
+          </div>
+          <ul className="mx-auto grid max-w-[880px] grid-cols-8 gap-1.5 sm:grid-cols-9 sm:gap-2.5 lg:max-w-[800px] lg:gap-3">
+            {PARRILLA.map((p) => {
+              const lado = ladoDe(p.slug);
+              const estilo = lado ? LADO[lado] : null;
               return (
-                <li
-                  key={p.slug}
-                  className="w-[62px] shrink-0 snap-center sm:w-[70px]"
-                >
+                <li key={p.slug} className="min-w-0">
                   <button
                     type="button"
                     onClick={() => setNumero(COMBATE_DE.get(p.slug) ?? numero)}
-                    aria-pressed={sel}
-                    className="flex w-full cursor-pointer flex-col items-center gap-2 outline-none"
+                    aria-pressed={lado !== null}
+                    aria-label={`${p.nombre}: ver su combate`}
+                    title={p.nombre}
+                    className={`group relative block aspect-[3/4] w-full cursor-pointer overflow-hidden rounded-[3px] border bg-[#0e0e12] outline-none transition duration-300 ${
+                      estilo
+                        ? `${estilo.borde} ${estilo.brillo} -translate-y-0.5`
+                        : "border-linea opacity-65 hover:-translate-y-0.5 hover:border-oro-profundo hover:opacity-100"
+                    }`}
                   >
-                    <span
-                      className={`relative block aspect-[3/4] w-full overflow-hidden rounded-sm border transition ${
-                        sel
-                          ? "border-2 border-oro opacity-100"
-                          : "border-linea opacity-55 hover:opacity-100"
-                      }`}
-                    >
-                      <Image
-                        src={p.foto}
-                        alt=""
-                        fill
-                        sizes="70px"
-                        className="object-cover object-top"
-                      />
-                    </span>
-                    <span
-                      className={`text-center font-cond text-[10px] font-semibold uppercase leading-tight tracking-[0.04em] ${
-                        sel ? "text-oro" : "text-tenue"
-                      }`}
-                    >
+                    {/* El retrato de cara recortado del arte, el mismo de la
+                        tira de peleadores de antes. */}
+                    <Image
+                      src={p.foto}
+                      alt=""
+                      fill
+                      sizes="(min-width: 640px) 90px, 12vw"
+                      className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                    />
+                    {estilo && (
+                      <span aria-hidden className={`absolute inset-0 ${estilo.tinte}`} />
+                    )}
+                    {/* El nombre solo desde sm: en móvil la casilla mide
+                        menos de 40 px y no hay dónde ponerlo. */}
+                    <span className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-noche/95 via-noche/70 to-transparent px-1 pb-1 pt-4 text-center font-cond text-[9px] font-bold uppercase leading-none tracking-[0.04em] text-crema sm:block">
                       {p.nombre}
                     </span>
+                    {estilo && (
+                      <span
+                        className={`absolute left-0 top-0 grid size-4 place-items-center font-display text-[10px] leading-none text-white sm:size-5 sm:text-[12px] ${estilo.fondo}`}
+                      >
+                        {estilo.numero}
+                      </span>
+                    )}
                   </button>
                 </li>
               );
             })}
+            {/* Casilla del azar. Se declara al final pero se coloca en la
+                columna del medio, ocupando las dos filas. */}
+            <li className="hidden sm:col-start-5 sm:row-start-1 sm:row-span-2 sm:block">
+              <button
+                type="button"
+                onClick={alAzar}
+                aria-label="Elegir un combate al azar"
+                className="group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[3px] border border-oro-profundo bg-[#0e0e12]/95 outline-none transition duration-300 hover:border-oro hover:bg-oro-tinte"
+              >
+                <span className="texto-oro font-display text-[44px] leading-none transition-transform duration-300 group-hover:scale-110 lg:text-[56px]">
+                  ?
+                </span>
+                <span className="font-cond text-[9px] font-bold uppercase tracking-[0.2em] text-oro-profundo transition-colors group-hover:text-oro">
+                  Al azar
+                </span>
+              </button>
+            </li>
           </ul>
+          {/* Por debajo de lg no hay costados libres: las fichas van debajo
+              de la parrilla, una a cada lado. */}
+          <div className="mt-3 flex justify-between gap-3 sm:mt-4 lg:hidden">
+            <Ficha peleador={combate.a} lado="a" />
+            <Ficha peleador={combate.b} lado="b" />
+          </div>
+          {/* El mismo rótulo del combate que en escritorio va arriba. */}
+          <p
+            aria-live="polite"
+            className="mx-auto mt-3 w-fit rounded-sm border border-oro-profundo bg-oro-tinte px-3.5 py-1.5 text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro lg:hidden"
+          >
+            {combate.billing ?? `Combate ${combate.n}`}
+            <span className="sr-only">
+              : {combate.a.nombre} contra {combate.b.nombre}
+            </span>
+            <span className="text-oro-profundo"> · </span>3 rounds
+          </p>
         </div>
       </div>
+
+      {/* Solo la nota del asterisco: la interfaz se explica sola y las
+          ayudas de uso sobraban. */}
+      <NotaAprox />
     </div>
   );
 }

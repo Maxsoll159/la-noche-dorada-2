@@ -14,6 +14,10 @@
   --color-crema: #f5eedc;
   --color-tenue: #a39b8a;
   --color-kick: #53fc18;
+  /* Jugador 1 y jugador 2 del cara a cara, como en una pantalla de selección
+     de personaje. Son acentos de interfaz, no las esquinas oficiales. */
+  --color-lado-a: #e2362c;
+  --color-lado-b: #2f7be6;
 
   /* Tipografía */
   --font-display: var(--font-anton), "Arial Narrow", sans-serif;

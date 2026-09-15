@@ -21,6 +21,7 @@ export default function Page() {
         <Hero />
         <Seccion
           id="cara-a-cara"
+          ancho="amplio"
           antetitulo="Interactivo"
           titulo="Cara a cara"
           bajada="Elige a cualquier peleador del cartel y mira su combate frente a frente."
