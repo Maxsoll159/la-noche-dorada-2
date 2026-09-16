@@ -97,7 +97,7 @@ export function SiteHeader() {
             alt={EVENTO.nombre}
             width={455}
             height={406}
-            priority
+            loading="eager"
             className="h-14 w-auto lg:h-16"
           />
         </Link>

@@ -189,16 +189,37 @@ export function LadoVoto({
       // Alta en móvil (4/5) y cuadrada desde sm. Apaisada no sirve: los
       // recortes de estudio son verticales y con la cabeza pegada al borde de
       // arriba, así que en una caja ancha se cortaban las cabezas.
+      // El voto propio tiene que verse de lejos: borde grueso, resplandor
+      // dorado hacia fuera, tinte dorado en vez del color del lado y el otro
+      // lado en gris. Con un anillo fino no se distinguía.
       className={`group relative isolate block aspect-[4/5] w-full overflow-hidden rounded-sm bg-carbon outline-none transition duration-300 sm:aspect-square ${
         votado
-          ? "ring-2 ring-inset ring-oro"
+          ? "ring-[3px] ring-inset ring-oro shadow-[0_0_0_1px_rgba(212,175,55,0.5),0_0_32px_rgba(212,175,55,0.4)]"
           : puedeVotar
             ? "cursor-pointer ring-1 ring-inset ring-linea hover:ring-oro-profundo"
             : "ring-1 ring-inset ring-linea"
-      } ${apagado ? "opacity-55 hover:opacity-100" : ""} disabled:cursor-default`}
+      } ${apagado ? "opacity-45 grayscale-[0.6] hover:opacity-100 hover:grayscale-0" : ""} disabled:cursor-default`}
     >
-      {/* Resplandor del color del lado, detrás de la cabeza */}
-      <span aria-hidden className={`absolute inset-0 -z-10 ${NUMERO[lado].tinte}`} />
+      {/* Resplandor detrás de la cabeza: del color del lado, o dorado si es
+          el lado que votaste */}
+      <span
+        aria-hidden
+        className={`absolute inset-0 -z-10 ${
+          votado
+            ? "bg-[radial-gradient(90%_70%_at_50%_0%,rgba(212,175,55,0.4)_0%,rgba(16,16,21,0)_75%)]"
+            : NUMERO[lado].tinte
+        }`}
+      />
+
+      {/* Rótulo "Tu voto" arriba al centro, entre el número y el porcentaje.
+          Solo desde sm: en la loseta móvil no hay ancho y ahí lo dice el chip
+          del pie. */}
+      {votado && (
+        <span className="absolute left-1/2 top-2 z-10 hidden -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-sm bg-oro px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche shadow-[0_6px_18px_rgba(0,0,0,0.6)] sm:top-3 sm:flex">
+          <IconoVoto />
+          Tu voto
+        </span>
+      )}
 
       {/* La foto de estudio, entera y apoyada al pie (contain): los recortes
           vienen sin aire sobre la cabeza y cualquier cover la cortaba. La
@@ -262,10 +283,16 @@ export function LadoVoto({
             Ganó
           </span>
         ) : votado ? (
-          <span className="flex items-center gap-1 rounded-sm bg-oro px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche">
-            <IconoVoto />
-            Tu voto
-          </span>
+          // En sm+ el rótulo va arriba; aquí solo queda la ayuda de uso.
+          <>
+            <span className="flex items-center gap-1 rounded-sm bg-oro px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche sm:hidden">
+              <IconoVoto />
+              Tu voto
+            </span>
+            <span className="hidden font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-oro-claro sm:block">
+              Tocar para quitar
+            </span>
+          </>
         ) : puedeVotar ? (
           // La etiqueta es lo que dice "esto se toca": la loseta entera es el
           // botón, pero hacía falta la palabra.

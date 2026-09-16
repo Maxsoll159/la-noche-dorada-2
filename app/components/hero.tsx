@@ -79,7 +79,10 @@ export function Hero() {
           src="/cartel-oficial.webp"
           alt=""
           fill
-          priority
+          // Next 16 retiró `priority`: el cartel carga con prioridad normal
+          // pero sin diferir, y el `preload` se reserva para el logo, que es
+          // el LCP real.
+          loading="eager"
           sizes="100vw"
           // El 25% deja fuera la fila de nombres del cartel (arriba) y su
           // propio lettering (abajo); queda solo la banda de peleadores.
@@ -146,7 +149,8 @@ export function Hero() {
           alt={EVENTO.nombre}
           width={455}
           height={406}
-          priority
+          // Es el LCP de la home: se precarga desde el <head>.
+          preload
           // Dos retardos: el de la entrada y el del flotado, que arranca
           // recién cuando la entrada termina (260ms + 850ms).
           style={{ animationDelay: "260ms, 1110ms" }}

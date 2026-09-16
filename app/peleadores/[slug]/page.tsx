@@ -239,7 +239,8 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                     src={peleador.cuerpo ?? peleador.foto}
                     alt={peleador.nombre}
                     fill
-                    priority
+                    // El retrato es el LCP de la ficha: se precarga.
+                    preload
                     sizes="(min-width: 1024px) 430px, 380px"
                     className={`transition-transform duration-500 group-hover:scale-[1.04] ${
                       peleador.cuerpo
