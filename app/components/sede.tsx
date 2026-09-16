@@ -3,10 +3,9 @@ import { EVENTO } from "@/lib/evento";
 import { Seccion } from "./seccion";
 
 const FICHA = [
+  // Solo lo que no dice ya el hero: fecha y entradas salieron de aqui.
   { etiqueta: "Recinto", valor: `Coliseo cerrado · ${EVENTO.distrito}` },
-  { etiqueta: "Fecha", valor: EVENTO.fechaLarga },
   { etiqueta: "Dirección", valor: EVENTO.direccion },
-  { etiqueta: "Entradas", valor: "Ticketmaster.pe" },
 ];
 
 const MAPS = `https://www.google.com/maps/search/?api=1&query=${EVENTO.coordenadas.lat},${EVENTO.coordenadas.lon}`;
@@ -61,7 +60,7 @@ export function Sede() {
               key={f.etiqueta}
               className="rounded-sm border border-linea bg-carbon px-5 py-4"
             >
-              <p className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-profundo">
+              <p className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio">
                 {f.etiqueta}
               </p>
               <p className="font-cond text-[16px] font-semibold uppercase leading-snug tracking-[0.06em] text-crema">

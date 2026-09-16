@@ -1,15 +1,22 @@
 ﻿import Image from "next/image";
-import { EVENTO, NAV } from "@/lib/evento";
+import { EVENTO } from "@/lib/evento";
 import { FileteOro } from "./filete-oro";
 
 const COLUMNAS = [
-  { titulo: "El evento", enlaces: NAV.slice(0, 3) },
+  {
+    titulo: "El evento",
+    enlaces: [
+      { href: "/#combates", label: "Combates" },
+      { href: "/#cara-a-cara", label: "Cara a cara" },
+      { href: "/#pronosticos", label: "Pronósticos" },
+    ],
+  },
   {
     titulo: "Información",
     enlaces: [
-      { href: "#sede", label: "Sede" },
-      { href: "#donde-verlo", label: "Dónde verlo" },
-      { href: "#cara-a-cara", label: "Cara a cara" },
+      { href: "/#entradas", label: "Entradas" },
+      { href: "/#sede", label: "Sede" },
+      { href: "/#donde-verlo", label: "Dónde verlo" },
     ],
   },
 ];
@@ -91,14 +98,14 @@ export function SiteFooter() {
         {/* En móvil va apilado y centrado: con justify-between el copyright y
             los legales se partían en bloques descuadrados a lado y lado. */}
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:gap-5 sm:text-left">
-          <p className="font-cond text-[11px] font-semibold uppercase leading-relaxed tracking-[0.1em] text-oro-profundo sm:text-[12px] sm:tracking-[0.14em]">
+          <p className="font-cond text-[11px] font-semibold uppercase leading-relaxed tracking-[0.1em] text-oro-medio sm:text-[12px] sm:tracking-[0.14em]">
             © 2026 {EVENTO.nombre} · Producido por {EVENTO.productora}
           </p>
           <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 sm:justify-end sm:gap-x-6">
             {LEGAL.map((l) => (
               <li
                 key={l}
-                className="font-cond text-[11px] font-semibold uppercase tracking-[0.1em] text-oro-profundo sm:text-[12px] sm:tracking-[0.14em]"
+                className="font-cond text-[11px] font-semibold uppercase tracking-[0.1em] text-oro-medio sm:text-[12px] sm:tracking-[0.14em]"
               >
                 {l}
               </li>

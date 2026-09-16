@@ -42,15 +42,22 @@ export function CuentaRegresiva({ inicioISO }: { inicioISO: string }) {
       {UNIDADES.map(([clave, etiqueta]) => (
         <li
           key={clave}
-          className="flex w-[74px] flex-col items-center gap-0.5 rounded-sm border border-linea bg-superficie/80 py-2.5 sm:w-[104px] sm:gap-1 sm:py-4 lg:w-[120px]"
+          // Borde superior dorado y fondo semitransparente con desenfoque:
+          // las cajas se leen como piezas del hero y no como tabla gris.
+          className="flex w-[74px] flex-col items-center gap-0.5 rounded-sm border border-linea border-t-oro/60 bg-noche/55 py-2.5 backdrop-blur-sm sm:w-[104px] sm:gap-1 sm:py-4 lg:w-[120px]"
         >
-          <span
-            suppressHydrationWarning
-            className="font-display text-[26px] leading-none text-oro-claro tabular-nums sm:text-[34px] lg:text-[38px]"
-          >
-            {restante ? String(restante[clave]).padStart(2, "0") : "--"}
+          {/* overflow-hidden + key={valor}: cada dígito que cambia se remonta
+              y entra con el tic desde arriba, como un contador mecánico. */}
+          <span className="block overflow-hidden">
+            <span
+              key={restante ? restante[clave] : "--"}
+              suppressHydrationWarning
+              className="tic block font-display text-[26px] leading-none text-oro-claro tabular-nums sm:text-[34px] lg:text-[38px]"
+            >
+              {restante ? String(restante[clave]).padStart(2, "0") : "--"}
+            </span>
           </span>
-          <span className="font-cond text-[9px] font-semibold uppercase tracking-[0.12em] text-tenue sm:text-[11px] sm:tracking-[0.2em]">
+          <span className="font-cond text-[11px] font-semibold uppercase tracking-[0.12em] text-tenue sm:text-[11px] sm:tracking-[0.2em]">
             {etiqueta}
           </span>
         </li>

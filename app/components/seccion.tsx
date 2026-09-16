@@ -39,7 +39,7 @@ export function Seccion({
     >
       <FileteOro />
       <div
-        className={`mx-auto flex flex-col items-center gap-6 px-6 py-20 lg:px-14 lg:py-24 ${
+        className={`mx-auto flex flex-col items-center gap-8 px-6 py-14 sm:py-16 lg:px-14 lg:py-20 ${
           ancho === "amplio" ? "max-w-[88rem]" : "max-w-contenido"
         }`}
       >

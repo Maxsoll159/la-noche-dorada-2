@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import { EVENTO, PATROCINADORES } from "@/lib/evento";
 import { Seccion } from "./seccion";
 
@@ -10,21 +10,24 @@ const CREDITOS = [
 
 const CONTACTO = "comercial@lanochedorada.pe";
 
-/**
- * Escuadras doradas en las esquinas, el mismo recurso de las cards de combate.
- * Aquí hacen doble trabajo: enmarcan el logo —que es lo único que lleva la
- * tarjeta— y encienden en oro al pasar el cursor.
- */
-function Escuadras() {
-  const comun =
-    "pointer-events-none absolute size-5 border-oro-profundo transition-colors duration-300 group-hover:border-oro";
+/** "https://www.stake.pe/x" -> "stake.pe": el dominio como pie de la marca. */
+const dominio = (url: string) => new URL(url).hostname.replace(/^www\./, "");
+
+function Flecha({ className = "" }: { className?: string }) {
   return (
-    <>
-      <span aria-hidden className={`${comun} left-3 top-3 border-l-2 border-t-2`} />
-      <span aria-hidden className={`${comun} right-3 top-3 border-r-2 border-t-2`} />
-      <span aria-hidden className={`${comun} bottom-3 left-3 border-b-2 border-l-2`} />
-      <span aria-hidden className={`${comun} bottom-3 right-3 border-b-2 border-r-2`} />
-    </>
+    <svg
+      aria-hidden
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      className={className}
+    >
+      <path d="M7 17 17 7M9 7h8v8" />
+    </svg>
   );
 }
 
@@ -37,8 +40,11 @@ export function Patrocinador() {
     >
       {/* Un solo hijo: el envoltorio de `Seccion` no lleva gap, así que varios
           hijos sueltos se tocarían entre sí. */}
-      <div className="flex w-full flex-col items-center gap-9">
-        <ul className="grid w-full gap-5 sm:grid-cols-2">
+      <div className="flex w-full flex-col items-center gap-8 sm:gap-9">
+        {/* Antes eran dos rectángulos grandes con solo el logo y una flecha;
+            el pie con nombre, dominio y "Visitar" les da base y dice adónde
+            llevan. */}
+        <ul className="grid w-full gap-4 sm:grid-cols-2 lg:gap-5">
           {PATROCINADORES.map((p) => (
             <li key={p.nombre} className="flex">
               <a
@@ -46,23 +52,22 @@ export function Patrocinador() {
                 target="_blank"
                 rel="noreferrer sponsored"
                 aria-label={`Ir al sitio de ${p.nombre} (se abre en otra pestaña)`}
-                className="group relative isolate flex w-full items-center justify-center overflow-hidden rounded-sm border border-oro-profundo bg-carbon px-6 py-9 transition duration-300 hover:-translate-y-1 hover:border-oro hover:bg-oro-tinte sm:px-8"
+                className="group relative isolate flex w-full flex-col overflow-hidden rounded-sm border border-oro-profundo bg-carbon transition duration-300 hover:-translate-y-1 hover:border-oro hover:shadow-[0_18px_40px_rgba(0,0,0,0.5)]"
               >
                 {/* Resplandor dorado detrás de la marca, el mismo recurso del
                     hero. Con z negativo pinta sobre el fondo de la tarjeta y
                     bajo el logo; `isolate` evita que ese z escape del enlace. */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_62%_at_50%_45%,rgba(212,175,55,0.16)_0%,rgba(212,175,55,0)_100%)]"
+                  className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-[radial-gradient(60%_80%_at_50%_50%,rgba(212,175,55,0.18)_0%,rgba(212,175,55,0)_100%)]"
                 />
-                <Escuadras />
                 {/* Alto fijo: cada marca tiene su proporción, y sin esto las
-                    dos tarjetas quedaban de distinto alto. Los `ancho` de
+                    tarjetas quedaban de distinto alto. Los `ancho` de
                     lib/evento.ts están calculados para caer todos en ~95 px. */}
-                <span className="flex h-24 items-center justify-center">
+                <span className="flex h-32 items-center justify-center px-8">
                   <Image
                     src={p.logo}
-                    alt={p.nombre}
+                    alt=""
                     width={p.w}
                     height={p.h}
                     sizes={`${p.ancho}px`}
@@ -70,39 +75,42 @@ export function Patrocinador() {
                     className="h-auto max-w-full transition-transform duration-300 group-hover:scale-105"
                   />
                 </span>
-                {/* La flecha es toda la señal de "esto es un enlace externo":
-                    un pie de texto debajo del logo solo repetía el nombre. */}
-                <svg
-                  aria-hidden
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  className="absolute right-5 top-5 text-oro-profundo transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-oro"
-                >
-                  <path d="M7 17 17 7M9 7h8v8" />
-                </svg>
+                {/* Pie con nombre, dominio y la señal de enlace externo: le da
+                    base a la tarjeta y dice adónde lleva. */}
+                <span className="flex items-center justify-between gap-3 border-t border-linea bg-[#08080b] px-5 py-3">
+                  <span className="min-w-0">
+                    <span className="block truncate font-display text-[15px] uppercase leading-tight text-crema">
+                      {p.nombre}
+                    </span>
+                    <span className="block truncate font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-tenue">
+                      {dominio(p.url)}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro">
+                    Visitar
+                    <Flecha className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </span>
+                </span>
               </a>
             </li>
           ))}
         </ul>
 
-        {/* gap-y para cuando los créditos se parten en varias filas: sin él,
-            las filas quedaban pegadas. El separador solo desde sm, que es
-            donde los tres entran en una sola línea. */}
-        <ul className="flex flex-wrap items-center justify-center gap-y-5 divide-oro-profundo/40 sm:divide-x">
-          {CREDITOS.map((c) => (
+        {/* Créditos. En móvil, filas etiqueta/valor dentro de una card: los
+            tres bloques centrados se partían en dos más uno y quedaban
+            descuadrados. Desde sm, la fila de tres con separadores. */}
+        <ul className="w-full rounded-sm border border-linea bg-carbon sm:w-auto sm:border-0 sm:bg-transparent sm:flex sm:items-center sm:justify-center sm:divide-x sm:divide-oro-profundo/40">
+          {CREDITOS.map((c, i) => (
             <li
               key={c.etiqueta}
-              className="flex flex-col items-center gap-1.5 px-7 py-2 sm:px-9"
+              className={`flex items-center justify-between gap-4 px-5 py-3 sm:flex-col sm:justify-center sm:gap-1.5 sm:px-9 sm:py-2 ${
+                i < CREDITOS.length - 1 ? "border-b border-linea sm:border-b-0" : ""
+              }`}
             >
-              <span className="font-cond text-[10px] font-bold uppercase tracking-[0.22em] text-oro-profundo">
+              <span className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio">
                 {c.etiqueta}
               </span>
-              <span className="font-display text-[17px] uppercase text-crema">
+              <span className="font-display text-[16px] uppercase text-crema sm:text-[17px]">
                 {c.valor}
               </span>
             </li>
@@ -110,18 +118,21 @@ export function Patrocinador() {
         </ul>
 
         <div className="flex flex-col items-center gap-2.5 text-center">
+          {/* El correo en su propia línea en móvil: partido a media palabra
+              no se leía. */}
           <p className="font-cond text-[12px] font-semibold uppercase tracking-[0.2em] text-tenue">
-            Consultas comerciales ·{" "}
+            Consultas comerciales
+            <span className="hidden sm:inline"> · </span>
             <a
-              href={`mailto:${CONTACTO}`}
-              className="underline underline-offset-2 transition-colors hover:text-oro"
+              href={`mailto:${CONTACTO}?subject=${encodeURIComponent(`Patrocinio · ${EVENTO.nombre}`)}`}
+              className="mt-1 block tracking-[0.08em] underline underline-offset-2 transition-colors hover:text-oro sm:mt-0 sm:inline sm:tracking-[0.2em]"
             >
               {CONTACTO}
             </a>
           </p>
           {/* Las dos marcas son de juego online: el aviso va junto a la pieza
               patrocinada, no solo en el pie. */}
-          <p className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-profundo">
+          <p className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio">
             +18 · Juega con responsabilidad
           </p>
         </div>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Anton, Barlow, Barlow_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { NOMBRES_ALTERNOS, SITIO } from "@/lib/sitio";
 import "./globals.css";
 
 const anton = Anton({
@@ -22,19 +23,20 @@ const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
 });
 
+// Arranca con el nombre y su variante más buscada ("Noche Dorada 2"): es el
+// texto que Google muestra bajo el título y donde más pesa la coincidencia.
 const DESCRIPCION =
-  "La segunda edición del evento de boxeo entre creadores de contenido más grande del Perú. Ocho combates, dieciséis creadores, una sola noche. Sábado 28 de noviembre en el Coliseo Eduardo Dibós, Lima.";
+  "La Noche Dorada II (Noche Dorada 2): la segunda edición del evento de boxeo entre creadores de contenido más grande del Perú. Ocho combates, dieciséis creadores, una sola noche. Sábado 28 de noviembre de 2026 en el Coliseo Eduardo Dibós, Lima. Cartelera, pronósticos y entradas.";
 
 export const metadata: Metadata = {
   // Base para que las URLs de Open Graph y el canónico salgan absolutas.
-  // Cambia NEXT_PUBLIC_SITIO al dominio real antes de publicar.
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITIO ?? "https://lanochedorada.pe",
-  ),
-  // El título es siempre la marca: `default` para la home y `template` para
-  // que cualquier ruta futura lo conserve al final.
+  // Ver lib/sitio.ts para el orden de prioridad del dominio.
+  metadataBase: new URL(SITIO),
+  // La home lleva marca más qué es y dónde: así el resultado de búsqueda
+  // dice algo aunque quien busca no conozca el evento. Las demás rutas
+  // conservan la marca al final con `template`.
   title: {
-    default: "La Noche Dorada II",
+    default: "La Noche Dorada II · Boxeo entre creadores · Lima, 28 de noviembre",
     template: "%s · La Noche Dorada II",
   },
   description: DESCRIPCION,
@@ -42,14 +44,21 @@ export const metadata: Metadata = {
   authors: [{ name: "Vastion" }],
   creator: "Vastion",
   publisher: "Vastion",
+  category: "sports",
   keywords: [
-    "La Noche Dorada",
     "La Noche Dorada II",
+    ...NOMBRES_ALTERNOS,
+    "noche dorada boxeo",
+    "la noche dorada 2026",
+    "la noche dorada entradas",
     "boxeo creadores de contenido",
+    "velada de boxeo Perú",
     "Coliseo Eduardo Dibós",
     "Cañita",
-    "JH de la Cruz",
-    "entradas",
+    "JH de la Cruz 777",
+    "Stake",
+    "Vastion",
+    "Lima",
     "Perú",
   ],
   alternates: { canonical: "/" },
@@ -63,12 +72,12 @@ export const metadata: Metadata = {
     locale: "es_PE",
     url: "/",
     siteName: "La Noche Dorada II",
-    title: "La Noche Dorada II",
+    title: "La Noche Dorada II · Boxeo entre creadores · Lima, 28 de noviembre",
     description: DESCRIPCION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "La Noche Dorada II",
+    title: "La Noche Dorada II · Boxeo entre creadores · Lima, 28 de noviembre",
     description: DESCRIPCION,
   },
   // Las imágenes de openGraph y twitter las toma Next de

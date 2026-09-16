@@ -122,17 +122,30 @@ function BotonGoogle({
  * Jugador 1 a la izquierda, jugador 2 a la derecha: los mismos acentos de la
  * parrilla del cara a cara, para que las dos secciones se lean como una.
  */
-const NUMERO: Record<Lado, { n: number; fondo: string }> = {
-  a: { n: 1, fondo: "bg-lado-a" },
-  b: { n: 2, fondo: "bg-lado-b" },
+const NUMERO: Record<Lado, { n: number; fondo: string; tinte: string }> = {
+  a: {
+    n: 1,
+    fondo: "bg-lado-a",
+    // Resplandor del color del lado detrás de la cabeza, que se apaga hacia
+    // el pie de la loseta.
+    tinte: "bg-[radial-gradient(90%_70%_at_50%_0%,rgba(226,54,44,0.32)_0%,rgba(16,16,21,0)_75%)]",
+  },
+  b: {
+    n: 2,
+    fondo: "bg-lado-b",
+    tinte: "bg-[radial-gradient(90%_70%_at_50%_0%,rgba(47,123,230,0.32)_0%,rgba(16,16,21,0)_75%)]",
+  },
 };
 
 /**
- * Un lado del combate, y a la vez su botón de voto: foto, porcentaje y
- * nombre en una sola pieza. Antes había dos botones grandes aparte en el pie
- * de la card, y con ocho cards la sección se hacía interminable en móvil.
+ * Un lado del combate, y a la vez su botón de voto: una loseta con la foto de
+ * estudio del peleador, el porcentaje arriba (mirando al VS) y el nombre al
+ * pie, como en una pantalla de selección. La loseta entera se toca. Antes era
+ * una fila de foto chica, número y texto que se leía como una tabla.
+ * Se exporta porque la ficha de peleador arma su módulo de pronóstico con las
+ * mismas piezas.
  */
-function LadoVoto({
+export function LadoVoto({
   peleador,
   lado,
   pct,
@@ -160,6 +173,8 @@ function LadoVoto({
   const izquierda = lado === "a";
   // Con resultado manda el resultado; antes, quién va arriba en la votación.
   const destacado = resultado ? resultado === "gano" : lidera;
+  // Se atenúa el que perdió y, mientras se vota, el lado que NO elegiste.
+  const apagado = resultado === "perdio" || (otroVotado && puedeVotar);
   return (
     <button
       type="button"
@@ -171,76 +186,90 @@ function LadoVoto({
           ? `Votaste por ${peleador.nombre}. Volver a tocar quita el voto`
           : `Votar por ${peleador.nombre}`
       }
-      // Panel propio, sin borde: el borde se clavaba en el rombo del VS y en
-      // la barra. El fondo suave y la etiqueta "Votar" ya dicen que se toca.
-      className={`group relative m-2 flex min-w-0 flex-col items-center gap-2 rounded-sm px-2 py-3 text-center transition-colors sm:m-3 sm:flex-row sm:gap-4 sm:px-4 sm:py-4 sm:text-left ${
-        izquierda ? "" : "sm:flex-row-reverse sm:text-right"
-      } ${
+      // Alta en móvil (4/5) y cuadrada desde sm. Apaisada no sirve: los
+      // recortes de estudio son verticales y con la cabeza pegada al borde de
+      // arriba, así que en una caja ancha se cortaban las cabezas.
+      className={`group relative isolate block aspect-[4/5] w-full overflow-hidden rounded-sm bg-carbon outline-none transition duration-300 sm:aspect-square ${
         votado
-          ? "bg-oro/15 ring-2 ring-inset ring-oro"
-          : otroVotado && puedeVotar
-            ? "cursor-pointer bg-white/[0.035] opacity-55 hover:opacity-100 hover:bg-oro-tinte"
-            : puedeVotar
-              ? "cursor-pointer bg-white/[0.035] hover:bg-oro-tinte"
-              : "cursor-default"
-      } disabled:cursor-default`}
+          ? "ring-2 ring-inset ring-oro"
+          : puedeVotar
+            ? "cursor-pointer ring-1 ring-inset ring-linea hover:ring-oro-profundo"
+            : "ring-1 ring-inset ring-linea"
+      } ${apagado ? "opacity-55 hover:opacity-100" : ""} disabled:cursor-default`}
     >
-      {/* Foto con el número del lado, como en la parrilla del cara a cara */}
-      <span
-        className={`relative block h-[84px] w-[46px] shrink-0 overflow-hidden rounded-sm border transition sm:h-[100px] sm:w-[54px] ${
-          resultado === "perdio"
-            ? "border-linea opacity-40 grayscale"
-            : votado || destacado
-              ? "border-2 border-oro"
-              : "border-linea opacity-70 group-hover:opacity-100"
-        }`}
-      >
+      {/* Resplandor del color del lado, detrás de la cabeza */}
+      <span aria-hidden className={`absolute inset-0 -z-10 ${NUMERO[lado].tinte}`} />
+
+      {/* La foto de estudio, entera y apoyada al pie (contain): los recortes
+          vienen sin aire sobre la cabeza y cualquier cover la cortaba. La
+          caja arranca un poco más abajo del borde para que la cabeza tenga
+          margen y la franja de arriba quede para el porcentaje. Si no hay
+          recorte de estudio, el retrato del arte va a cover. */}
+      <span className="absolute inset-x-0 bottom-0 top-[12%] sm:top-[9%]">
         <Image
-          src={peleador.foto}
+          src={peleador.cuerpo ?? peleador.foto}
           alt=""
           fill
-          sizes="(min-width: 640px) 54px, 46px"
-          className="object-cover object-top"
+          sizes="(min-width: 1024px) 280px, (min-width: 640px) 45vw, 50vw"
+          className={`transition-transform duration-500 group-hover:scale-[1.04] ${
+            peleador.cuerpo
+              ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
+              : "object-cover object-top"
+          } ${resultado === "perdio" ? "grayscale" : ""}`}
         />
-        <span
-          aria-hidden
-          className={`absolute left-0 top-0 grid size-4 place-items-center font-display text-[10px] leading-none text-white ${NUMERO[lado].fondo}`}
-        >
-          {NUMERO[lado].n}
-        </span>
       </span>
+
+      {/* Fundido al pie para que el nombre se lea sobre la foto */}
       <span
-        className={`flex w-full min-w-0 flex-col items-center gap-0.5 sm:w-auto sm:flex-1 ${
-          izquierda ? "sm:items-start" : "sm:items-end"
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-noche via-noche/75 to-transparent"
+      />
+
+      {/* Número del lado en la esquina exterior, como en la parrilla */}
+      <span
+        aria-hidden
+        className={`absolute top-0 grid size-5 place-items-center font-display text-[12px] leading-none text-white ${
+          izquierda ? "left-0" : "right-0"
+        } ${NUMERO[lado].fondo}`}
+      >
+        {NUMERO[lado].n}
+      </span>
+
+      {/* Porcentaje en la esquina interior: los dos miran al VS */}
+      <span
+        className={`absolute top-2 font-display text-[28px] leading-none tabular-nums drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)] sm:top-3 sm:text-[38px] ${
+          izquierda ? "right-3 sm:right-4" : "left-3 sm:left-4"
+        } ${destacado ? "text-oro" : "text-tenue"}`}
+      >
+        {pct === null ? "—" : `${pct}%`}
+      </span>
+
+      {/* Nombre y etiqueta al pie, hacia el borde exterior */}
+      <span
+        className={`absolute inset-x-0 bottom-0 flex flex-col gap-1.5 px-3 pb-3 sm:px-4 sm:pb-4 ${
+          izquierda ? "items-start text-left" : "items-end text-right"
         }`}
       >
         <span
-          className={`font-display text-[26px] leading-none tabular-nums sm:text-[36px] ${
-            destacado ? "text-oro" : "text-tenue"
-          }`}
-        >
-          {pct === null ? "—" : `${pct}%`}
-        </span>
-        <span
-          className={`w-full font-display text-[12px] uppercase leading-tight break-words hyphens-auto sm:text-[16px] ${
+          className={`font-display text-[15px] uppercase leading-tight break-words sm:text-[19px] ${
             destacado || votado ? "text-oro-claro" : "text-crema"
           }`}
         >
           {peleador.nombre}
         </span>
         {resultado === "gano" ? (
-          <span className="mt-1 rounded-full bg-oro px-2 py-[2px] font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-noche">
+          <span className="rounded-full bg-oro px-2.5 py-[3px] font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche">
             Ganó
           </span>
         ) : votado ? (
-          <span className="mt-1 flex items-center gap-1 rounded-sm bg-oro px-2.5 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-noche">
+          <span className="flex items-center gap-1 rounded-sm bg-oro px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche">
             <IconoVoto />
             Tu voto
           </span>
         ) : puedeVotar ? (
-          // La etiqueta es lo que dice "esto se toca": el lado entero es el
+          // La etiqueta es lo que dice "esto se toca": la loseta entera es el
           // botón, pero hacía falta la palabra.
-          <span className="mt-1 flex items-center gap-1 rounded-sm border border-oro px-2.5 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-oro transition-colors group-hover:bg-oro group-hover:text-noche">
+          <span className="flex items-center gap-1 rounded-sm border border-oro bg-noche/70 px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro backdrop-blur-sm transition-colors group-hover:bg-oro group-hover:text-noche">
             <IconoVoto />
             {otroVotado ? "Cambiar" : "Votar"}
           </span>
@@ -250,20 +279,32 @@ function LadoVoto({
   );
 }
 
+/** Rombo del VS montado sobre la junta de las dos losetas. */
+export function RomboVS() {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 top-1/2 z-10 grid size-[36px] -translate-x-1/2 -translate-y-1/2 place-items-center sm:size-[46px]"
+    >
+      <span className="absolute inset-0 rotate-45 rounded-[3px] border border-oro bg-noche shadow-[0_0_18px_rgba(0,0,0,0.85)]" />
+      <span className="relative font-display text-[12px] text-oro sm:text-[14px]">
+        VS
+      </span>
+    </span>
+  );
+}
+
 function Card({
   c,
   conteo,
   voto,
   enviando,
-  conSesion,
   onVotar,
 }: {
   c: Combate;
   conteo?: Conteo;
   voto?: Lado;
   enviando: boolean;
-  /** Sin sesión, el primer toque manda a Google: se avisa antes. */
-  conSesion: boolean;
   onVotar: (lado: Lado) => void;
 }) {
   const activo = PRONOSTICOS_ACTIVOS;
@@ -294,18 +335,18 @@ function Card({
       {/* flex-wrap y tracking más corto en móvil: los tres rótulos juntos no
           entran en una card de 312 px y se salían del borde. */}
       <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-linea bg-[#08080b] px-3 py-2.5 sm:px-5">
-        <p className="flex items-center gap-2 font-cond text-[10px] font-bold uppercase tracking-[0.12em] sm:gap-2.5 sm:text-[11px] sm:tracking-[0.22em]">
+        <p className="flex items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.12em] sm:gap-2.5 sm:text-[11px] sm:tracking-[0.22em]">
           <span className="text-oro">Combate {c.n}</span>
           {c.billing && (
             <>
               <span aria-hidden className="size-[3px] rounded-full bg-oro-profundo" />
-              <span className="text-oro-profundo">{c.billing}</span>
+              <span className="text-oro-medio">{c.billing}</span>
             </>
           )}
         </p>
-        <p className="flex items-center gap-2 font-cond text-[10px] font-bold uppercase tracking-[0.1em] sm:text-[11px] sm:tracking-[0.14em]">
+        <p className="flex items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.1em] sm:text-[11px] sm:tracking-[0.14em]">
           {!activo ? (
-            <span className="text-oro-profundo">Próximamente</span>
+            <span className="text-oro-medio">Próximamente</span>
           ) : esperando ? (
             <span className="text-tenue">Cargando</span>
           ) : (
@@ -313,7 +354,7 @@ function Card({
               <span
                 aria-hidden
                 className={`inline-block size-[7px] rounded-full ${
-                  ganador || voto ? "bg-oro" : "bg-[#3a3a44]"
+                  ganador || voto ? "bg-oro" : "bg-humo"
                 }`}
               />
               <span className={ganador || voto ? "text-oro" : "text-tenue"}>
@@ -330,8 +371,9 @@ function Card({
         </p>
       </header>
 
-      {/* Los dos lados son los botones; el rombo del VS va en medio. */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-stretch">
+      {/* Los dos lados son los botones; el rombo del VS va montado sobre la
+          junta, no en una columna propia que robaba ancho a las losetas. */}
+      <div className="relative grid grid-cols-2 gap-1.5 p-1.5 sm:gap-2 sm:p-2">
         <LadoVoto
           peleador={c.a}
           lado="a"
@@ -344,17 +386,7 @@ function Card({
           enviando={enviando}
           onVotar={() => onVotar("a")}
         />
-        {/* Con margen: el rombo gira 45° y sus puntas sobresalen de su caja, así
-            que sin aire se clavaban en los paneles de los lados. */}
-        <span className="relative mx-1 grid size-[34px] shrink-0 place-items-center self-center sm:mx-2 sm:size-[48px]">
-          <span
-            aria-hidden
-            className="absolute inset-0 rotate-45 rounded-[3px] border border-oro bg-noche/90"
-          />
-          <span className="relative font-display text-[12px] text-oro sm:text-[15px]">
-            VS
-          </span>
-        </span>
+        <RomboVS />
         <LadoVoto
           peleador={c.b}
           lado="b"
@@ -383,20 +415,23 @@ function Card({
           className={`block transition-[width] duration-500 ${
             lideraA
               ? "bg-gradient-to-r from-oro-profundo to-oro-claro"
-              : "bg-[#3a3a44]"
+              : "bg-humo"
           }`}
         />
         <span
           className={`block flex-1 transition-[width] duration-500 ${
             lideraB
               ? "bg-gradient-to-l from-oro-profundo to-oro-claro"
-              : "bg-[#3a3a44]"
+              : "bg-humo"
           }`}
         />
       </div>
 
-      {/* Una sola línea de estado en vez de dos botones grandes */}
-      <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-[#08080b] px-3 py-2.5 font-cond text-[10px] font-semibold uppercase tracking-[0.12em] text-tenue sm:px-5 sm:text-[11px]">
+      {/* Una sola línea de estado, y solo cuando hay algo que decir: la
+          card abierta y sin voto no lleva pie, la ayuda de uso va una vez
+          encima de la rejilla y no ocho veces. */}
+      {(ganador || !activo || esperando || !abierto || voto) && (
+      <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-[#08080b] px-3 py-2.5 font-cond text-[11px] font-semibold uppercase tracking-[0.12em] text-tenue sm:px-5">
         {ganador ? (
           <>
             <span className="flex items-center gap-2 text-oro-claro">
@@ -439,18 +474,9 @@ function Card({
               </button>
             </span>
           </>
-        ) : (
-          <>
-            <span>Toca un lado para votar</span>
-            {!conSesion && (
-              <span className="flex items-center gap-1.5 text-oro-profundo">
-                <LogoGoogle className="size-[11px]" />
-                Te pediremos entrar con Google
-              </span>
-            )}
-          </>
-        )}
+        ) : null}
       </footer>
+      )}
     </article>
   );
 }
@@ -615,7 +641,20 @@ export function Pronosticos() {
         </p>
       )}
 
-      <div className="grid w-full gap-5 lg:grid-cols-2">
+      {/* La ayuda de uso, una sola vez para las ocho cards */}
+      {activo && !cargando && (
+        <p className="-mb-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center font-cond text-[12px] font-semibold uppercase tracking-[0.14em] text-tenue">
+          <span>Toca un lado para votar</span>
+          {!usuario && (
+            <span className="flex items-center gap-1.5 text-oro-medio">
+              <LogoGoogle className="size-[12px]" />
+              Te pediremos entrar con Google
+            </span>
+          )}
+        </p>
+      )}
+
+      <div className="grid w-full gap-4 sm:gap-5 lg:grid-cols-2">
         {COMBATES.map((c) => (
           <Card
             key={c.n}
@@ -623,13 +662,12 @@ export function Pronosticos() {
             conteo={conteos[c.n]}
             voto={votos[c.n]}
             enviando={enviando === c.n}
-            conSesion={!!usuario}
             onVotar={(lado) => votar(c.n, lado)}
           />
         ))}
       </div>
 
-      <p className="text-center font-cond text-[12px] font-semibold uppercase tracking-[0.2em] text-oro-profundo">
+      <p className="text-center font-cond text-[12px] font-semibold uppercase tracking-[0.2em] text-oro-medio">
         {!activo
           ? "Los pronósticos de la comunidad se habilitan en la segunda fase del sitio"
           : cargando

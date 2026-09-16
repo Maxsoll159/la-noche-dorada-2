@@ -38,7 +38,7 @@ export const HAY_APROX = PELEADORES.some((p) => p.aprox);
 export function NotaAprox({ className = "" }: { className?: string }) {
   return (
     <p
-      className={`text-center font-cond text-[9px] font-semibold uppercase leading-relaxed tracking-[0.18em] text-oro-profundo ${className}`}
+      className={`text-center font-cond text-[11px] font-semibold uppercase leading-relaxed tracking-[0.18em] text-oro-medio ${className}`}
     >
       {HAY_APROX
         ? "* Dato no oficial · El pesaje de la velada manda"

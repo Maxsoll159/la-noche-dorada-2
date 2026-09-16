@@ -13,7 +13,7 @@ export function Bandera({
     <span
       role="img"
       aria-label={b.nombre}
-      className={`inline-flex overflow-hidden rounded-[2px] ring-1 ring-black/40 ${className} ${
+      className={`relative inline-flex overflow-hidden rounded-[2px] ring-1 ring-black/40 ${className} ${
         b.orientacion === "v" ? "flex-row" : "flex-col"
       }`}
     >
@@ -24,6 +24,19 @@ export function Bandera({
           className="block"
         />
       ))}
+      {b.canton && (
+        <span
+          aria-hidden
+          style={{ backgroundColor: b.canton.color }}
+          className="absolute left-0 top-0 grid h-1/2 w-1/3 place-items-center"
+        >
+          {b.canton.estrella && (
+            <svg viewBox="0 0 24 24" className="h-[72%] w-auto fill-white">
+              <path d="M12 2l2.9 6.6 7.1.7-5.4 4.8 1.6 7L12 17.4 5.8 21.1l1.6-7L2 9.3l7.1-.7z" />
+            </svg>
+          )}
+        </span>
+      )}
     </span>
   );
 }

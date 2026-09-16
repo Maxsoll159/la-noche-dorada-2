@@ -66,16 +66,28 @@ export function Presentacion() {
                 <span className="font-display text-[17px] uppercase leading-tight text-crema sm:text-[24px]">
                   {titulo}
                 </span>
-                <span className="font-cond text-[10px] font-bold uppercase tracking-[0.2em] text-oro sm:text-[12px]">
+                <span className="font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro sm:text-[12px]">
                   Gala de presentación · La cartelera y los careos
                 </span>
               </span>
             </button>
           )}
         </div>
+
+        {/* Haz dorado recorriendo el marco, el mismo de la ficha de peleador.
+            Van al final para pintar por encima del video; `marco-vivo` no
+            recibe punteros, así que los controles del reproductor siguen
+            respondiendo debajo. Dos haces opuestos para que el marco nunca
+            quede muerto. */}
+        <span aria-hidden className="marco-vivo">
+          <span className="marco-vivo-haz" />
+        </span>
+        <span aria-hidden className="marco-vivo">
+          <span className="marco-vivo-haz marco-vivo-opuesto" />
+        </span>
       </div>
 
-      <p className="text-center font-cond text-[11px] font-semibold uppercase tracking-[0.16em] text-oro-profundo">
+      <p className="text-center font-cond text-[11px] font-semibold uppercase tracking-[0.16em] text-oro-medio">
         Video de {canal} ·{" "}
         <a
           href={enYoutube}

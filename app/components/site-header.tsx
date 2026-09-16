@@ -14,7 +14,7 @@ function Etiqueta({
 }) {
   return (
     <span
-      className={`whitespace-nowrap rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[3px] font-cond text-[9px] font-bold uppercase leading-none tracking-[0.12em] text-oro ${
+      className={`whitespace-nowrap rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[3px] font-cond text-[11px] font-bold uppercase leading-none tracking-[0.12em] text-oro ${
         esquina ? "absolute -top-5 -right-10" : ""
       }`}
     >
@@ -54,6 +54,19 @@ export function SiteHeader() {
   const opaco = bajando || abierto;
 
   return (
+    <>
+      {/* Velo sobre la página con el panel abierto: sin él, el hero seguía a
+          plena luz debajo del menú y el panel no se leía como capa. Tocarlo
+          cierra. Va FUERA del header: su backdrop-blur lo convierte en
+          contenedor de los descendientes fijos, y dentro el velo solo
+          cubría la barra. */}
+      <div
+        aria-hidden
+        onClick={() => setAbierto(false)}
+        className={`fixed inset-0 z-40 bg-noche/70 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          abierto ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
     <header
       // Fijo y fuera del flujo: así el cartel del hero pasa por detrás y el
       // header puede fundirse con él en la parte de arriba.
@@ -89,12 +102,14 @@ export function SiteHeader() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        {/* Seis entradas: en lg (1024) van algo más juntas y chicas para que
+            entren con el logo y el botón; desde xl recuperan el aire. */}
+        <nav className="hidden items-center gap-5 lg:flex xl:gap-7">
           {NAV.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="relative font-cond text-[15px] font-semibold uppercase tracking-[0.11em] text-tenue transition-colors hover:text-oro"
+              className="relative font-cond text-[14px] font-semibold uppercase tracking-[0.1em] text-tenue transition-colors hover:text-oro xl:text-[15px] xl:tracking-[0.11em]"
             >
               {item.label}
             </a>
@@ -182,5 +197,6 @@ export function SiteHeader() {
         </nav>
       </div>
     </header>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { PELEADORES } from "@/lib/evento";
 
-const SITIO = process.env.NEXT_PUBLIC_SITIO ?? "https://lanochedorada.pe";
+import { SITIO } from "@/lib/sitio";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const ahora = new Date();

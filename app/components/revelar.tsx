@@ -11,10 +11,13 @@ export function Revelar({
   /** Milisegundos de retardo, para escalonar varios hermanos */
   retardo = 0,
   className = "",
+  /** Ancla opcional, para que un enlace interno pueda bajar hasta aquí */
+  id,
 }: {
   children: React.ReactNode;
   retardo?: number;
   className?: string;
+  id?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -46,6 +49,7 @@ export function Revelar({
   return (
     <div
       ref={ref}
+      id={id}
       style={retardo ? { transitionDelay: `${retardo}ms` } : undefined}
       className={`revelar ${visible ? "revelado" : ""} ${className}`}
     >

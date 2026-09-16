@@ -1,18 +1,40 @@
 import { COMBATES, EVENTO, PATROCINADORES, PELEADORES } from "@/lib/evento";
+import { NOMBRES_ALTERNOS, SITIO } from "@/lib/sitio";
 
 /**
- * JSON-LD del evento. Es lo que le permite a Google mostrar fecha, sede y
- * enlace de entradas directamente en el resultado de búsqueda.
+ * JSON-LD de la home: el sitio, la organizadora y el evento. El sitio con sus
+ * nombres alternos es lo que le dice a Google que "noche dorada 2" o
+ * "lanochedorada" son esta web; el evento es lo que le permite mostrar fecha,
+ * sede y enlace de entradas directamente en el resultado de búsqueda.
  * Solo se declara lo verificable: no hay precios aquí porque los de la
  * preventa 1 pueden haber cambiado con el nuevo calendario.
  */
 export function DatosEstructurados() {
-  const sitio = process.env.NEXT_PUBLIC_SITIO ?? "https://lanochedorada.pe";
+  const sitio = SITIO;
+
+  const organizadora = {
+    "@type": "Organization",
+    "@id": `${sitio}/#organizadora`,
+    name: EVENTO.productora,
+    url: sitio,
+    logo: `${sitio}/icon.png`,
+  };
+
+  const web = {
+    "@type": "WebSite",
+    "@id": `${sitio}/#web`,
+    url: sitio,
+    name: EVENTO.nombre,
+    alternateName: NOMBRES_ALTERNOS,
+    inLanguage: "es-PE",
+    publisher: { "@id": organizadora["@id"] },
+  };
 
   const evento = {
-    "@context": "https://schema.org",
     "@type": "SportsEvent",
+    "@id": `${sitio}/#evento`,
     name: EVENTO.nombre,
+    alternateName: NOMBRES_ALTERNOS,
     description: `Ocho combates de boxeo amateur entre dieciséis creadores de contenido. ${COMBATES[0].billing}: ${COMBATES[0].a.nombre} contra ${COMBATES[0].b.nombre}.`,
     startDate: EVENTO.inicioISO,
     eventStatus: "https://schema.org/EventScheduled",
@@ -37,10 +59,7 @@ export function DatosEstructurados() {
         longitude: EVENTO.coordenadas.lon,
       },
     },
-    organizer: {
-      "@type": "Organization",
-      name: EVENTO.productora,
-    },
+    organizer: { "@id": organizadora["@id"] },
     sponsor: PATROCINADORES.map((p) => ({
       "@type": "Organization",
       name: p.nombre,
@@ -53,9 +72,12 @@ export function DatosEstructurados() {
       priceCurrency: "PEN",
       category: "primary",
     },
+    // Cada peleador con la URL de su ficha: enlaza el evento con las 16
+    // páginas y les da entidad propia en el buscador.
     performer: PELEADORES.map((p) => ({
       "@type": "Person",
       name: p.nombre,
+      url: `${sitio}/peleadores/${p.slug}`,
     })),
     subEvent: COMBATES.map((c) => ({
       "@type": "SportsEvent",
@@ -69,11 +91,16 @@ export function DatosEstructurados() {
     })),
   };
 
+  const grafo = {
+    "@context": "https://schema.org",
+    "@graph": [organizadora, web, evento],
+  };
+
   return (
     <script
       type="application/ld+json"
       // El contenido es nuestro y no lleva entrada de usuario.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(evento) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(grafo) }}
     />
   );
 }

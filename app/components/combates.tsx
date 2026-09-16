@@ -1,82 +1,118 @@
 import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { COMBATES, type Combate } from "@/lib/evento";
+import { BANDERAS, COMBATES, type Combate } from "@/lib/evento";
+import { Bandera } from "./bandera";
 import { Revelar } from "./revelar";
 import { Seccion } from "./seccion";
 
+function Flecha({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
 /**
- * Card vertical, en la proporción del arte oficial (1080×1140). Antes era
- * horizontal y la pieza quedaba centrada entre dos franjas desenfocadas que
- * ocupaban la mitad de la card y pedían descargar el arte dos veces.
+ * Card horizontal, la misma para los ocho combates: el arte oficial a un lado
+ * y, al otro, el rótulo, los dos nombres con su bandera y la salida a la
+ * votación. El estelar y el semifondo se distinguen solo por el borde y el
+ * chip; mezclar dos formatos de card en la misma sección se veía desparejo.
  */
 function CardCombate({ c }: { c: Combate }) {
   return (
     <article
-      // h-full: las cards con rótulo (estelar, semifondo) tienen el pie más
-      // alto; sin esto las de su misma fila quedaban más cortas.
-      className={`group flex h-full flex-col overflow-hidden rounded-sm border transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(0,0,0,0.5)] ${
+      className={`group flex h-full items-stretch overflow-hidden rounded-sm border transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(0,0,0,0.5)] ${
         c.estelar
           ? "border-oro bg-oro-tinte"
-          : "border-linea bg-carbon hover:border-oro-profundo"
+          : c.billing
+            ? "border-oro-profundo bg-carbon hover:border-oro"
+            : "border-linea bg-carbon hover:border-oro-profundo"
       }`}
     >
-      <div className="relative aspect-[1080/1140] overflow-hidden bg-noche">
+      {/* El arte marca el alto de la card con su proporción. La columna de
+          texto está medida para no pasarlo: si lo pasara, el arte se estira y
+          el recorte de los costados se lleva las caras. Por eso el arte va
+          ancho (46 %) y los nombres no pasan de 26 px. */}
+      <div className="relative aspect-[1080/1140] w-[44%] shrink-0 overflow-hidden bg-noche lg:w-[46%]">
         <Image
           src={c.arte}
           alt={`Arte oficial del combate ${c.n}: ${c.a.nombre} contra ${c.b.nombre}`}
           fill
-          sizes="(min-width: 1024px) 280px, (min-width: 640px) 45vw, 50vw"
+          sizes="(min-width: 1024px) 280px, 44vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
-        {/* Sin escuadras en las esquinas: caían justo sobre las banderas que
-            trae el arte y lo ensuciaban. La pieza ya tiene su propio marco. */}
       </div>
 
-      {/* Todo el texto va debajo del arte, nunca encima: la pieza trae los
-          nombres impresos al pie y cualquier rótulo ahí los tapaba. Orden de
-          la noche grande a la izquierda; rótulo y nombres a la derecha. */}
-      <div className="flex flex-1 items-center gap-2.5 border-t border-linea bg-[#08080b] px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
-        <span className="flex shrink-0 flex-col items-center leading-none">
-          <span className="texto-oro font-display text-[30px] leading-none sm:text-[38px]">
-            {c.n}
-          </span>
-          <span className="mt-0.5 font-cond text-[7px] font-bold uppercase tracking-[0.2em] text-oro-profundo sm:text-[8px]">
-            Combate
-          </span>
-        </span>
-        <span aria-hidden className="h-9 w-px shrink-0 bg-linea sm:h-10" />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-3 px-4 py-4 sm:px-6 sm:py-5">
+        <p className="flex flex-wrap items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.18em]">
           {c.billing && (
-            <span className="font-cond text-[9px] font-bold uppercase leading-none tracking-[0.18em] text-oro sm:text-[10px]">
+            <span
+              className={`rounded-sm px-2 py-1 leading-none ${
+                c.estelar ? "bg-oro text-noche" : "border border-oro text-oro"
+              }`}
+            >
               {c.billing}
             </span>
           )}
-          {/* Los nombres le dan título a cada card —antes eran ocho
-              artículos anónimos para un lector de pantalla— y como enlaces
-              son la puerta a las 16 fichas. Apilados: en fila no entran en
-              una card de 150 px ni de 280. */}
-          <h3 className="flex flex-col items-start gap-0.5 text-[13px] leading-tight sm:text-[15px]">
-            {[c.a, c.b].map((peleador, i) => (
-              <Fragment key={peleador.slug}>
-                {i > 0 && (
-                  <span
-                    aria-hidden
-                    className="font-cond text-[9px] font-bold leading-none tracking-[0.18em] text-oro-profundo"
-                  >
-                    VS
-                  </span>
-                )}
-                <Link
-                  href={`/peleadores/${peleador.slug}`}
-                  className="text-crema transition-colors hover:text-oro"
+          <span className={c.billing ? "text-oro-medio" : "text-oro"}>
+            Combate {c.n}
+          </span>
+        </p>
+
+        {/* Los nombres le dan título a la card y como enlaces son la puerta a
+            las fichas. Sin truncar: "JH de la Cruz 777" no entra en la
+            columna móvil y es mejor que parta en dos líneas que perder el
+            777. */}
+        <h3 className="flex flex-col gap-1 text-[18px] leading-tight sm:text-[24px] lg:text-[26px]">
+          {[c.a, c.b].map((p, i) => (
+            <Fragment key={p.slug}>
+              {i > 0 && (
+                <span
+                  aria-hidden
+                  className="font-cond text-[11px] font-bold leading-none tracking-[0.2em] text-oro-medio"
                 >
-                  {peleador.nombre}
-                </Link>
-              </Fragment>
-            ))}
-          </h3>
-        </div>
+                  VS
+                </span>
+              )}
+              <Link
+                href={`/peleadores/${p.slug}`}
+                className="flex min-w-0 items-center gap-2.5 text-crema transition-colors hover:text-oro"
+              >
+                <Bandera
+                  pais={p.pais}
+                  className="h-3 w-[19px] shrink-0 sm:h-3.5 sm:w-[21px]"
+                />
+                <span className="min-w-0 break-words">{p.nombre}</span>
+              </Link>
+            </Fragment>
+          ))}
+        </h3>
+
+        <p className="hidden font-cond text-[12px] font-semibold uppercase tracking-[0.12em] text-tenue sm:block">
+          {BANDERAS[c.a.pais].nombre} vs {BANDERAS[c.b.pais].nombre} · 3 rounds
+          × 2 min
+        </p>
+
+        <a
+          href="#pronosticos"
+          className="hidden w-fit items-center gap-2 rounded-sm border border-oro-profundo px-3.5 py-2 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro transition-colors hover:border-oro hover:bg-oro-tinte sm:flex"
+        >
+          Votar pronóstico
+          <Flecha className="transition-transform group-hover:translate-x-0.5" />
+        </a>
       </div>
     </article>
   );
@@ -90,18 +126,17 @@ export function Combates() {
       revelarCuerpo={false}
       antetitulo="Cartelera oficial"
       titulo="Combates"
-      bajada="Ocho combates, dieciséis creadores, tres asaltos de dos minutos. El orden oficial de la noche. Categoría y horario de cada combate por confirmar."
+      bajada="Ocho combates, dieciséis creadores, tres asaltos de dos minutos. Del estelar al primer combate de la noche. Categoría y horario de cada combate por confirmar."
     >
-      {/* Dos columnas en móvil y cuatro en escritorio: con el arte vertical
-          entran ocho piezas en dos filas y la sección mide la mitad. */}
-      <ul className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-        {/* Del 01 al 08, en el orden en que se pelean. COMBATES viene al
-            revés (el estelar primero) porque así lo usan las otras secciones. */}
-        {[...COMBATES].reverse().map((c, i) => (
+      {/* COMBATES viene con el estelar primero y así se pinta: de arriba
+          abajo la cartelera se lee del plato fuerte al primer combate, como
+          en cualquier cartel de boxeo. Dos columnas desde lg. */}
+      <ul className="grid w-full gap-4 lg:grid-cols-2 lg:gap-5">
+        {COMBATES.map((c, i) => (
           <li key={c.n}>
-            {/* El retardo va por posición en la fila de cuatro: cada fila
-                entra en cascada corta, no en ocho pasos. */}
-            <Revelar retardo={(i % 4) * 70} className="h-full">
+            {/* El retardo va por posición en la fila de dos: cada fila entra
+                en cascada corta, no en ocho pasos. */}
+            <Revelar retardo={(i % 2) * 90} className="h-full">
               <CardCombate c={c} />
             </Revelar>
           </li>

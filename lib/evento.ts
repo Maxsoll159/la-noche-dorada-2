@@ -34,7 +34,7 @@ export const PATROCINADORES: readonly {
   {
     nombre: "Stake.pe",
     url: "https://stake.pe",
-    logo: "/marca/stake.webp",
+    logo: "/marca/stake-logo.webp",
     w: 260,
     h: 102,
     ancho: 240,
@@ -72,6 +72,17 @@ export const PRESENTACION = {
  * ninguna parte. Los pasos están en README.md.
  */
 export const PRONOSTICOS_ACTIVOS = true;
+
+/**
+ * Fases de venta, tal como las publica Ticketmaster. La exclusiva ya cerró
+ * agotada; hoy corre la Preventa 1 y la 2 arranca en octubre. Cuando cambie
+ * la fase, basta mover `actual`. Lo usan el hero (chip de preventa) y la
+ * sección de entradas (tabla de precios).
+ */
+export const PREVENTAS = {
+  actual: { nombre: "Preventa 1", hasta: "30 de septiembre" },
+  siguiente: { nombre: "Preventa 2", desde: "1 de octubre", hasta: "3 de noviembre" },
+} as const;
 
 export type Peleador = {
   slug: string;
@@ -448,17 +459,24 @@ export function fichaDe(slug: string) {
 }
 
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
-  { href: "#combates", label: "Combates" },
-  { href: "#pronosticos", label: "Pronósticos" },
-  { href: "#entradas", label: "Entradas" },
-  { href: "#sede", label: "Sede" },
-  { href: "#donde-verlo", label: "Dónde verlo" },
+  { href: "/#combates", label: "Combates" },
+  { href: "/#cara-a-cara", label: "Cara a cara" },
+  { href: "/#pronosticos", label: "Pronósticos" },
+  { href: "/#entradas", label: "Entradas" },
+  { href: "/#sede", label: "Sede" },
+  { href: "/#donde-verlo", label: "Dónde verlo" },
 ];
 
 /** Bandas de color de cada bandera, de arriba/izquierda a abajo/derecha. */
 export const BANDERAS: Record<
   Peleador["pais"],
-  { nombre: string; orientacion: "v" | "h"; bandas: [string, number][] }
+  {
+    nombre: string;
+    orientacion: "v" | "h";
+    bandas: [string, number][];
+    /** Cuadro en la esquina superior izquierda (Chile), con estrella opcional */
+    canton?: { color: string; estrella?: boolean };
+  }
 > = {
   PE: {
     nombre: "Perú",
@@ -485,5 +503,6 @@ export const BANDERAS: Record<
       ["#FFFFFF", 1],
       ["#D52B1E", 1],
     ],
+    canton: { color: "#0039A6", estrella: true },
   },
 };

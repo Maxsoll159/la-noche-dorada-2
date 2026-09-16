@@ -1,22 +1,52 @@
-﻿import Image from "next/image";
-import { EVENTO } from "@/lib/evento";
+import Image from "next/image";
+import { EVENTO, PREVENTAS } from "@/lib/evento";
 import { Seccion } from "./seccion";
 
-/** Los colores replican los del plano de la pieza de preventa. */
-const ZONAS = [
-  { nombre: "Tribuna alta", detalle: null, color: "#101015", precio: "S/ 89" },
-  { nombre: "Tribuna baja", detalle: null, color: "#E8202A", precio: "S/ 161" },
+/**
+ * Zonas y precios, con el color de cada una en el plano. `detalle` sale del
+ * propio plano: letras de sector, lado del escenario, accesos.
+ */
+const ZONAS: readonly {
+  nombre: string;
+  detalle: string | null;
+  color: string;
+  actual: string;
+  siguiente: string;
+}[] = [
   {
-    nombre: "Golden izquierda",
-    detalle: "Numerado",
-    color: "#F3DCA6",
-    precio: "S/ 276",
+    nombre: "Tribuna alta",
+    detalle: "Anillo exterior",
+    color: "#FFFFFF",
+    actual: "S/ 89.70",
+    siguiente: "S/ 103.50",
   },
   {
-    nombre: "Tribuna derecha",
-    detalle: "Numerado",
-    color: "#E9A93C",
-    precio: "S/ 276",
+    nombre: "Tribuna baja",
+    detalle: "Sectores A, B, C, D, E y F",
+    color: "#B0182B",
+    actual: "S/ 161.00",
+    siguiente: "S/ 184.00",
+  },
+  {
+    nombre: "Golden izquierda",
+    detalle: "Lado izquierdo del escenario",
+    color: "#D98A2B",
+    actual: "S/ 276.00",
+    siguiente: "S/ 299.00",
+  },
+  {
+    nombre: "Golden derecha",
+    detalle: "Lado derecho del escenario",
+    color: "#F2B98A",
+    actual: "S/ 276.00",
+    siguiente: "S/ 299.00",
+  },
+  {
+    nombre: "Zona para silla de ruedas",
+    detalle: "Accesos junto a los sectores B y E",
+    color: "#8a8a92",
+    actual: "S/ 230.00",
+    siguiente: "S/ 287.50",
   },
 ];
 
@@ -25,64 +55,92 @@ export function Entradas() {
     <Seccion
       id="entradas"
       fondo="superficie"
-      antetitulo="Preventa 1"
+      antetitulo={`${PREVENTAS.actual.nombre} · hasta el ${PREVENTAS.actual.hasta}`}
       titulo="Entradas"
       bajada={`La venta es exclusiva en Ticketmaster.pe. Estas son las zonas y precios del ${EVENTO.sede}.`}
     >
-      <div className="grid w-full gap-9 lg:grid-cols-[440px_1fr] lg:items-start">
-        <figure className="relative overflow-hidden rounded-sm border border-linea bg-noche">
+      {/* Dos columnas iguales y estiradas: el plano es casi cuadrado y a
+          mitad del ancho mide lo mismo que la tabla de cinco filas, así los
+          dos bloques cierran a la misma altura. */}
+      <div className="grid w-full gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-8">
+        {/* El plano oficial ya viene sobre negro, así que se funde con la
+            card sin recorte ni marco propio. */}
+        <figure className="relative flex items-center justify-center overflow-hidden rounded-sm border border-linea bg-black p-3 sm:p-4">
           <Image
-            src="/plano-coliseo.webp"
-            alt={`Mapa de zonas del ${EVENTO.sede}`}
-            width={540}
-            height={620}
-            sizes="(min-width: 1024px) 440px, 100vw"
-            className="h-auto w-full"
+            src="/plano-dibos.webp"
+            alt={`Plano de zonas del ${EVENTO.sede}: tribuna alta en el anillo exterior, tribuna baja en los sectores A a F, y las zonas Golden a ambos lados del escenario`}
+            width={768}
+            height={755}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="h-auto max-h-full w-full max-w-[600px] object-contain"
           />
-          <figcaption className="absolute left-5 top-5 rounded-sm border border-oro-profundo bg-noche/90 px-3 py-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro">
-            Mapa de zonas
+          {/* Abajo a la izquierda: arriba pisaba el rótulo "Tribuna alta"
+              del propio plano. */}
+          <figcaption className="absolute bottom-5 left-5 rounded-sm border border-oro-profundo bg-noche/90 px-3 py-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro">
+            Plano de zonas
           </figcaption>
         </figure>
 
-        <div className="overflow-hidden rounded-sm border border-linea bg-carbon">
-          <div className="flex items-center justify-between border-b border-linea bg-[#08080b] px-7 py-4 font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-profundo">
+        <div className="flex flex-col overflow-hidden rounded-sm border border-linea bg-carbon">
+          <div className="flex items-center justify-between gap-4 border-b border-linea bg-[#08080b] px-5 py-4 font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio sm:px-7">
             <span>Zona</span>
-            <span>Precio</span>
+            <span className="text-right">
+              {PREVENTAS.actual.nombre}
+              <span className="hidden text-tenue sm:inline">
+                {" "}· {PREVENTAS.siguiente.nombre}
+              </span>
+            </span>
           </div>
-          <ul>
+          {/* flex-1 y filas que crecen: si el plano queda más alto que la
+              tabla, las filas reparten el sobrante en vez de dejar un hueco
+              bajo el botón. */}
+          <ul className="flex flex-1 flex-col">
             {ZONAS.map((z, i) => (
               <li
                 key={z.nombre}
-                className={`flex items-center justify-between gap-4 px-7 py-5 transition-colors hover:bg-oro-tinte ${
+                className={`flex flex-1 items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-oro-tinte sm:px-7 ${
                   i % 2 === 0 ? "bg-carbon" : "bg-[#131318]"
                 } ${i < ZONAS.length - 1 ? "border-b border-linea" : ""}`}
               >
-                <span className="flex items-center gap-3.5">
+                <span className="flex min-w-0 items-center gap-3.5">
                   <span
                     aria-hidden
                     style={{ backgroundColor: z.color }}
-                    className="size-4 shrink-0 rounded-[2px] ring-1 ring-oro-profundo"
+                    className="size-4 shrink-0 rounded-[2px] ring-1 ring-white/30"
                   />
-                  <span>
-                    <span className="block font-display text-[20px] uppercase text-crema">
+                  <span className="min-w-0">
+                    <span className="block font-display text-[18px] uppercase leading-tight text-crema sm:text-[20px]">
                       {z.nombre}
                     </span>
                     {z.detalle && (
-                      <span className="block font-cond text-[10px] font-bold uppercase tracking-[0.2em] text-oro-profundo">
+                      <span className="block font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-tenue">
                         {z.detalle}
                       </span>
                     )}
                   </span>
                 </span>
-                <span className="font-display text-[25px] text-oro tabular-nums">
-                  {z.precio}
+                {/* El precio vigente grande; el de la fase siguiente debajo,
+                    chico, para que se vea lo que se ahorra comprando ahora. */}
+                <span className="flex shrink-0 flex-col items-end">
+                  <span className="font-display text-[22px] leading-none text-oro tabular-nums sm:text-[25px]">
+                    {z.actual}
+                  </span>
+                  <span className="mt-1 font-cond text-[11px] font-semibold uppercase tracking-[0.1em] text-tenue tabular-nums">
+                    <span className="hidden sm:inline">
+                      {PREVENTAS.siguiente.nombre}{" "}
+                    </span>
+                    <span className="sm:hidden">Luego </span>
+                    {z.siguiente}
+                  </span>
                 </span>
               </li>
             ))}
           </ul>
-          <div className="flex flex-col items-center gap-3.5 border-t border-linea bg-oro-tinte px-7 py-6 text-center">
-            <p className="font-cond text-[11px] font-semibold uppercase tracking-[0.18em] text-tenue">
-              Precios de Preventa 1 · sujetos a disponibilidad
+          <div className="flex flex-col items-center gap-3.5 border-t border-linea bg-oro-tinte px-5 py-6 text-center sm:px-7">
+            <p className="font-cond text-[11px] font-semibold uppercase leading-relaxed tracking-[0.16em] text-tenue">
+              Preventa exclusiva agotada · {PREVENTAS.actual.nombre} hasta el{" "}
+              {PREVENTAS.actual.hasta} · {PREVENTAS.siguiente.nombre} del{" "}
+              {PREVENTAS.siguiente.desde} al {PREVENTAS.siguiente.hasta}
             </p>
             <a
               href={EVENTO.entradasUrl}
@@ -104,8 +162,9 @@ export function Entradas() {
                 <path d="M7 17 17 7M9 7h8v8" />
               </svg>
             </a>
-            <p className="font-cond text-[10px] font-semibold uppercase tracking-[0.14em] text-oro-profundo">
-              Te llevamos a Ticketmaster.pe para completar la compra
+            <p className="font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-medio">
+              Precios sujetos a disponibilidad · Te llevamos a Ticketmaster.pe
+              para completar la compra
             </p>
           </div>
         </div>

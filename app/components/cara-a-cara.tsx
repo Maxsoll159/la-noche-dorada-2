@@ -61,14 +61,17 @@ function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
     <Link
       href={`/peleadores/${peleador.slug}`}
       aria-label={`Ver la ficha de ${peleador.nombre}`}
-      // Cada figura va corrida hacia su borde, incluso saliéndose un poco del
-      // cuadro: pegadas al centro se leían como una sola masa con el VS.
+      // Por debajo de lg cada figura va corrida hacia su borde, incluso
+      // saliéndose un poco del cuadro: pegadas al centro se leían como una
+      // sola masa con el VS. En escritorio el escenario es ancho de sobra y
+      // pasaba lo contrario: quedaban chicas y lejos, con el VS mandando en
+      // un centro vacío, así que ahí entran unos puntos hacia el medio.
       // top-[15%]: la figura mide un 85% del escenario, no el alto entero, y
       // deja la franja de arriba libre para los nombres.
-      className={`group absolute bottom-0 top-[15%] z-10 block w-[58%] sm:w-[52%] lg:w-[46%] ${
+      className={`group absolute bottom-0 top-[15%] z-10 block w-[58%] sm:w-[52%] lg:w-[44%] ${
         izq
-          ? "-left-[10%] sm:-left-[6%] lg:-left-[3%]"
-          : "-right-[10%] sm:-right-[6%] lg:-right-[3%]"
+          ? "-left-[10%] sm:-left-[6%] lg:left-[5%]"
+          : "-right-[10%] sm:-right-[6%] lg:right-[5%]"
       }`}
     >
       {/* El nodo con `key` tiene que ser HIJO ÚNICO de su envoltorio: si
@@ -118,7 +121,7 @@ function Rotulo({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
           izq ? "items-start text-left" : "items-end text-right"
         }`}
       >
-        <p className="flex items-center gap-1.5 rounded-sm border border-oro-profundo bg-noche/80 px-2 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.14em] text-oro sm:gap-2 sm:px-2.5 sm:text-[10px]">
+        <p className="flex items-center gap-1.5 rounded-sm border border-oro-profundo bg-noche/80 px-2 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-oro sm:gap-2 sm:px-2.5 sm:text-[11px]">
           <Bandera
             pais={peleador.pais}
             className="h-2.5 w-[15px] sm:h-3 sm:w-[19px]"
@@ -134,7 +137,7 @@ function Rotulo({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
         </h3>
         {/* El botón solo en escritorio: por debajo la esquina no da alto sin
             llegar a la cabeza. El nombre y la foto ya son el enlace. */}
-        <span className="hidden items-center gap-2 rounded-sm border border-oro bg-oro-tinte px-3 py-1.5 font-cond text-[10px] font-bold uppercase tracking-[0.14em] text-oro transition-colors duration-300 group-hover:bg-oro group-hover:text-noche lg:flex">
+        <span className="hidden items-center gap-2 rounded-sm border border-oro bg-oro-tinte px-3 py-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-oro transition-colors duration-300 group-hover:bg-oro group-hover:text-noche lg:flex">
           Ver ficha
           <svg
             aria-hidden
@@ -184,12 +187,12 @@ function Ficha({
       } ${className}`}
     >
       <p
-        className={`flex items-center gap-2 font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-tenue ${
+        className={`flex items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-tenue ${
           izq ? "" : "flex-row-reverse"
         }`}
       >
         <span
-          className={`grid size-4 place-items-center font-display text-[10px] leading-none text-white ${estilo.fondo}`}
+          className={`grid size-4 place-items-center font-display text-[11px] leading-none text-white ${estilo.fondo}`}
         >
           {estilo.numero}
         </span>
@@ -203,7 +206,7 @@ function Ficha({
               key={fila.etiqueta}
               className={`flex flex-col gap-0.5 ${izq ? "items-start" : "items-end"}`}
             >
-              <dt className="font-cond text-[8px] font-bold uppercase tracking-[0.18em] text-oro-profundo sm:text-[9px]">
+              <dt className="font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro-medio sm:text-[11px]">
                 {fila.etiqueta}
               </dt>
               <dd
@@ -233,52 +236,29 @@ function FichaComparada({ combate }: { combate: Combate }) {
       key={combate.n}
       className="cambio-texto overflow-hidden rounded-sm border border-linea bg-noche/70"
     >
-      <div className="flex items-center justify-between gap-3 border-b border-linea bg-[#08080b] px-3 py-2">
-        {/* Cada nombre es el enlace a su ficha, con la palabra escrita: en
-            móvil no hay botón en las esquinas y nada decía que cada peleador
-            tiene su propia página. */}
+      <div className="flex items-center justify-between gap-3 border-b border-linea bg-[#08080b] px-3 py-2.5">
+        {/* Solo el nombre con su número: el enlace a la ficha ya está en el
+            botón dorado sobre cada figura, y repetirlo aquí era el tercer
+            "Ver ficha" por peleador en la misma pantalla. */}
         {(["a", "b"] as const).map((lado) => {
           const izq = lado === "a";
           const p = combate[lado];
           return (
-            <Link
+            <span
               key={lado}
-              href={`/peleadores/${p.slug}`}
-              className={`group flex min-w-0 items-center gap-2 ${
+              className={`flex min-w-0 items-center gap-2 ${
                 izq ? "" : "flex-row-reverse text-right"
               }`}
             >
               <span
-                className={`grid size-4 shrink-0 place-items-center font-display text-[10px] leading-none text-white ${LADO[lado].fondo}`}
+                className={`grid size-4 shrink-0 place-items-center font-display text-[11px] leading-none text-white ${LADO[lado].fondo}`}
               >
                 {LADO[lado].numero}
               </span>
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate font-cond text-[9px] font-bold uppercase tracking-[0.14em] text-crema">
-                  {p.nombre}
-                </span>
-                <span
-                  className={`flex items-center gap-1 font-cond text-[8px] font-bold uppercase tracking-[0.16em] text-oro transition-colors group-hover:text-oro-claro ${
-                    izq ? "" : "flex-row-reverse"
-                  }`}
-                >
-                  Ver ficha
-                  <svg
-                    aria-hidden
-                    width="9"
-                    height="9"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </span>
+              <span className="truncate font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-crema">
+                {p.nombre}
               </span>
-            </Link>
+            </span>
           );
         })}
       </div>
@@ -297,7 +277,7 @@ function FichaComparada({ combate }: { combate: Combate }) {
             >
               {a ?? "—"}
             </dd>
-            <dt className="w-[68px] shrink-0 text-center font-cond text-[8px] font-bold uppercase tracking-[0.2em] text-oro">
+            <dt className="w-[68px] shrink-0 text-center font-cond text-[10px] font-bold uppercase tracking-[0.2em] text-oro">
               {fila.etiqueta}
             </dt>
             <dd
@@ -375,7 +355,7 @@ export function CaraACara() {
               la cara. */}
           <p
             aria-hidden
-            className="texto-oro absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 -skew-x-6 font-display text-[56px] leading-none opacity-90 drop-shadow-[0_0_30px_rgba(212,175,55,0.6)] sm:text-[104px] lg:text-[130px]"
+            className="texto-oro absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 -skew-x-6 font-display text-[56px] leading-none opacity-90 drop-shadow-[0_0_30px_rgba(212,175,55,0.6)] sm:text-[104px] lg:text-[112px]"
           >
             VS
           </p>
@@ -416,12 +396,13 @@ export function CaraACara() {
                 // whitespace-nowrap: posicionado a la derecha, el ancho
                 // disponible es solo lo que queda hasta el borde y el texto
                 // se partía en dos líneas.
-                className={`cambio-texto absolute bottom-[18%] z-20 flex items-center gap-2 whitespace-nowrap rounded-sm bg-oro px-3 py-2 font-cond text-[10px] font-bold uppercase tracking-[0.16em] text-noche shadow-[0_8px_22px_rgba(0,0,0,0.6)] transition-colors hover:bg-oro-claro sm:px-3.5 sm:py-2.5 sm:text-[11px] lg:hidden ${
+                // min-h-11: es el objetivo táctil principal del escenario.
+                className={`cambio-texto absolute bottom-[18%] z-20 flex min-h-11 items-center gap-2 whitespace-nowrap rounded-sm bg-oro px-3.5 py-2 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche shadow-[0_8px_22px_rgba(0,0,0,0.6)] transition-colors hover:bg-oro-claro sm:px-4 lg:hidden ${
                   lado === "a" ? "left-3 sm:left-5" : "right-3 flex-row-reverse sm:right-5"
                 }`}
               >
                 <span
-                  className={`grid size-4 place-items-center rounded-[2px] font-display text-[10px] leading-none text-white ${LADO[lado].fondo}`}
+                  className={`grid size-4 place-items-center rounded-[2px] font-display text-[11px] leading-none text-white ${LADO[lado].fondo}`}
                 >
                   {LADO[lado].numero}
                 </span>
@@ -455,13 +436,15 @@ export function CaraACara() {
             <span className="sr-only">
               : {combate.a.nombre} contra {combate.b.nombre}
             </span>
-            <span className="text-oro-profundo"> · </span>3 rounds
+            <span className="text-oro-medio"> · </span>3 rounds
           </p>
         </div>
 
-        {/* PARRILLA. Los 16 en dos filas de ocho; desde sm se abre la casilla
-            del centro con el "?" del azar y quedan 4 + ? + 4 por fila. Los dos
-            del combate elegido llevan borde de color y su número. */}
+        {/* PARRILLA. Los 16 en dos filas de ocho, chicas a propósito para que
+            escenario y parrilla se vean juntos en móvil; ahí no va la casilla
+            del azar. Desde sm se abre el "?" en el centro y quedan 4 + ? + 4
+            por fila. Los dos del combate elegido llevan borde de color y su
+            número. */}
         <div className="relative z-20 -mt-12 px-2 pb-3 sm:-mt-20 sm:px-6 sm:pb-5 lg:pb-6">
           {/* Fichas a los costados de la parrilla, solo en escritorio: cada
               una centrada en el hueco que queda entre el borde y la parrilla
@@ -504,12 +487,12 @@ export function CaraACara() {
                     )}
                     {/* El nombre solo desde sm: en móvil la casilla mide
                         menos de 40 px y no hay dónde ponerlo. */}
-                    <span className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-noche/95 via-noche/70 to-transparent px-1 pb-1 pt-4 text-center font-cond text-[9px] font-bold uppercase leading-none tracking-[0.04em] text-crema sm:block">
+                    <span className="absolute inset-x-0 bottom-0 hidden truncate bg-gradient-to-t from-noche/95 via-noche/70 to-transparent px-1 pb-1 pt-4 text-center font-cond text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-crema sm:block">
                       {p.nombre}
                     </span>
                     {estilo && (
                       <span
-                        className={`absolute left-0 top-0 grid size-4 place-items-center font-display text-[10px] leading-none text-white sm:size-5 sm:text-[12px] ${estilo.fondo}`}
+                        className={`absolute left-0 top-0 grid size-4 place-items-center font-display text-[11px] leading-none text-white sm:size-5 sm:text-[12px] ${estilo.fondo}`}
                       >
                         {estilo.numero}
                       </span>
@@ -518,8 +501,8 @@ export function CaraACara() {
                 </li>
               );
             })}
-            {/* Casilla del azar. Se declara al final pero se coloca en la
-                columna del medio, ocupando las dos filas. */}
+            {/* Casilla del azar, solo desde sm: se declara al final pero se
+                coloca en la columna del medio, ocupando las dos filas. */}
             <li className="hidden sm:col-start-5 sm:row-start-1 sm:row-span-2 sm:block">
               <button
                 type="button"
@@ -530,7 +513,7 @@ export function CaraACara() {
                 <span className="texto-oro font-display text-[44px] leading-none transition-transform duration-300 group-hover:scale-110 lg:text-[56px]">
                   ?
                 </span>
-                <span className="font-cond text-[9px] font-bold uppercase tracking-[0.2em] text-oro-profundo transition-colors group-hover:text-oro">
+                <span className="font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro-medio transition-colors group-hover:text-oro">
                   Al azar
                 </span>
               </button>
@@ -548,13 +531,13 @@ export function CaraACara() {
           {/* El mismo rótulo del combate que en escritorio va arriba. */}
           <p
             aria-live="polite"
-            className="mx-auto mt-3 w-fit rounded-sm border border-oro-profundo bg-oro-tinte px-3.5 py-1.5 text-center font-cond text-[10px] font-bold uppercase tracking-[0.18em] text-oro lg:hidden"
+            className="mx-auto mt-3 w-fit rounded-sm border border-oro-profundo bg-oro-tinte px-3.5 py-1.5 text-center font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro lg:hidden"
           >
             {combate.billing ?? `Combate ${combate.n}`}
             <span className="sr-only">
               : {combate.a.nombre} contra {combate.b.nombre}
             </span>
-            <span className="text-oro-profundo"> · </span>3 rounds
+            <span className="text-oro-medio"> · </span>3 rounds
           </p>
         </div>
       </div>

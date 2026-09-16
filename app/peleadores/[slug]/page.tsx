@@ -10,9 +10,12 @@ import {
   edadEn,
   fichaDe,
   REDES_ACTUALIZADAS,
+  type Peleador,
 } from "@/lib/evento";
+import { SITIO } from "@/lib/sitio";
 import { ApoyoPeleador } from "@/app/components/apoyo-peleador";
 import { Bandera } from "@/app/components/bandera";
+import { FILAS_TAPE, NotaAprox } from "@/app/components/ficha-tape";
 import { FileteOro } from "@/app/components/filete-oro";
 import { Patrocinador } from "@/app/components/patrocinador";
 import { Revelar } from "@/app/components/revelar";
@@ -42,14 +45,27 @@ export async function generateMetadata(
     title: titulo,
     description: descripcion,
     alternates: { canonical: `/peleadores/${peleador.slug}` },
+    // El arte oficial del combate como imagen social: el retrato de 250×470
+    // salía diminuto y recortado en las tarjetas de enlace.
     openGraph: {
       type: "profile",
       title: `${titulo} · ${EVENTO.nombre}`,
       description: descripcion,
       url: `/peleadores/${peleador.slug}`,
       images: [
-        { url: peleador.foto, width: 250, height: 470, alt: peleador.nombre },
+        {
+          url: combate.arte,
+          width: 1080,
+          height: 1140,
+          alt: `${combate.a.nombre} vs ${combate.b.nombre}`,
+        },
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${titulo} · ${EVENTO.nombre}`,
+      description: descripcion,
+      images: [combate.arte],
     },
   };
 }
@@ -65,34 +81,27 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
   const pais = BANDERAS[peleador.pais];
   const asterisco = peleador.aprox ? "*" : "";
 
-  // Solo se listan los campos que existen para los 16, así ninguna ficha queda
-  // coja. El género NO está: no hay dato en `lib/evento.ts` y ponerlo a mano
-  // sería falso en los combates 06 y 02.
-  const DATOS = [
-    { etiqueta: "País", valor: pais.nombre },
-    { etiqueta: "Combate", valor: `${combate.n}${combate.billing ? ` · ${combate.billing}` : ""}` },
-    { etiqueta: "Formato", valor: "3 rounds × 2 min" },
-    { etiqueta: "Fecha", valor: EVENTO.fechaLarga },
-    // Sede y transmisión salieron de aquí: siguen en la sección "Su combate",
-    // que es donde tienen contexto. Quedan 4 celdas = 2 filas exactas.
-  ];
-
-  // Ficha física: 14 de 16 tienen edad y 10 tienen peso, así que ya vale la
-  // pena. Los que no tengan nada se saltan el bloque entero.
-  const FISICO = [
+  // Ficha física como "tale of the tape": tres números grandes con su unidad
+  // aparte. Los que falten se saltan; sin ninguno, el bloque no se pinta. La
+  // rejilla genérica de sede, formato y fecha salió de aquí: era la misma en
+  // las 16 fichas y ese dato vive en "Su combate".
+  const TAPE = [
     peleador.nacimiento && {
       etiqueta: "Edad",
-      valor: `${edadEn(peleador.nacimiento, EVENTO.inicioISO)} años`,
+      valor: String(edadEn(peleador.nacimiento, EVENTO.inicioISO)),
+      unidad: "años",
     },
     peleador.altura && {
       etiqueta: "Altura",
-      valor: `${coma(peleador.altura, 2)} m${asterisco}`,
+      valor: coma(peleador.altura, 2),
+      unidad: `m${asterisco}`,
     },
     peleador.peso && {
       etiqueta: "Peso",
-      valor: `${coma(peleador.peso, 1)} kg${asterisco}`,
+      valor: coma(peleador.peso, 1),
+      unidad: `kg${asterisco}`,
     },
-  ].filter(Boolean) as { etiqueta: string; valor: string }[];
+  ].filter(Boolean) as { etiqueta: string; valor: string; unidad: string }[];
 
   // "Sábado 28 de noviembre" -> "28 de noviembre": el día de la semana ya lo
   // dice la rejilla de arriba y el antetítulo queda más limpio sin él.
@@ -119,8 +128,30 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
 
   const otros = COMBATES.filter((c) => c.n !== combate.n);
 
+  // Migas para el buscador: Inicio > Combates > peleador. Enlaza la ficha
+  // con la home y le da contexto de sitio al resultado.
+  const migas = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: EVENTO.nombre, item: SITIO },
+      { "@type": "ListItem", position: 2, name: "Combates", item: `${SITIO}/#combates` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: peleador.nombre,
+        item: `${SITIO}/peleadores/${peleador.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        // El contenido es nuestro y no lleva entrada de usuario.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(migas) }}
+      />
       <SiteHeader />
       <main>
         <section className="relative isolate overflow-hidden bg-noche pt-24 pb-16 lg:pt-32 lg:pb-20">
@@ -132,7 +163,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
             <Link
               href="/#combates"
               style={{ animationDelay: "60ms" }}
-              className="entrada flex items-center gap-2 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro-profundo transition-colors hover:text-oro"
+              className="entrada flex items-center gap-2 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro-medio transition-colors hover:text-oro"
             >
               <svg
                 aria-hidden
@@ -150,13 +181,60 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
               Volver a la cartelera
             </Link>
 
-            <div className="flex flex-col items-center gap-9 lg:flex-row lg:items-stretch lg:gap-12">
-              {/* Retrato enmarcado, con el rótulo del combate como sello */}
+            {/* En móvil, el orden es encabezado, retrato y datos: el nombre
+                es lo primero que se lee, no una foto de 400 px. En escritorio
+                el retrato ocupa la columna izquierda entera y el encabezado y
+                los datos se reparten a su derecha. */}
+            <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[430px_minmax(0,1fr)] lg:grid-rows-[auto_auto] lg:items-center lg:gap-x-12 lg:gap-y-6">
               <div
                 style={{ animationDelay: "140ms" }}
-                className="entrada group relative w-full max-w-[380px] shrink-0 self-center overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] transition-colors duration-300 hover:border-oro lg:w-[430px] lg:max-w-none"
+                className="entrada flex flex-col items-center gap-3 text-center lg:col-start-2 lg:row-start-1 lg:items-start lg:self-end lg:text-left"
               >
-                <div className="relative h-[420px] w-full sm:h-[490px] lg:h-[560px]">
+                {/* Rótulo del combate y fecha, como el kicker de una nota */}
+                <p className="flex flex-wrap items-center justify-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.18em] lg:justify-start">
+                  <span
+                    className={`rounded-sm px-2 py-1 leading-none ${
+                      combate.estelar
+                        ? "bg-oro text-noche"
+                        : combate.billing
+                          ? "border border-oro text-oro"
+                          : "border border-oro-profundo text-oro"
+                    }`}
+                  >
+                    {combate.billing ?? `Combate ${combate.n}`}
+                  </span>
+                  {combate.billing && (
+                    <span className="text-oro-medio">Combate {combate.n}</span>
+                  )}
+                  {/* El punto va aparte y solo desde sm: en móvil la fecha
+                      baja a su propia línea y arrancaba con el punto. */}
+                  <span aria-hidden className="hidden text-oro-medio sm:inline">
+                    ·
+                  </span>
+                  <span className="text-oro-medio">{EVENTO.fechaLarga}</span>
+                </p>
+                {/* Tamaños escalonados y `break-words`: con `auto` a 92px,
+                    "JH de la Cruz 777" se salía de la columna. */}
+                {/* leading holgado a propósito: `texto-oro` usa
+                    background-clip:text, así que si la caja de línea queda
+                    más corta que el glifo se recorta el fondo y la tilde de
+                    la Ñ desaparece ("CAÑITA" salía como "CANITA"). */}
+                <h1 className="texto-oro w-full break-words text-[42px] leading-[1.12] sm:text-[58px] lg:text-[72px]">
+                  {peleador.nombre}
+                </h1>
+                <p className="flex items-center gap-2.5 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro">
+                  <Bandera pais={peleador.pais} className="h-3.5 w-[21px]" />
+                  {pais.nombre}
+                </p>
+              </div>
+
+              {/* Retrato enmarcado. El rótulo del combate ya va en el kicker,
+                  así que la foto queda limpia. */}
+              <div
+                style={{ animationDelay: "240ms" }}
+                className="entrada group relative w-full max-w-[380px] self-center overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] transition-colors duration-300 hover:border-oro lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:w-[430px] lg:max-w-none"
+              >
+                <div className="relative h-[380px] w-full sm:h-[490px] lg:h-[560px]">
                   <Image
                     src={peleador.cuerpo ?? peleador.foto}
                     alt={peleador.nombre}
@@ -174,9 +252,6 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                     className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(11,11,13,0.35)_0%,transparent_26%,transparent_62%,rgba(11,11,13,0.5)_84%,rgba(11,11,13,0.95)_100%)]"
                   />
                   <Escuadras />
-                  <span className="absolute left-4 top-4 rounded-sm border border-oro bg-noche/85 px-3 py-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro">
-                    {combate.billing ?? `Combate ${combate.n}`}
-                  </span>
                 </div>
 
                 {/* Haz dorado barriendo el borde de la tarjeta. Va al final
@@ -190,87 +265,53 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                 </span>
               </div>
 
-              <div className="flex min-w-0 flex-1 flex-col justify-center gap-6">
-                <div
-                  style={{ animationDelay: "240ms" }}
-                  className="entrada flex flex-col items-center gap-3 text-center lg:items-start lg:text-left"
-                >
-                  <p className="flex items-center gap-2.5 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro">
-                    <Bandera pais={peleador.pais} className="h-3.5 w-[21px]" />
-                    {pais.nombre}
-                  </p>
-                  {/* Tamaños escalonados y `break-words`: con `auto` a 92px,
-                      "JH de la Cruz 777" se salía de la columna. */}
-                  {/* leading holgado a propósito: `texto-oro` usa
-                      background-clip:text, así que si la caja de línea queda
-                      más corta que el glifo se recorta el fondo y la tilde de
-                      la Ñ desaparece ("CAÑITA" salía como "CANITA"). */}
-                  <h1 className="texto-oro w-full break-words text-[42px] leading-[1.12] sm:text-[58px] lg:text-[72px]">
-                    {peleador.nombre}
-                  </h1>
-                </div>
-
-                {/* Rejilla de celdas con divisiones, como en el diseño: los
-                    bordes internos se pintan por posición, no con `divide`,
-                    que en grid deja líneas sueltas en la última fila. */}
-                <dl
-                  style={{ animationDelay: "340ms" }}
-                  className="entrada grid grid-cols-2 overflow-hidden rounded-sm border border-linea"
-                >
-                  {DATOS.map((d, i) => (
-                    <div
-                      key={d.etiqueta}
-                      className={`flex flex-col gap-1 bg-carbon px-4 py-3.5 ring-1 ring-inset ring-transparent transition duration-200 hover:bg-[#16161c] hover:ring-oro-profundo sm:px-5 ${
-                        i % 2 === 0 ? "border-r border-linea" : ""
-                      } ${i < DATOS.length - 2 ? "border-b border-linea" : ""}`}
+              <div className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-start-2 lg:self-start">
+                {/* Tale of the tape: tres números grandes, uno por celda */}
+                {TAPE.length > 0 && (
+                  <div style={{ animationDelay: "340ms" }} className="entrada flex flex-col gap-2">
+                    <dl
+                      className="grid overflow-hidden rounded-sm border border-linea bg-carbon"
+                      style={{ gridTemplateColumns: `repeat(${TAPE.length}, minmax(0, 1fr))` }}
                     >
-                      <dt className="font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
-                        {d.etiqueta}
-                      </dt>
-                      <dd className="font-display text-[16px] uppercase leading-tight text-crema sm:text-[18px]">
-                        {d.valor}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-
-                {FISICO.length > 0 && (
-                  <div
-                    style={{ animationDelay: "420ms" }}
-                    className="entrada flex flex-col gap-2.5 rounded-sm border border-linea bg-carbon px-5 py-4 transition-colors duration-300 hover:border-oro-profundo"
-                  >
-                    <p className="font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
-                      Ficha
-                    </p>
-                    <dl className="flex flex-wrap gap-x-9 gap-y-3">
-                      {FISICO.map((d) => (
-                        <div key={d.etiqueta} className="flex flex-col">
-                          <dt className="font-cond text-[11px] font-semibold uppercase tracking-[0.16em] text-tenue">
+                      {TAPE.map((d, i) => (
+                        <div
+                          key={d.etiqueta}
+                          className={`flex flex-col items-center gap-1.5 px-2 py-4 text-center sm:py-5 ${
+                            i > 0 ? "border-l border-linea" : ""
+                          }`}
+                        >
+                          <dt className="font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro-medio">
                             {d.etiqueta}
                           </dt>
-                          <dd className="font-display text-[21px] leading-tight text-crema">
-                            {d.valor}
+                          <dd className="flex items-baseline gap-1 font-display leading-none text-crema">
+                            <span className="text-[30px] tabular-nums sm:text-[38px]">
+                              {d.valor}
+                            </span>
+                            <span className="font-cond text-[12px] font-bold uppercase tracking-[0.1em] text-tenue">
+                              {d.unidad}
+                            </span>
                           </dd>
                         </div>
                       ))}
                     </dl>
                     {peleador.aprox && (
-                      <p className="font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-profundo">
+                      <p className="text-center font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-medio lg:text-left">
                         * Dato no oficial · El pesaje de la velada manda
                       </p>
                     )}
                   </div>
                 )}
 
-                {/* Fila de rival: dos celdas, como en el diseño. El rombo
-                    del VS va como chip a la izquierda, no centrado. */}
+                {/* El duelo: el rival con foto, y debajo las dos acciones de
+                    la ficha (votar y ver el combate), que bajan a las
+                    secciones de esta misma página. */}
                 <div
-                  style={{ animationDelay: "500ms" }}
-                  className="entrada resplandor grid overflow-hidden rounded-sm border border-oro-profundo sm:grid-cols-[minmax(0,1fr)_auto]"
+                  style={{ animationDelay: "420ms" }}
+                  className="entrada resplandor overflow-hidden rounded-sm border border-oro-profundo bg-carbon"
                 >
                   <Link
                     href={`/peleadores/${rival.slug}`}
-                    className="group relative flex min-w-0 items-center gap-3 overflow-hidden bg-carbon px-4 py-3 ring-1 ring-inset ring-transparent transition duration-200 hover:bg-oro-tinte hover:ring-oro sm:px-5"
+                    className="group relative flex items-center gap-4 overflow-hidden px-4 py-4 transition-colors hover:bg-oro-tinte sm:px-5"
                   >
                     {/* Barrido dorado periódico: sin esto la fila se perdía
                         entre las demás cajas y nadie la tocaba. */}
@@ -278,44 +319,54 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                       aria-hidden
                       className="destello pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-oro/15 to-transparent"
                     />
-                    <span className="relative grid size-8 shrink-0 place-items-center">
-                      <span
-                        aria-hidden
-                        className="absolute inset-0 rotate-45 rounded-[2px] border border-oro-profundo bg-noche/80"
+                    <span className="relative block h-[88px] w-[70px] shrink-0 overflow-hidden rounded-sm border border-linea bg-[#0e0e12] transition-colors group-hover:border-oro">
+                      <Image
+                        src={rival.cuerpo ?? rival.foto}
+                        alt=""
+                        fill
+                        sizes="70px"
+                        className={`object-cover object-top ${
+                          rival.cuerpo ? "brightness-125 contrast-[1.06]" : ""
+                        }`}
                       />
-                      <span className="relative font-display text-[10px] text-oro">
-                        VS
-                      </span>
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
+                      <span className="flex items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-medio">
+                        <span className="relative grid size-6 shrink-0 place-items-center">
+                          <span
+                            aria-hidden
+                            className="absolute inset-0 rotate-45 rounded-[2px] border border-oro-profundo bg-noche/80"
+                          />
+                          <span className="relative font-display text-[10px] text-oro">
+                            VS
+                          </span>
+                        </span>
                         Su rival
                       </span>
-                      <span className="mt-1 flex items-center gap-2.5">
-                        <span className="relative block aspect-[250/470] w-7 shrink-0 overflow-hidden rounded-[2px] border border-linea">
-                          <Image
-                            src={rival.foto}
-                            alt=""
-                            fill
-                            sizes="28px"
-                            className="object-cover"
-                          />
-                        </span>
-                        <span className="truncate font-display text-[17px] uppercase text-crema transition-colors group-hover:text-oro">
-                          {rival.nombre}
-                        </span>
+                      {/* leading holgado: con `truncate` (overflow hidden) y
+                          leading-none la tilde de la Ñ quedaba recortada. */}
+                      <span className="mt-1 block truncate font-display text-[22px] uppercase leading-[1.2] text-crema transition-colors group-hover:text-oro sm:text-[26px]">
+                        {rival.nombre}
+                      </span>
+                      <span className="mt-1.5 flex items-center gap-2 font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-tenue">
+                        <Bandera pais={rival.pais} className="h-2.5 w-[15px]" />
+                        {BANDERAS[rival.pais].nombre}
+                        <span className="text-oro-medio">· Ver su ficha</span>
                       </span>
                     </span>
                   </Link>
 
-                  <Link
-                    href="/#cara-a-cara"
-                    className="group flex flex-col justify-center gap-1 border-t border-linea bg-carbon px-4 py-3 ring-1 ring-inset ring-transparent transition duration-200 hover:bg-oro-tinte hover:ring-oro sm:border-l sm:border-t-0 sm:px-5"
-                  >
-                    <span className="font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
-                      Combate {combate.n}
-                    </span>
-                    <span className="flex items-center gap-2 whitespace-nowrap font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-oro">
+                  <div className="grid grid-cols-2 border-t border-linea">
+                    <a
+                      href="#pronostico"
+                      className="flex items-center justify-center gap-2 bg-oro px-3 py-3 font-cond text-[12px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro"
+                    >
+                      Votar pronóstico
+                    </a>
+                    <a
+                      href="#combate"
+                      className="group flex items-center justify-center gap-2 border-l border-linea px-3 py-3 font-cond text-[12px] font-bold uppercase tracking-[0.14em] text-oro transition-colors hover:bg-oro-tinte"
+                    >
                       Ver el combate
                       <svg
                         aria-hidden
@@ -327,14 +378,13 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                         strokeWidth="2.4"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="transition-transform group-hover:translate-x-0.5"
+                        className="transition-transform group-hover:translate-y-0.5"
                       >
-                        <path d="M5 12h14M13 6l6 6-6 6" />
+                        <path d="M12 5v14m-6-6 6 6 6-6" />
                       </svg>
-                    </span>
-                  </Link>
+                    </a>
+                  </div>
                 </div>
-
               </div>
             </div>
 
@@ -360,7 +410,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                           <IconoRed plataforma={r.plataforma} grande />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block whitespace-nowrap font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-crema sm:text-[9px] sm:tracking-[0.18em] sm:text-oro-profundo">
+                          <span className="block whitespace-nowrap font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-crema sm:text-[11px] sm:tracking-[0.18em] sm:text-oro-medio">
                             {r.plataforma}
                           </span>
                           {/* El handle solo desde sm: en móvil la tarjeta no
@@ -379,7 +429,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                   ))}
                 </ul>
                 {peleador.redes.some((r) => r.seguidores) && (
-                  <p className="font-cond text-[10px] font-semibold uppercase tracking-[0.14em] text-oro-profundo">
+                  <p className="font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-medio">
                     Seguidores a {REDES_ACTUALIZADAS} · Varían a diario
                   </p>
                 )}
@@ -392,7 +442,8 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
 
         <section className="bg-superficie">
           <div className="mx-auto flex max-w-contenido flex-col gap-12 px-6 py-16 lg:px-14 lg:py-20">
-            <Revelar className="flex flex-col gap-8">
+            {/* Los id son el destino de los botones del duelo de arriba */}
+            <Revelar id="pronostico" className="flex scroll-mt-28 flex-col gap-8">
               <EncabezadoSeccion antetitulo="La comunidad" titulo="Pronóstico" />
               <ApoyoPeleador
                 combate={combate}
@@ -411,7 +462,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
               </Revelar>
             )}
 
-            <Revelar retardo={80} className="flex flex-col gap-8">
+            <Revelar id="combate" retardo={80} className="flex scroll-mt-28 flex-col gap-8">
               <EncabezadoSeccion antetitulo={diaYMes} titulo="Su combate" />
 
               <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)] items-center">
@@ -454,7 +505,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                             <IconoDetalle nombre={d.icono} />
                           </span>
                           <div className="min-w-0">
-                            <dt className="font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-profundo">
+                            <dt className="font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-medio">
                               {d.etiqueta}
                             </dt>
                             <dd className="font-cond text-[15px] font-semibold uppercase tracking-[0.06em] text-crema">
@@ -488,6 +539,10 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                   </div>
                 </div>
               </div>
+
+              {/* Frente a frente: la ficha de los dos, dato a dato, con este
+                  peleador siempre a la izquierda. */}
+              <FrenteAFrente peleador={peleador} rival={rival} />
             </Revelar>
 
             {/* Enlazado interno entre las 16 fichas: navegación y, de paso,
@@ -504,31 +559,33 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                       href={`/peleadores/${c.a.slug}`}
                       className="group flex h-full flex-col gap-2 rounded-sm border border-linea bg-carbon p-3 transition duration-300 hover:-translate-y-1 hover:border-oro hover:bg-oro-tinte hover:shadow-[0_14px_30px_rgba(0,0,0,0.45)]"
                     >
-                      <span className="font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro-profundo">
+                      <span className="font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro-medio">
                         Combate {c.n}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        {/* Proporción NATIVA del asset (250x470). Los retratos
-                            ya vienen cortadísimos de origen, así que cualquier
-                            otra proporción recorta sobre la frente. */}
+                        {/* El recorte de estudio, no el retrato del arte: ese
+                            viene tan cerrado que a este tamaño quedaban solo
+                            ojos y nariz. */}
                         {[c.a, c.b].map((p) => (
                           <span
                             key={p.slug}
-                            className="relative block aspect-[250/470] flex-1 overflow-hidden rounded-sm border border-linea"
+                            className="relative block aspect-[3/4] flex-1 overflow-hidden rounded-sm border border-linea bg-[#0e0e12]"
                           >
                             <Image
-                              src={p.foto}
+                              src={p.cuerpo ?? p.foto}
                               alt=""
                               fill
-                              sizes="110px"
-                              className="object-cover object-top transition-opacity group-hover:opacity-90"
+                              sizes="140px"
+                              className={`object-cover object-top transition-opacity group-hover:opacity-90 ${
+                                p.cuerpo ? "brightness-125 contrast-[1.06]" : ""
+                              }`}
                             />
                           </span>
                         ))}
                       </span>
                       <span className="font-display text-[13px] uppercase leading-tight text-crema">
                         {c.a.nombre}
-                        <span className="text-oro-profundo"> vs </span>
+                        <span className="text-oro-medio"> vs </span>
                         {c.b.nombre}
                       </span>
                     </Link>
@@ -586,6 +643,68 @@ function IconoDetalle({ nombre }: { nombre: string }) {
       <path d="M5 12a7 7 0 0 1 7-7M5 17a12 12 0 0 1 12-12" />
       <circle cx="6" cy="18" r="1.4" fill="currentColor" />
     </svg>
+  );
+}
+
+/**
+ * Ficha comparada del combate: valor de este peleador a la izquierda, el dato
+ * al centro y el del rival a la derecha. Reusa las filas del cara a cara de
+ * la home, así los dos sitios dicen exactamente lo mismo.
+ */
+function FrenteAFrente({
+  peleador,
+  rival,
+}: {
+  peleador: Peleador;
+  rival: Peleador;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <dl className="overflow-hidden rounded-sm border border-linea bg-carbon">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-linea bg-[#08080b] px-4 py-3 sm:px-6">
+          <span className="truncate font-display text-[15px] uppercase text-oro-claro sm:text-[18px]">
+            {peleador.nombre}
+          </span>
+          <span className="font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro-medio">
+            Frente a frente
+          </span>
+          <span className="truncate text-right font-display text-[15px] uppercase text-crema sm:text-[18px]">
+            {rival.nombre}
+          </span>
+        </div>
+        {FILAS_TAPE.map((fila, i) => {
+          const a = fila.valor(peleador);
+          const b = fila.valor(rival);
+          return (
+            <div
+              key={fila.etiqueta}
+              className={`grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-3 sm:px-6 ${
+                i > 0 ? "border-t border-linea/70" : ""
+              }`}
+            >
+              <dd
+                className={`font-display text-[22px] leading-none tabular-nums sm:text-[26px] ${
+                  a ? "text-crema" : "text-tenue"
+                }`}
+              >
+                {a ?? "—"}
+              </dd>
+              <dt className="w-[76px] text-center font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro">
+                {fila.etiqueta}
+              </dt>
+              <dd
+                className={`text-right font-display text-[22px] leading-none tabular-nums sm:text-[26px] ${
+                  b ? "text-crema" : "text-tenue"
+                }`}
+              >
+                {b ?? "—"}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+      {(peleador.aprox || rival.aprox) && <NotaAprox />}
+    </div>
   );
 }
 

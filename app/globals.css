@@ -7,10 +7,15 @@
   --color-superficie: #14141a;
   --color-superficie-2: #1c1c22;
   --color-linea: #2a2a31;
+  /* Gris de las barras y puntos apagados: visible sobre carbon (3:1) */
+  --color-humo: #63636f;
   --color-oro: #d4af37;
   --color-oro-claro: #f7e3a1;
   --color-oro-profundo: #8c6b22;
   --color-oro-tinte: #171208;
+  /* Oro para TEXTO chico: el profundo se queda para bordes y fondos,
+     porque sobre las superficies no llega a 4,5:1 de contraste. */
+  --color-oro-medio: #b08a34;
   --color-crema: #f5eedc;
   --color-tenue: #a39b8a;
   --color-kick: #53fc18;
@@ -98,23 +103,22 @@
   /* Hairline dorado que separa secciones, se apaga en los extremos.
      El barrido recorre el brillo de izquierda a derecha. */
   height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--color-oro),
-    transparent
-  );
-  background-size: 55% 100%;
+  /* Dos capas: una linea fija tenue para que el corte se vea siempre, y el
+     brillo que la recorre. */
+  background:
+    linear-gradient(to right, transparent, var(--color-oro-claro), transparent),
+    linear-gradient(to right, transparent, rgba(212, 175, 55, 0.45) 50%, transparent);
+  background-size: 55% 100%, 100% 100%;
   background-repeat: no-repeat;
   animation: barrido 7s linear infinite;
 }
 
 @keyframes barrido {
   from {
-    background-position: -55% 0;
+    background-position: -55% 0, 0 0;
   }
   to {
-    background-position: 155% 0;
+    background-position: 155% 0, 0 0;
   }
 }
 
@@ -379,6 +383,62 @@
 
 @utility flotar {
   animation: flotar 2.2s ease-in-out infinite;
+}
+
+/* Zoom lentísimo del cartel del hero: ida y vuelta en casi un minuto, para
+   que el fondo respire sin que se note el movimiento como tal. */
+@keyframes zoom-lento {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@utility zoom-lento {
+  animation: zoom-lento 28s ease-in-out infinite alternate;
+}
+
+/* Brasas doradas que suben por el hero. Cada una lleva su duración y retardo
+   en línea; aquí solo el recorrido: nace apagada al pie, brilla a mitad de
+   camino y se apaga antes de llegar arriba. */
+@keyframes brasa {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(-78vh) translateX(var(--deriva, 0px));
+    opacity: 0;
+  }
+}
+
+@utility brasa {
+  animation: brasa var(--dur, 12s) linear var(--retardo, 0s) infinite;
+}
+
+/* Tic del contador: cada dígito que cambia entra desde arriba con un fundido
+   corto. Se dispara remontando el nodo con key={valor}. */
+@keyframes tic {
+  from {
+    opacity: 0;
+    transform: translateY(-38%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility tic {
+  animation: tic 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Quien pide menos movimiento recibe el resultado final, sin recorrido */

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   COMBATES,
@@ -9,6 +8,7 @@ import {
   type Peleador,
 } from "@/lib/evento";
 import { estaAbierto, useVotacion, type Lado } from "@/lib/votacion";
+import { LadoVoto, RomboVS } from "./pronosticos";
 
 /**
  * Puesto del peleador en el apoyo de toda la cartelera.
@@ -32,79 +32,13 @@ function puestoEnElCartel(
   return i === -1 ? null : { puesto: i + 1, total: lista.length };
 }
 
-function IconoVoto() {
-  return (
-    <svg
-      aria-hidden
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="shrink-0"
-    >
-      <path d="m9 12 2 2 4-4" />
-      <path d="M3 17V9l9-6 9 6v8l-9 4-9-4Z" />
-    </svg>
-  );
-}
-
-function LadoApoyo({
-  p,
-  pct,
-  destacado,
-  ganador,
-  derecha,
-}: {
-  p: Peleador;
-  pct: number | null;
-  destacado: boolean;
-  ganador: boolean;
-  derecha?: boolean;
-}) {
-  return (
-    <div
-      className={`flex min-w-0 flex-1 items-center gap-3 ${derecha ? "flex-row-reverse text-right" : ""}`}
-    >
-      <span
-        className={`relative block aspect-[250/470] w-11 shrink-0 overflow-hidden rounded-sm border sm:w-14 ${
-          destacado ? "border-oro" : "border-linea opacity-70"
-        }`}
-      >
-        <Image src={p.foto} alt="" fill sizes="56px" className="object-cover" />
-      </span>
-      <span className="min-w-0">
-        <span
-          className={`flex items-center gap-2 ${derecha ? "flex-row-reverse" : ""}`}
-        >
-          <span
-            className={`truncate font-display text-[14px] uppercase leading-tight sm:text-[17px] ${
-              destacado ? "text-oro-claro" : "text-crema"
-            }`}
-          >
-            {p.nombre}
-          </span>
-          {ganador && (
-            <span className="shrink-0 rounded-full bg-oro px-2 py-[2px] font-cond text-[10px] font-bold uppercase tracking-[0.12em] text-noche">
-              Ganó
-            </span>
-          )}
-        </span>
-        <span
-          className={`mt-1 block font-display text-[26px] leading-none tabular-nums sm:text-[34px] ${
-            destacado ? "text-oro" : "text-tenue"
-          }`}
-        >
-          {pct === null ? "—" : `${pct}%`}
-        </span>
-      </span>
-    </div>
-  );
-}
-
+/**
+ * La votación de este combate dentro de la ficha, armada con las mismas
+ * losetas que la sección de pronósticos de la home: tocar la foto vota, el
+ * porcentaje va arriba y el nombre al pie. Este peleador siempre a la
+ * izquierda; el número y el color del lado son los oficiales del combate,
+ * así coinciden con la home y con el cara a cara.
+ */
 export function ApoyoPeleador({
   combate,
   peleador,
@@ -116,161 +50,186 @@ export function ApoyoPeleador({
   rival: Peleador;
   lado: Lado;
 }) {
-  const { conteos, votos, cargando, enviando, error, votar } =
-    useVotacion(PRONOSTICOS_ACTIVOS);
+  const activo = PRONOSTICOS_ACTIVOS;
+  const { usuario, conteos, votos, cargando, enviando, error, votar } =
+    useVotacion(activo);
   const conteo = conteos[combate.n];
+  const ladoRival: Lado = lado === "a" ? "b" : "a";
 
   // Los conteos guardan siempre el porcentaje del lado A; el del lado B es el
   // complemento, así los dos suman 100 exacto aunque el redondeo no cuadre.
-  const pctPropio =
-    !conteo || conteo.pctA === null
-      ? null
-      : lado === "a"
-        ? conteo.pctA
-        : 100 - conteo.pctA;
-  const pctRival = pctPropio === null ? null : 100 - pctPropio;
-  const totalVotos = conteo ? conteo.votosA + conteo.votosB : 0;
-  const ganador = conteo?.ganador ?? null;
-  const rank = conteo ? puestoEnElCartel(conteos, peleador.slug) : null;
+  const pctA = activo && conteo ? conteo.pctA : null;
+  const pctDe = (l: Lado) =>
+    pctA === null ? null : l === "a" ? pctA : 100 - pctA;
+  const lidera = (l: Lado) => {
+    const p = pctDe(l);
+    return p !== null && (l === "a" ? p >= 50 : p > 50);
+  };
 
-  const ladoRival: Lado = lado === "a" ? "b" : "a";
-  const miVoto = votos[combate.n];
+  const totalVotos = conteo ? conteo.votosA + conteo.votosB : 0;
+  const ganador = activo ? (conteo?.ganador ?? null) : null;
+  const abierto = activo && estaAbierto(conteo);
   // Sin conteo todavía no sabemos si el combate sigue abierto, así que no se
   // puede dejar votar a ciegas.
-  const sePuedeVotar =
-    PRONOSTICOS_ACTIVOS && !!conteo && !ganador && estaAbierto(conteo);
+  const esperando = activo && !conteo;
+  const puedeVotar = activo && !esperando && abierto && !ganador;
+  const miVoto = votos[combate.n];
   const enviandoEste = enviando === combate.n;
+  const rank = conteo ? puestoEnElCartel(conteos, peleador.slug) : null;
+  const nombre = (l: Lado) => combate[l].nombre;
 
-  const OPCIONES: { l: Lado; p: Peleador }[] = [
-    { l: lado, p: peleador },
-    { l: ladoRival, p: rival },
-  ];
+  const loseta = (p: Peleador, l: Lado) => (
+    <LadoVoto
+      peleador={p}
+      lado={l}
+      pct={pctDe(l)}
+      lidera={lidera(l)}
+      resultado={ganador ? (ganador === l ? "gano" : "perdio") : undefined}
+      votado={miVoto === l}
+      otroVotado={miVoto !== undefined && miVoto !== l}
+      puedeVotar={puedeVotar}
+      enviando={enviandoEste}
+      onVotar={() => votar(combate.n, l)}
+    />
+  );
+
+  const pctPropio = pctDe(lado);
 
   return (
-    <div className="flex w-full flex-col gap-5 rounded-sm border border-oro-profundo bg-oro-tinte px-5 py-6 sm:px-7 sm:py-7">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
-        <p className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-profundo">
+    // Ancho tope: a los 1200 del contenido las losetas cuadradas medían
+    // 530 px de alto y el módulo se comía la pantalla entera.
+    <article className="mx-auto w-full max-w-[780px] overflow-hidden rounded-sm border border-oro-profundo bg-oro-tinte">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-oro-profundo/40 bg-noche/40 px-4 py-3 sm:px-6">
+        <p className="font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro">
           {ganador ? "Resultado final" : "Pronóstico de la comunidad"}
         </p>
-        <p className="font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-tenue">
-          {cargando
-            ? "Cargando"
-            : pctPropio === null
-              ? "Sin votos todavía"
-              : `${totalVotos} ${totalVotos === 1 ? "voto" : "votos"}`}
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3 sm:gap-6">
-          <LadoApoyo
-            p={peleador}
-            pct={pctPropio}
-            destacado={ganador ? ganador === lado : (pctPropio ?? 0) >= 50}
-            ganador={ganador === lado}
-          />
-          <span className="relative grid size-9 shrink-0 place-items-center sm:size-11">
-            <span
-              aria-hidden
-              className="absolute inset-0 rotate-45 rounded-[3px] border border-oro-profundo bg-noche/70"
-            />
-            <span className="relative font-display text-[11px] text-oro sm:text-[13px]">
-              VS
-            </span>
-          </span>
-          <LadoApoyo
-            p={rival}
-            pct={pctRival}
-            destacado={ganador ? ganador !== lado : (pctRival ?? 0) > 50}
-            ganador={ganador !== null && ganador !== lado}
-            derecha
-          />
-        </div>
-
-        <div className="flex h-2 w-full overflow-hidden rounded-full bg-[#2a2a31]">
+        <p className="flex items-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-tenue">
           <span
-            style={{ width: `${pctPropio ?? 50}%` }}
-            className={`block transition-[width] duration-500 ${
-              pctPropio === null
-                ? "bg-[#3a3a44]"
-                : "bg-gradient-to-r from-oro-profundo to-oro-claro"
+            aria-hidden
+            className={`inline-block size-[7px] rounded-full ${
+              ganador || miVoto ? "bg-oro" : "bg-humo"
             }`}
           />
-        </div>
+          {!activo
+            ? "Próximamente"
+            : cargando
+              ? "Cargando"
+              : ganador
+                ? "Combate resuelto"
+                : !abierto
+                  ? "Votación cerrada"
+                  : pctPropio === null
+                    ? "Sin votos todavía"
+                    : `${totalVotos} ${totalVotos === 1 ? "voto" : "votos"}`}
+        </p>
+      </header>
+
+      {/* Las dos losetas son los botones; el rombo del VS va sobre la junta */}
+      <div className="relative grid grid-cols-2 gap-1.5 p-1.5 sm:gap-2 sm:p-2">
+        {loseta(peleador, lado)}
+        <RomboVS />
+        {loseta(rival, ladoRival)}
       </div>
 
-      {/* Votación en la propia ficha. `votar` ya resuelve el caso sin sesión:
-          guarda la intención, manda a Google y al volver la emite sola. */}
-      {sePuedeVotar && (
-        <div className="flex flex-col gap-3 border-t border-oro-profundo/50 pt-5">
-          <p className="text-center font-cond text-[12px] font-bold uppercase tracking-[0.2em] text-oro-claro">
-            {miVoto ? "Tu pronóstico" : "¿Quién gana este combate?"}
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {OPCIONES.map(({ l, p }) => {
-              const elegido = miVoto === l;
-              return (
-                <button
-                  key={l}
-                  type="button"
-                  disabled={enviandoEste}
-                  onClick={() => votar(combate.n, l)}
-                  aria-pressed={elegido}
-                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-sm px-4 py-3.5 text-center font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.1em] transition-colors disabled:cursor-wait disabled:opacity-50 ${
-                    elegido
-                      ? "bg-oro text-noche hover:bg-oro-claro"
-                      : "border border-oro-profundo text-oro hover:border-oro hover:bg-oro-tinte"
-                  }`}
-                >
-                  <IconoVoto />
-                  {elegido ? `Votaste por ${p.nombre}` : `Votar por ${p.nombre}`}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-center font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-profundo">
-            {miVoto
-              ? "Puedes cambiarlo hasta que cierre la votación"
-              : "Un voto por combate · Nadie ve a quién votaste"}
-          </p>
-        </div>
-      )}
+      <div
+        role="img"
+        aria-label={
+          pctPropio === null
+            ? "Todavía sin votos"
+            : `${pctPropio} % para ${peleador.nombre}, ${100 - pctPropio} % para ${rival.nombre}`
+        }
+        className="flex h-2 w-full overflow-hidden bg-[#2a2a31]"
+      >
+        <span
+          style={{ width: `${pctPropio ?? 50}%` }}
+          className={`block transition-[width] duration-500 ${
+            lidera(lado)
+              ? "bg-gradient-to-r from-oro-profundo to-oro-claro"
+              : "bg-humo"
+          }`}
+        />
+        <span
+          className={`block flex-1 transition-[width] duration-500 ${
+            lidera(ladoRival)
+              ? "bg-gradient-to-l from-oro-profundo to-oro-claro"
+              : "bg-humo"
+          }`}
+        />
+      </div>
 
       {error && (
         <p
           role="status"
-          className="rounded-sm border border-[#7a2b2b] bg-[#1c0d0d] px-4 py-2.5 text-center font-cond text-[12px] font-semibold uppercase tracking-[0.12em] text-[#ffb4b4]"
+          className="border-t border-[#7a2b2b] bg-[#1c0d0d] px-4 py-2.5 text-center font-cond text-[12px] font-semibold uppercase tracking-[0.12em] text-[#ffb4b4]"
         >
           {error}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-t border-oro-profundo/50 pt-4">
-        <span className="font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-oro-profundo">
-          {rank ? `${rank.puesto}.º más apoyado de ${rank.total}` : ""}
+      <footer className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 bg-noche/40 px-4 py-3 font-cond text-[11px] font-semibold uppercase tracking-[0.12em] text-tenue sm:px-6">
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {ganador ? (
+            <span className="text-oro-claro">
+              {miVoto
+                ? miVoto === ganador
+                  ? "Acertaste"
+                  : `Votaste por ${nombre(miVoto)}`
+                : `Ganó ${nombre(ganador)}`}
+            </span>
+          ) : !activo ? (
+            <span>La votación se habilita en la segunda fase</span>
+          ) : !abierto && !esperando ? (
+            <span>La votación de este combate ya cerró</span>
+          ) : miVoto ? (
+            <>
+              <span className="text-oro-claro">Votaste por {nombre(miVoto)}</span>
+              <button
+                type="button"
+                disabled={enviandoEste}
+                onClick={() => votar(combate.n, miVoto)}
+                className="cursor-pointer underline transition-colors hover:text-oro disabled:cursor-wait disabled:opacity-50"
+              >
+                Quitar voto
+              </button>
+            </>
+          ) : (
+            <>
+              <span>Toca un lado para votar</span>
+              {!usuario && (
+                <span className="text-oro-medio">Te pediremos entrar con Google</span>
+              )}
+            </>
+          )}
         </span>
-        {/* Salida a la votación completa de la home: desde aquí solo se ve
-            este combate, y allí están los ocho. */}
-        <Link
-          href="/#pronosticos"
-          className="flex items-center gap-2 font-cond text-[12px] font-bold uppercase tracking-[0.14em] text-oro transition-colors hover:text-oro-claro"
-        >
-          Ver los 8 combates
-          <svg
-            aria-hidden
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          {rank && (
+            <span className="text-oro-medio">
+              {rank.puesto}.º más apoyado de {rank.total}
+            </span>
+          )}
+          {/* Salida a la votación completa de la home: desde aquí solo se ve
+              este combate, y allí están los ocho. */}
+          <Link
+            href="/#pronosticos"
+            className="flex items-center gap-1.5 font-bold text-oro transition-colors hover:text-oro-claro"
           >
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </Link>
-      </div>
-    </div>
+            Ver los 8 combates
+            <svg
+              aria-hidden
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </Link>
+        </span>
+      </footer>
+    </article>
   );
 }
