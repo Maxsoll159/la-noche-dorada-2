@@ -211,11 +211,10 @@ export function LadoVoto({
         }`}
       />
 
-      {/* Rótulo "Tu voto" arriba al centro, entre el número y el porcentaje.
-          Solo desde sm: en la loseta móvil no hay ancho y ahí lo dice el chip
-          del pie. */}
+      {/* Banda "Tu voto" a todo lo ancho del borde superior: no compite con
+          el número ni con el porcentaje, que bajan un escalón cuando está. */}
       {votado && (
-        <span className="absolute left-1/2 top-2 z-10 hidden -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-sm bg-oro px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche shadow-[0_6px_18px_rgba(0,0,0,0.6)] sm:top-3 sm:flex">
+        <span className="absolute inset-x-0 top-0 z-10 flex items-center justify-center gap-1.5 bg-oro py-1 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-noche">
           <IconoVoto />
           Tu voto
         </span>
@@ -249,18 +248,20 @@ export function LadoVoto({
       {/* Número del lado en la esquina exterior, como en la parrilla */}
       <span
         aria-hidden
-        className={`absolute top-0 grid size-5 place-items-center font-display text-[12px] leading-none text-white ${
-          izquierda ? "left-0" : "right-0"
-        } ${NUMERO[lado].fondo}`}
+        className={`absolute grid size-5 place-items-center font-display text-[12px] leading-none text-white ${
+          votado ? "top-6" : "top-0"
+        } ${izquierda ? "left-0" : "right-0"} ${NUMERO[lado].fondo}`}
       >
         {NUMERO[lado].n}
       </span>
 
       {/* Porcentaje en la esquina interior: los dos miran al VS */}
       <span
-        className={`absolute top-2 font-display text-[28px] leading-none tabular-nums drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)] sm:top-3 sm:text-[38px] ${
-          izquierda ? "right-3 sm:right-4" : "left-3 sm:left-4"
-        } ${destacado ? "text-oro" : "text-tenue"}`}
+        className={`absolute font-display text-[28px] leading-none tabular-nums drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)] sm:text-[38px] ${
+          votado ? "top-8 sm:top-9" : "top-2 sm:top-3"
+        } ${izquierda ? "right-3 sm:right-4" : "left-3 sm:left-4"} ${
+          destacado ? "text-oro" : "text-tenue"
+        }`}
       >
         {pct === null ? "—" : `${pct}%`}
       </span>
@@ -283,16 +284,10 @@ export function LadoVoto({
             Ganó
           </span>
         ) : votado ? (
-          // En sm+ el rótulo va arriba; aquí solo queda la ayuda de uso.
-          <>
-            <span className="flex items-center gap-1 rounded-sm bg-oro px-2.5 py-1 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche sm:hidden">
-              <IconoVoto />
-              Tu voto
-            </span>
-            <span className="hidden font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-oro-claro sm:block">
-              Tocar para quitar
-            </span>
-          </>
+          // La banda de arriba ya dice "Tu voto"; aquí, la ayuda de uso.
+          <span className="font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-oro-claro">
+            Tocar para quitar
+          </span>
         ) : puedeVotar ? (
           // La etiqueta es lo que dice "esto se toca": la loseta entera es el
           // botón, pero hacía falta la palabra.
