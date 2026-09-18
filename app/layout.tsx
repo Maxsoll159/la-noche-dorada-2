@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     "Cañita",
     "JH de la Cruz 777",
     "Stake",
-    "Vastion",
+    //"Vastion",
     "Lima",
     "Perú",
   ],

@@ -12,7 +12,7 @@
   entradasUrl: "https://www.ticketmaster.pe/event/la-noche-dorada-edicion-2026",
   streamUrl: "https://kick.com/elzeein",
   streamCanal: "/elzeein",
-  productora: "Vastion",
+  productora: "",
 } as const;
 
 /**
