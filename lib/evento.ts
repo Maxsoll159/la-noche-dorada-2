@@ -92,6 +92,12 @@ export type Peleador = {
   foto: string;
   /** Sesión de estudio recortada con fondo transparente, para el cara a cara */
   cuerpo?: string;
+  /**
+   * Clip de presentación, para usarlo de fondo en bucle. No lo tiene todo el
+   * cartel y no va a tenerlo: quien no lo tenga se queda con el degradado de
+   * siempre, que es lo que hay debajo.
+   */
+  video?: string;
   /** Fecha de nacimiento ISO. La edad se calcula, no se guarda. */
   nacimiento?: string;
   /** Metros */
@@ -246,6 +252,29 @@ const CON_CUERPO = new Set([
   "ismael-sanchez",
 ]);
 
+/**
+ * Quiénes tienen clip de presentación en `public/videos/`. El archivo se llama
+ * como el slug (`canita.mp4`), no como el peleador: "Cañita.mp4" viajaba en la
+ * URL como "Ca%C3%B1ita.mp4" y es justo el tipo de detalle que un día falla en
+ * un servidor y no en otro.
+ *
+ * Son clips oscuros y dorados, pensados para ir DEBAJO de un velo: si algún
+ * día entra uno claro o con mucho movimiento, habrá que subirle el velo en
+ * `VideoFondo` o el texto de encima dejará de leerse.
+ */
+const CON_VIDEO = new Set([
+  "jh",
+  "canita",
+  "piero",
+  "jeque",
+  "jota",
+  "bebote",
+  "emetsuki",
+  "daniela",
+  "pepita",
+  "pauchikita",
+]);
+
 export type Combate = {
   /**
    * "01".."08", el rótulo del cartel. Es también la clave con la que este
@@ -375,6 +404,7 @@ const p = (
   pais,
   foto: `/peleadores/${slug}.webp`,
   ...(CON_CUERPO.has(slug) && { cuerpo: `/peleadores/cuerpo-${slug}.webp` }),
+  ...(CON_VIDEO.has(slug) && { video: `/videos/${slug}.mp4` }),
   ...(REDES[slug] && {
     redes: REDES[slug].map((r) => ({ ...r, usuario: usuarioDeUrl(r.url) })),
   }),

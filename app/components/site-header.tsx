@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EVENTO, NAV } from "@/lib/evento";
 
 function Etiqueta({
@@ -28,12 +28,41 @@ export function SiteHeader() {
   // barra oscura para que el menú siga legible sobre el resto de la página.
   const [bajando, setBajando] = useState(false);
   const [abierto, setAbierto] = useState(false);
+  const barra = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const alSc = () => setBajando(window.scrollY > 24);
-    alSc(); // por si se entra con la página ya desplazada (hash o recarga)
+    let encolado = false;
+
+    const pintar = () => {
+      encolado = false;
+      setBajando(window.scrollY > 24);
+
+      // El progreso se escribe DIRECTO en el nodo, sin pasar por el estado.
+      // Con `setState` la cabecera se volvería a renderizar en cada píxel de
+      // scroll de una página de doce mil; así solo se toca un `transform`, que
+      // el navegador resuelve en el compositor.
+      const el = barra.current;
+      if (!el) return;
+      const alcance = document.documentElement.scrollHeight - window.innerHeight;
+      const hecho = alcance > 0 ? Math.min(1, window.scrollY / alcance) : 0;
+      el.style.transform = `scaleX(${hecho})`;
+    };
+
+    // Un solo repintado por fotograma, pase lo que pase con los eventos.
+    const alSc = () => {
+      if (encolado) return;
+      encolado = true;
+      requestAnimationFrame(pintar);
+    };
+
+    pintar(); // por si se entra con la página ya desplazada (hash o recarga)
     window.addEventListener("scroll", alSc, { passive: true });
-    return () => window.removeEventListener("scroll", alSc);
+    // Al cambiar el tamaño cambia el alto total, y con él la proporción.
+    window.addEventListener("resize", alSc, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", alSc);
+      window.removeEventListener("resize", alSc);
+    };
   }, []);
 
   // Con el panel abierto bloqueamos el scroll del fondo y habilitamos Esc.
@@ -155,6 +184,17 @@ export function SiteHeader() {
           </span>
         </button>
       </div>
+
+      {/* Hilo de progreso, colgado del borde inferior de la barra. En una
+          página de doce mil píxeles es lo único que dice por dónde vas.
+          `scale-x-0` de salida y `origin-left`: arranca invisible y crece
+          desde la izquierda. Se anima con transform, no con width, para no
+          provocar un reflow en cada fotograma. */}
+      <span
+        ref={barra}
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-oro-profundo via-oro to-oro-claro"
+      />
 
       <div
         id="menu-movil"

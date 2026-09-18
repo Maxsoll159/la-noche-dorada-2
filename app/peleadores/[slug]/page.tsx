@@ -15,12 +15,13 @@ import {
 import { SITIO } from "@/lib/sitio";
 import { ApoyoPeleador } from "@/app/components/apoyo-peleador";
 import { Bandera } from "@/app/components/bandera";
-import { FILAS_TAPE, NotaAprox } from "@/app/components/ficha-tape";
+import { NotaAprox } from "@/app/components/ficha-tape";
 import { FileteOro } from "@/app/components/filete-oro";
 import { Patrocinador } from "@/app/components/patrocinador";
 import { Revelar } from "@/app/components/revelar";
 import { SiteFooter } from "@/app/components/site-footer";
 import { SiteHeader } from "@/app/components/site-header";
+import { VideoFondo } from "@/app/components/video-fondo";
 
 /** Las 16 rutas se prerrenderizan en el build: el cartel no cambia solo. */
 export function generateStaticParams() {
@@ -81,6 +82,27 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
   const pais = BANDERAS[peleador.pais];
   const asterisco = peleador.aprox ? "*" : "";
 
+  // Con clip de fondo, la ficha entera entra 4 s mas tarde: lo primero que se
+  // ve es el video, solo, y la informacion aparece encima despues. Afecta a
+  // TODO el bloque (incluida la tarjeta del rival), porque los retardos salen
+  // todos de aqui. Sin clip no hay nada que mirar mientras tanto, asi que no
+  // se hace esperar a nadie y los retardos vuelven a ser los de siempre.
+  //
+  // Tiene un coste y conviene saberlo: el retrato es el LCP de esta pagina, y
+  // retrasar su entrada retrasa la metrica en la misma medida. Es a proposito.
+  const espera = peleador.video ? 4000 : 0;
+  const entra = (ms: number) => ({ animationDelay: `${espera + ms}ms` });
+
+  // Los textos sueltos (el rotulo del combate, el pais, la nota del asterisco)
+  // caen sobre un clip que a ratos se ilumina, y ahi el dorado sobre dorado no
+  // se lee. La sombra los salva sin tener que oscurecer mas el video, que es
+  // justo lo que se quiere ver. `text-shadow` se hereda, asi que basta ponerla
+  // en el contenedor. Las tarjetas (ficha, rival, redes) no la necesitan:
+  // llevan fondo propio.
+  const sombra = peleador.video
+    ? "[text-shadow:0_2px_12px_rgba(11,11,13,0.95)]"
+    : "";
+
   // Ficha física como "tale of the tape": tres números grandes con su unidad
   // aparte. Los que falten se saltan; sin ninguno, el bloque no se pinta. La
   // rejilla genérica de sede, formato y fecha salió de aquí: era la misma en
@@ -128,6 +150,14 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
 
   const otros = COMBATES.filter((c) => c.n !== combate.n);
 
+  // Vecinos en el cartel, para poder recorrer las dieciséis fichas sin volver
+  // atrás cada vez. `PELEADORES` ya viene en orden de cartelera (los dos del
+  // estelar primero), y la vuelta es circular: desde el último se sigue al
+  // primero, así nunca hay un callejón sin salida.
+  const puesto = PELEADORES.findIndex((p) => p.slug === peleador.slug);
+  const anterior = PELEADORES[(puesto - 1 + PELEADORES.length) % PELEADORES.length];
+  const siguiente = PELEADORES[(puesto + 1) % PELEADORES.length];
+
   // Migas para el buscador: Inicio > Combates > peleador. Enlaza la ficha
   // con la home y le da contexto de sitio al resultado.
   const migas = {
@@ -155,15 +185,39 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
       <SiteHeader />
       <main>
         <section className="relative isolate overflow-hidden bg-noche pt-24 pb-16 lg:pt-32 lg:pb-20">
+          {/* Clip de presentación de fondo, solo para quien lo tenga. Quien no,
+              se queda con el degradado opaco de siempre y su ficha no cambia
+              en nada.
+              Arranca DEBAJO de la barra (81 px, 89 desde lg: su alto medido),
+              no detrás: ahí el header pone su propio velo y el clip se veía
+              apagado, como si la franja de arriba estuviera cortada. Así la
+              barra queda sobre negro limpio y el video empieza donde acaba.
+              El alto va explícito en vez de fiarlo a `bottom-0`: un <video> es
+              un elemento reemplazado y con `width/height: auto` usaría su
+              tamaño intrínseco en lugar del hueco que le dejan los insets. */}
+          {peleador.video && (
+            <VideoFondo
+              src={peleador.video}
+              className="absolute inset-x-0 top-[81px] -z-20 h-[calc(100%-81px)] w-full object-cover lg:top-[89px] lg:h-[calc(100%-89px)]"
+            />
+          )}
+          {/* El mismo degradado en dos versiones. Con video va en rgba, para
+              que el clip se vea por debajo; sin video va opaco, exactamente
+              como estaba. Es lo que hace que el texto siga legible encima de
+              una imagen en movimiento. */}
           <div
             aria-hidden
-            className="absolute inset-0 -z-10 bg-[radial-gradient(60%_55%_at_50%_30%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
+            className={`absolute -z-10 ${
+              peleador.video
+                ? "inset-x-0 bottom-0 top-[81px] bg-[radial-gradient(95%_85%_at_50%_38%,rgba(20,16,10,0.34)_0%,rgba(13,13,16,0.6)_55%,rgba(11,11,13,0.8)_100%)] lg:top-[89px]"
+                : "inset-0 bg-[radial-gradient(60%_55%_at_50%_30%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
+            }`}
           />
           <div className="mx-auto flex max-w-contenido flex-col gap-8 px-6 lg:px-14">
             <Link
               href="/#combates"
-              style={{ animationDelay: "60ms" }}
-              className="entrada flex items-center gap-2 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro-medio transition-colors hover:text-oro"
+              style={entra(60)}
+              className={`entrada flex items-center gap-2 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro-medio transition-colors hover:text-oro ${sombra}`}
             >
               <svg
                 aria-hidden
@@ -187,8 +241,8 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                 los datos se reparten a su derecha. */}
             <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[430px_minmax(0,1fr)] lg:grid-rows-[auto_auto] lg:items-center lg:gap-x-12 lg:gap-y-6">
               <div
-                style={{ animationDelay: "140ms" }}
-                className="entrada flex flex-col items-center gap-3 text-center lg:col-start-2 lg:row-start-1 lg:items-start lg:self-end lg:text-left"
+                style={entra(140)}
+                className={`entrada flex flex-col items-center gap-1.5 text-center sm:gap-3 lg:col-start-2 lg:row-start-1 lg:items-start lg:self-end lg:text-left ${sombra}`}
               >
                 {/* Rótulo del combate y fecha, como el kicker de una nota */}
                 <p className="flex flex-wrap items-center justify-center gap-2 font-cond text-[11px] font-bold uppercase tracking-[0.18em] lg:justify-start">
@@ -206,20 +260,22 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                   {combate.billing && (
                     <span className="text-oro-medio">Combate {combate.n}</span>
                   )}
-                  {/* El punto va aparte y solo desde sm: en móvil la fecha
-                      baja a su propia línea y arrancaba con el punto. */}
+                  {/* La fecha entera solo desde sm. En móvil era ella la que
+                      partía el rótulo en dos líneas y engordaba el encabezado,
+                      que es lo primero que se ve; además se repite completa
+                      unas pantallas más abajo, en "Su combate". */}
                   <span aria-hidden className="hidden text-oro-medio sm:inline">
                     ·
                   </span>
-                  <span className="text-oro-medio">{EVENTO.fechaLarga}</span>
+                  <span className="hidden text-oro-medio sm:inline">
+                    {EVENTO.fechaLarga}
+                  </span>
                 </p>
                 {/* Tamaños escalonados y `break-words`: con `auto` a 92px,
                     "JH de la Cruz 777" se salía de la columna. */}
-                {/* leading holgado a propósito: `texto-oro` usa
-                    background-clip:text, así que si la caja de línea queda
-                    más corta que el glifo se recorta el fondo y la tilde de
-                    la Ñ desaparece ("CAÑITA" salía como "CANITA"). */}
-                <h1 className="texto-oro w-full break-words text-[42px] leading-[1.12] sm:text-[58px] lg:text-[72px]">
+                {/* La tilde de la Ñ la resuelve ya `texto-oro`, que agranda su
+                    propia caja para que el degradado cubra los glifos. */}
+                <h1 className="texto-oro w-full break-words text-[36px] leading-[1.12] sm:text-[58px] lg:text-[72px]">
                   {peleador.nombre}
                 </h1>
                 <p className="flex items-center gap-2.5 font-cond text-[12px] font-bold uppercase tracking-[0.18em] text-oro">
@@ -231,7 +287,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
               {/* Retrato enmarcado. El rótulo del combate ya va en el kicker,
                   así que la foto queda limpia. */}
               <div
-                style={{ animationDelay: "240ms" }}
+                style={entra(240)}
                 className="entrada group relative w-full max-w-[380px] self-center overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12] transition-colors duration-300 hover:border-oro lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:w-[430px] lg:max-w-none"
               >
                 <div className="relative h-[380px] w-full sm:h-[490px] lg:h-[560px]">
@@ -273,7 +329,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
               <div className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-start-2 lg:self-start">
                 {/* Tale of the tape: tres números grandes, uno por celda */}
                 {TAPE.length > 0 && (
-                  <div style={{ animationDelay: "340ms" }} className="entrada flex flex-col gap-2">
+                  <div style={entra(340)} className="entrada flex flex-col gap-2">
                     <dl
                       className="grid overflow-hidden rounded-sm border border-linea bg-carbon"
                       style={{ gridTemplateColumns: `repeat(${TAPE.length}, minmax(0, 1fr))` }}
@@ -300,7 +356,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                       ))}
                     </dl>
                     {peleador.aprox && (
-                      <p className="text-center font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-medio lg:text-left">
+                      <p className={`text-center font-cond text-[11px] font-semibold uppercase tracking-[0.14em] text-oro-medio lg:text-left ${sombra}`}>
                         * Dato no oficial · El pesaje de la velada manda
                       </p>
                     )}
@@ -311,8 +367,8 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                     la ficha (votar y ver el combate), que bajan a las
                     secciones de esta misma página. */}
                 <div
-                  style={{ animationDelay: "420ms" }}
-                  className="entrada resplandor overflow-hidden rounded-sm border border-oro-profundo bg-carbon"
+                  style={entra(420)}
+                  className="entrada-resplandor overflow-hidden rounded-sm border border-oro-profundo bg-carbon"
                 >
                   <Link
                     href={`/peleadores/${rival.slug}`}
@@ -399,7 +455,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                 `flex-wrap` + ancho fijo centra cualquier cantidad. */}
             {peleador.redes && peleador.redes.length > 0 && (
               <div
-                style={{ animationDelay: "580ms" }}
+                style={entra(580)}
                 className="entrada flex flex-col items-center gap-3"
               >
                 <ul className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
@@ -441,6 +497,35 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
               </div>
             )}
           </div>
+
+          {/* Señal de que la página sigue. Solo cuando hay clip: ahí el hero se
+              queda cuatro segundos quieto y parece el final de la página.
+              Solo en escritorio, que es donde el pie del hero cae justo en el
+              pliegue; en móvil la sección es más alta que la pantalla y la
+              flecha quedaría ya fuera de vista, sin avisar de nada.
+              La flecha y su envoltorio van separados a propósito: `entrada` y
+              `flotar` declaran las dos la propiedad `animation` y en el mismo
+              elemento la segunda borraría a la primera. */}
+          {peleador.video && (
+            <div
+              aria-hidden
+              style={entra(900)}
+              className="entrada absolute inset-x-0 bottom-6 hidden justify-center lg:flex"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="flotar text-oro-medio"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          )}
         </section>
 
         <FileteOro />
@@ -598,6 +683,80 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                 ))}
               </ul>
             </Revelar>
+
+            {/* Paso al peleador de al lado. Además de ahorrar el viaje de ida y
+                vuelta a la cartelera, enlaza cada ficha con las dos contiguas,
+                que es lo que evita que las dieciséis queden sueltas unas de
+                otras para el buscador. */}
+            <Revelar retardo={80}>
+              <nav
+                aria-label="Ir a otro peleador del cartel"
+                className="grid gap-3 sm:grid-cols-2"
+              >
+                {[
+                  { p: anterior, rotulo: "Anterior", derecha: false },
+                  { p: siguiente, rotulo: "Siguiente", derecha: true },
+                ].map(({ p, rotulo, derecha }) => (
+                  <Link
+                    key={rotulo}
+                    href={`/peleadores/${p.slug}`}
+                    className={`group flex items-center gap-4 rounded-sm border border-linea bg-carbon p-3 transition duration-300 hover:border-oro hover:bg-oro-tinte ${
+                      derecha ? "sm:flex-row-reverse sm:text-right" : ""
+                    }`}
+                  >
+                    <span className="relative block h-[64px] w-[52px] shrink-0 overflow-hidden rounded-sm border border-linea bg-[#0e0e12] transition-colors group-hover:border-oro-profundo">
+                      <Image
+                        src={p.cuerpo ?? p.foto}
+                        alt=""
+                        fill
+                        sizes="52px"
+                        className={`object-cover object-top ${
+                          p.cuerpo ? "brightness-125 contrast-[1.06]" : ""
+                        }`}
+                      />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={`flex items-center gap-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro-medio ${
+                          derecha ? "sm:flex-row-reverse" : ""
+                        }`}
+                      >
+                        <svg
+                          aria-hidden
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={`transition-transform duration-300 ${
+                            derecha
+                              ? "group-hover:translate-x-0.5"
+                              : "group-hover:-translate-x-0.5"
+                          }`}
+                        >
+                          <path d={derecha ? "M5 12h14M13 6l6 6-6 6" : "M19 12H5M11 6l-6 6 6 6"} />
+                        </svg>
+                        {rotulo}
+                      </span>
+                      <span className="mt-1 block truncate font-display text-[19px] uppercase leading-[1.2] text-crema transition-colors group-hover:text-oro sm:text-[22px]">
+                        {p.nombre}
+                      </span>
+                      <span
+                        className={`mt-1 flex items-center gap-2 font-cond text-[11px] font-semibold uppercase tracking-[0.12em] text-tenue ${
+                          derecha ? "sm:flex-row-reverse" : ""
+                        }`}
+                      >
+                        <Bandera pais={p.pais} className="h-2.5 w-[15px]" />
+                        {BANDERAS[p.pais].nombre}
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </nav>
+            </Revelar>
           </div>
         </section>
 
@@ -652,9 +811,56 @@ function IconoDetalle({ nombre }: { nombre: string }) {
 }
 
 /**
+ * Filas del frente a frente, con los valores CRUDOS para poder compararlos.
+ *
+ * `FILAS_TAPE` (el del cara a cara) devuelve el texto ya formateado, que sirve
+ * para pintar pero no para saber quién saca ventaja. Aquí hace falta el número.
+ *
+ * `ventaja` dice qué extremo destaca, y es un dato, no una opinión sobre quién
+ * va a ganar: en altura y peso destaca el más grande; en edad, el más joven.
+ * `diferencia` redacta la distancia en la unidad en que se habla de ella —los
+ * centímetros de estatura se dicen en centímetros, no en metros.
+ */
+const FILAS_FRENTE: {
+  etiqueta: string;
+  valor: (p: Peleador) => number | null;
+  texto: (n: number, p: Peleador) => string;
+  ventaja: "mayor" | "menor";
+  diferencia: (d: number) => string;
+}[] = [
+  {
+    etiqueta: "Edad",
+    valor: (p) => (p.nacimiento ? edadEn(p.nacimiento, EVENTO.inicioISO) : null),
+    texto: (n) => String(n),
+    ventaja: "menor",
+    diferencia: (d) => `${d} ${d === 1 ? "año" : "años"} menos`,
+  },
+  {
+    etiqueta: "Altura",
+    valor: (p) => p.altura ?? null,
+    texto: (n, p) => `${coma(n, 2)} m${p.aprox ? "*" : ""}`,
+    ventaja: "mayor",
+    diferencia: (d) => `+${Math.round(d * 100)} cm`,
+  },
+  {
+    etiqueta: "Peso",
+    valor: (p) => p.peso ?? null,
+    texto: (n, p) => `${coma(n, 1)} kg${p.aprox ? "*" : ""}`,
+    ventaja: "mayor",
+    diferencia: (d) => `+${coma(d, 1)} kg`,
+  },
+];
+
+/**
  * Ficha comparada del combate: valor de este peleador a la izquierda, el dato
- * al centro y el del rival a la derecha. Reusa las filas del cara a cara de
- * la home, así los dos sitios dicen exactamente lo mismo.
+ * al centro y el del rival a la derecha.
+ *
+ * Cada fila marca quién saca ventaja y cuánta. Antes eran dos columnas de
+ * números iguales y había que restar de cabeza para enterarse de que uno saca
+ * trece centímetros al otro, que es justo lo que interesa de una tabla así.
+ *
+ * Solo se marca cuando los dos datos existen y son distintos: con un hueco
+ * o con un empate no hay ventaja que contar.
  */
 function FrenteAFrente({
   peleador,
@@ -677,9 +883,38 @@ function FrenteAFrente({
             {rival.nombre}
           </span>
         </div>
-        {FILAS_TAPE.map((fila, i) => {
+        {FILAS_FRENTE.map((fila, i) => {
           const a = fila.valor(peleador);
           const b = fila.valor(rival);
+          const hayVentaja = a !== null && b !== null && a !== b;
+          const ganaA = hayVentaja && (fila.ventaja === "mayor" ? a > b : a < b);
+          const ganaB = hayVentaja && !ganaA;
+          const distancia = hayVentaja ? fila.diferencia(Math.abs(a - b)) : null;
+
+          const celda = (
+            n: number | null,
+            p: Peleador,
+            gana: boolean,
+            derecha: boolean,
+          ) => (
+            <dd
+              className={`flex flex-col gap-1 ${derecha ? "items-end" : "items-start"}`}
+            >
+              <span
+                className={`font-display text-[22px] leading-none tabular-nums sm:text-[26px] ${
+                  n === null ? "text-tenue" : gana ? "text-oro" : "text-crema"
+                }`}
+              >
+                {n === null ? "—" : fila.texto(n, p)}
+              </span>
+              {gana && distancia && (
+                <span className="rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[2px] font-cond text-[10px] font-bold uppercase leading-none tracking-[0.1em] text-oro">
+                  {distancia}
+                </span>
+              )}
+            </dd>
+          );
+
           return (
             <div
               key={fila.etiqueta}
@@ -687,23 +922,11 @@ function FrenteAFrente({
                 i > 0 ? "border-t border-linea/70" : ""
               }`}
             >
-              <dd
-                className={`font-display text-[22px] leading-none tabular-nums sm:text-[26px] ${
-                  a ? "text-crema" : "text-tenue"
-                }`}
-              >
-                {a ?? "—"}
-              </dd>
+              {celda(a, peleador, ganaA, false)}
               <dt className="w-[76px] text-center font-cond text-[11px] font-bold uppercase tracking-[0.2em] text-oro">
                 {fila.etiqueta}
               </dt>
-              <dd
-                className={`text-right font-display text-[22px] leading-none tabular-nums sm:text-[26px] ${
-                  b ? "text-crema" : "text-tenue"
-                }`}
-              >
-                {b ?? "—"}
-              </dd>
+              {celda(b, rival, ganaB, true)}
             </div>
           );
         })}

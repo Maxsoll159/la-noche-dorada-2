@@ -134,6 +134,19 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /* El degradado se pinta sobre la CAJA del elemento y luego se recorta a las
+     letras. El problema es que en Anton los glifos se salen de su caja de
+     línea —medido en este sitio: 8 px a 36px de fuente, 29 px a 112px, o sea
+     ~0,2em— y todo lo que asoma fuera se queda sin degradado. Lo primero que
+     desaparece es la tilde de la Ñ: "CAÑITA" se leía "CANITA".
+     Se agranda la caja con padding y se resta el mismo margen: el degradado
+     cubre los glifos y el alto que ocupa en la página no cambia ni un píxel,
+     así que ningún bloque se mueve. En `em` y no en píxeles porque el
+     desbordamiento crece con el tamaño de la fuente.
+     Si algún día esto se usa sobre un elemento con borde o fondo visible, ahí
+     sí se notaría el padding; hoy no hay ninguno. */
+  padding-block: 0.24em;
+  margin-block: -0.24em;
 }
 
 @keyframes latido {
@@ -279,6 +292,21 @@
 
 @utility resplandor {
   animation: resplandor 5s ease-in-out infinite;
+}
+
+/* `entrada` y `resplandor` a la vez, en UNA sola declaración.
+   No sirve ponerlas como dos clases sueltas en el mismo elemento: las dos
+   escriben la propiedad `animation` y la segunda borra a la primera. La
+   tarjeta del rival se quedaba así sin la animación de entrada —y sin su
+   `both`, que es lo que la mantiene invisible durante el retardo— y aparecía
+   de golpe, saltándose la espera del clip de fondo de la ficha.
+   Igual que en `entrada-flotante`, un `animation-delay` en línea pisa el de
+   las DOS; aquí es justo lo que se quiere, que el resplandor también empiece
+   cuando la tarjeta entra. */
+@utility entrada-resplandor {
+  animation:
+    aparecer 0.85s cubic-bezier(0.22, 1, 0.36, 1) both,
+    resplandor 5s ease-in-out infinite;
 }
 
 /* Cambio de peleador en el cara a cara. Más corta y de menor recorrido que
@@ -441,14 +469,68 @@
   animation: tic 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Quien pide menos movimiento recibe el resultado final, sin recorrido */
+/* ---------------------------------------------------------------------------
+   Cursor propio: el rombo del VS, en dorado.
+
+   Ojo con DÓNDE vive esto: va FUERA de cualquier `@layer` a propósito. En la
+   cascada de CSS, lo que no está en capas gana a lo que sí, y las utilidades
+   `cursor-*` de Tailwind viven en `@layer utilities`. Metido en una capa, cada
+   botón con `cursor-pointer` (que en este sitio son casi todos) se quedaría con
+   el puntero del sistema.
+
+   Los `:disabled` se excluyen a propósito: ahí mandan las utilidades
+   `disabled:cursor-wait` y `disabled:cursor-not-allowed`, que dicen algo que
+   este cursor no sabe decir.
+
+   Las imágenes van con contorno oscuro porque el sitio es negro pero el cursor
+   también pasa por encima de las fotos y de las bandas doradas; sin el contorno
+   desaparece sobre el oro. Y siempre con un cursor de reserva detrás de la coma
+   (`auto` / `pointer`), que es lo que se usa si el SVG no cargara.
+   --------------------------------------------------------------------------- */
+
+body {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='24' viewBox='0 0 20 24'%3E%3Cpath d='M10 1 18 12 10 23 2 12Z' fill='%23d4af37' stroke='%230b0b0d' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10 5.5 14.6 12 10 18.5 5.4 12Z' fill='%23f7e3a1'/%3E%3C/svg%3E")
+      10 1,
+    auto;
+}
+
+/* Todo lo que se puede tocar: el rombo hueco dentro de su aro. */
+a,
+summary,
+[role="button"],
+button:not(:disabled),
+.cursor-pointer:not(:disabled) {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='%230b0b0d' stroke-width='3.2' opacity='.6'/%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='%23d4af37' stroke-width='1.3'/%3E%3Cpath d='M15 7.5 22.5 15 15 22.5 7.5 15Z' fill='none' stroke='%230b0b0d' stroke-width='3.6' stroke-linejoin='round'/%3E%3Cpath d='M15 7.5 22.5 15 15 22.5 7.5 15Z' fill='%23d4af37' fill-opacity='.22' stroke='%23f7e3a1' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E")
+      15 15,
+    pointer;
+}
+
+/* El texto se sigue seleccionando con el cursor de texto de siempre: cambiarlo
+   solo estorbaría al copiar una dirección o una fecha. */
+input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not(
+    [type="radio"]
+  ),
+textarea {
+  cursor: text;
+}
+
+/* Quien pide menos movimiento recibe el resultado final, sin recorrido.
+   Los RETARDOS tambien se anulan, no solo las duraciones: la ficha de peleador
+   hace esperar 2,2 s a su contenido para que se vea antes el clip de fondo, y
+   ese clip es justo lo que aqui no se descarga. Sin esta linea, quien pide
+   menos movimiento se quedaria mirando una pantalla vacia hasta que la espera
+   terminara. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

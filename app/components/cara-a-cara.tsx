@@ -7,21 +7,14 @@ import {
   BANDERAS,
   COMBATES,
   PELEADORES,
-  type Combate,
+  fichaDe,
   type Peleador,
 } from "@/lib/evento";
 import { Bandera } from "./bandera";
 import { FILAS_TAPE, NotaAprox } from "./ficha-tape";
+import { VideoFondo } from "./video-fondo";
 
 type Lado = "a" | "b";
-
-/** slug de cada peleador -> número del combate en el que pelea */
-const COMBATE_DE = new Map(
-  COMBATES.flatMap((c) => [
-    [c.a.slug, c.n],
-    [c.b.slug, c.n],
-  ]),
-);
 
 /**
  * Orden de la parrilla. PELEADORES viene por combates y dejaba a cada rival
@@ -232,15 +225,26 @@ function Ficha({
 }
 
 /**
- * Ficha comparada para pantallas chicas: valor del jugador 1 a la izquierda,
- * el dato una sola vez al centro y valor del jugador 2 a la derecha. Arriba,
- * los nombres con su número. Cabe en cualquier ancho porque cada fila es una
- * sola línea de tres celdas.
+ * Ficha comparada para pantallas chicas: el elegido a la izquierda, el dato una
+ * sola vez al centro y su contrincante a la derecha. Arriba, los nombres con su
+ * número. Cabe en cualquier ancho porque cada fila es una sola línea de tres
+ * celdas.
  */
-function FichaComparada({ combate }: { combate: Combate }) {
+function FichaComparada({
+  izq,
+  der,
+  clave,
+}: {
+  /** El elegido, que siempre va a la izquierda. */
+  izq: Peleador;
+  /** Su contrincante. */
+  der: Peleador;
+  /** Remonta el nodo al cambiar de combate, para redisparar la animación. */
+  clave: string;
+}) {
   return (
     <dl
-      key={combate.n}
+      key={clave}
       className="cambio-texto overflow-hidden rounded-sm border border-linea bg-noche/70"
     >
       <div className="flex items-center justify-between gap-3 border-b border-linea bg-[#08080b] px-3 py-2.5">
@@ -248,13 +252,13 @@ function FichaComparada({ combate }: { combate: Combate }) {
             botón dorado sobre cada figura, y repetirlo aquí era el tercer
             "Ver ficha" por peleador en la misma pantalla. */}
         {(["a", "b"] as const).map((lado) => {
-          const izq = lado === "a";
-          const p = combate[lado];
+          const primero = lado === "a";
+          const p = primero ? izq : der;
           return (
             <span
               key={lado}
               className={`flex min-w-0 items-center gap-2 ${
-                izq ? "" : "flex-row-reverse text-right"
+                primero ? "" : "flex-row-reverse text-right"
               }`}
             >
               <span
@@ -270,8 +274,8 @@ function FichaComparada({ combate }: { combate: Combate }) {
         })}
       </div>
       {FILAS_TAPE.map((fila, i) => {
-        const a = fila.valor(combate.a);
-        const b = fila.valor(combate.b);
+        const a = fila.valor(izq);
+        const b = fila.valor(der);
         return (
           <div
             key={fila.etiqueta}
@@ -302,19 +306,37 @@ function FichaComparada({ combate }: { combate: Combate }) {
 }
 
 export function CaraACara() {
-  // Guardamos el combate, no dos peleadores sueltos: al elegir a cualquiera
-  // se arma automáticamente el enfrentamiento oficial con su contrincante.
-  const [numero, setNumero] = useState(COMBATES[0].n);
-  const combate = COMBATES.find((c) => c.n === numero) ?? COMBATES[0];
+  // Se guarda el PELEADOR elegido, no el combate. Antes se guardaba el
+  // combate y se pintaba siempre por el lado oficial del cartel, así que al
+  // tocar a alguien del lado b aparecía a la derecha y su rival a la
+  // izquierda: el que elegías nunca podía ser el primero. Con el clip de
+  // fondo el fallo se volvió obvio, porque sonaba el del rival.
+  // `fichaDe` ya devuelve el combate, el elegido y su contrincante.
+  const [elegido, setElegido] = useState(COMBATES[0].a.slug);
+  const ficha = fichaDe(elegido) ?? fichaDe(COMBATES[0].a.slug)!;
+  const { combate } = ficha;
+  // Izquierda es SIEMPRE el elegido; derecha, su rival. De aquí en adelante
+  // "a" y "b" son posiciones en pantalla, no las esquinas del cartel.
+  const izq = ficha.peleador;
+  const der = ficha.rival;
 
+  // Clip de fondo del escenario: el del ELEGIDO y, si no tiene, el del rival.
+  // Con uno basta para ambientar el combate; dos a la vez serían dos descargas
+  // para un solo fondo. Diez de los dieciséis tienen clip; en los combates
+  // donde no lo tiene ninguno, el escenario se ve exactamente como siempre.
+  const clip = izq.video ?? der.video;
+
+  // Al azar elige PELEADOR, no combate: así el sorteo también decide quién se
+  // pone delante, y repetir combate cambiando de esquina es un resultado
+  // válido.
   const alAzar = () => {
-    const otros = COMBATES.filter((c) => c.n !== numero);
-    setNumero(otros[Math.floor(Math.random() * otros.length)].n);
+    const otros = PELEADORES.filter((p) => p.slug !== elegido);
+    setElegido(otros[Math.floor(Math.random() * otros.length)].slug);
   };
 
-  // Lado que ocupa un peleador en el combate elegido, o null si no es de este
+  // Posición que ocupa un peleador en pantalla, o null si no es de este combate
   const ladoDe = (slug: string): Lado | null =>
-    combate.a.slug === slug ? "a" : combate.b.slug === slug ? "b" : null;
+    izq.slug === slug ? "a" : der.slug === slug ? "b" : null;
 
   return (
     <div className="flex w-full flex-col items-center gap-6">
@@ -329,11 +351,33 @@ export function CaraACara() {
             idea es que título, escenario y parrilla se vean juntos sin
             hacer scroll en un monitor normal. */}
         <div className="relative h-[340px] w-full overflow-hidden sm:h-[480px] lg:h-[clamp(460px,58vh,680px)]">
+          {/* Clip del combate elegido, de fondo del escenario. La `key` lo
+              remonta al cambiar de combate: sin ella el <video> conserva el
+              reproductor anterior y el fundido de entrada no se redispara. */}
+          {clip && (
+            <VideoFondo
+              key={clip}
+              src={clip}
+              // La máscara radial es lo que evita que el clip se lea como un
+              // rectángulo pegado encima: sin ella corta en seco y dibuja una
+              // caja negra dentro de la sección. Así se apaga hacia los cantos
+              // y el escenario sigue fundiéndose con el fondo, que es como
+              // estaba pensado desde el principio.
+              className="absolute inset-0 size-full object-cover [mask-image:radial-gradient(75%_78%_at_50%_45%,#000_30%,transparent_100%)]"
+            />
+          )}
           <div
             aria-hidden
             // Termina en el color de la página antes de llegar a los bordes,
             // para que el escenario no marque un rectángulo.
-            className="absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_42%,#2a2114_0%,#151419_40%,#0b0b0d_78%)]"
+            // Con clip detrás va en rgba, para que se vea; sin clip, opaco
+            // como siempre. Es lo que mantiene legibles los nombres de las
+            // esquinas sobre una imagen en movimiento.
+            className={
+              clip
+                ? "absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_42%,rgba(42,33,20,0.5)_0%,rgba(21,20,25,0.72)_40%,rgba(11,11,13,0.92)_78%)]"
+                : "absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_42%,#2a2114_0%,#151419_40%,#0b0b0d_78%)]"
+            }
           />
           {/* Fogonazo central entre los dos */}
           <div
@@ -374,8 +418,8 @@ export function CaraACara() {
             className="absolute inset-x-0 top-0 z-[5] h-[32%] bg-[linear-gradient(to_bottom,rgba(11,11,13,1)_0%,rgba(11,11,13,0.6)_45%,transparent_100%)]"
           />
 
-          <Figura peleador={combate.a} lado="a" />
-          <Figura peleador={combate.b} lado="b" />
+          <Figura peleador={izq} lado="a" />
+          <Figura peleador={der} lado="b" />
 
           {/* Fundido al pie de TODO el escenario, no de cada figura: ahí la
               pisa la parrilla y el corte de los recortes queda camuflado. Si
@@ -387,15 +431,15 @@ export function CaraACara() {
             className="absolute inset-x-0 bottom-0 z-[15] h-[55%] bg-[linear-gradient(to_bottom,transparent_0%,rgba(11,11,13,0.55)_45%,rgba(11,11,13,0.98)_100%)]"
           />
 
-          <Rotulo peleador={combate.a} lado="a" />
-          <Rotulo peleador={combate.b} lado="b" />
+          <Rotulo peleador={izq} lado="a" />
+          <Rotulo peleador={der} lado="b" />
 
           {/* Botón "Ver ficha" sobre cada figura, solo por debajo de lg: ahí
               las esquinas no tienen sitio para el botón y nada decía que la
               foto lleva a la página del peleador. Va fuera del enlace de la
               foto para quedar por encima del fundido del pie. */}
           {(["a", "b"] as const).map((lado) => {
-            const p = combate[lado];
+            const p = lado === "a" ? izq : der;
             return (
               <Link
                 key={p.slug}
@@ -441,7 +485,7 @@ export function CaraACara() {
           >
             {combate.billing ?? `Combate ${combate.n}`}
             <span className="sr-only">
-              : {combate.a.nombre} contra {combate.b.nombre}
+              : {izq.nombre} contra {der.nombre}
             </span>
             <span className="text-oro-medio"> · </span>3 rounds
           </p>
@@ -457,10 +501,10 @@ export function CaraACara() {
               una centrada en el hueco que queda entre el borde y la parrilla
               de 800. */}
           <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[calc((100%-800px)/2)] items-center justify-center lg:flex">
-            <Ficha peleador={combate.a} lado="a" className="pointer-events-auto" />
+            <Ficha peleador={izq} lado="a" className="pointer-events-auto" />
           </div>
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[calc((100%-800px)/2)] items-center justify-center lg:flex">
-            <Ficha peleador={combate.b} lado="b" className="pointer-events-auto" />
+            <Ficha peleador={der} lado="b" className="pointer-events-auto" />
           </div>
           <ul className="mx-auto grid max-w-[880px] grid-cols-8 gap-1.5 sm:grid-cols-9 sm:gap-2.5 lg:max-w-[800px] lg:gap-3">
             {PARRILLA.map((p) => {
@@ -470,7 +514,7 @@ export function CaraACara() {
                 <li key={p.slug} className="min-w-0">
                   <button
                     type="button"
-                    onClick={() => setNumero(COMBATE_DE.get(p.slug) ?? numero)}
+                    onClick={() => setElegido(p.slug)}
                     aria-pressed={lado !== null}
                     aria-label={`${p.nombre}: ver su combate`}
                     title={p.nombre}
@@ -533,7 +577,7 @@ export function CaraACara() {
               (se salía la edad del jugador 2) y dejaban un hueco negro en el
               medio; aquí el centro lo ocupa el dato, una sola vez. */}
           <div className="mt-3 sm:mt-4 lg:hidden">
-            <FichaComparada combate={combate} />
+            <FichaComparada izq={izq} der={der} clave={combate.n} />
           </div>
           {/* El mismo rótulo del combate que en escritorio va arriba. */}
           <p
@@ -542,7 +586,7 @@ export function CaraACara() {
           >
             {combate.billing ?? `Combate ${combate.n}`}
             <span className="sr-only">
-              : {combate.a.nombre} contra {combate.b.nombre}
+              : {izq.nombre} contra {der.nombre}
             </span>
             <span className="text-oro-medio"> · </span>3 rounds
           </p>

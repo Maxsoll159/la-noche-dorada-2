@@ -148,6 +148,7 @@ const NUMERO: Record<Lado, { n: number; fondo: string; tinte: string }> = {
 export function LadoVoto({
   peleador,
   lado,
+  posicion,
   pct,
   lidera,
   resultado,
@@ -158,7 +159,18 @@ export function LadoVoto({
   onVotar,
 }: {
   peleador: Combate["a"];
+  /** Lado oficial del combate. Es con el que se vota. */
   lado: Lado;
+  /**
+   * Dónde se pinta la loseta, si no coincide con el lado oficial.
+   *
+   * En la home siempre coinciden. En la ficha de peleador no: ahí el
+   * protagonista va SIEMPRE a la izquierda, sea el lado a o el b. Sin esto,
+   * la loseta de la izquierda salía con el número 2, con el color del
+   * jugador 2 y con el nombre y el porcentaje pegados al borde de la
+   * derecha, porque todo colgaba del lado y no de la posición.
+   */
+  posicion?: Lado;
   pct: number | null;
   lidera: boolean;
   /** Solo cuando el combate ya tiene ganador cargado. */
@@ -170,7 +182,10 @@ export function LadoVoto({
   enviando: boolean;
   onVotar: () => void;
 }) {
-  const izquierda = lado === "a";
+  // Todo lo que es COLOCACIÓN (número, color, a qué borde se pega el nombre)
+  // sigue a la posición; el voto sigue al lado oficial.
+  const sitio = posicion ?? lado;
+  const izquierda = sitio === "a";
   // Con resultado manda el resultado; antes, quién va arriba en la votación.
   const destacado = resultado ? resultado === "gano" : lidera;
   // Se atenúa el que perdió y, mientras se vota, el lado que NO elegiste.
@@ -207,7 +222,7 @@ export function LadoVoto({
         className={`absolute inset-0 -z-10 ${
           votado
             ? "bg-[radial-gradient(90%_70%_at_50%_0%,rgba(212,175,55,0.4)_0%,rgba(16,16,21,0)_75%)]"
-            : NUMERO[lado].tinte
+            : NUMERO[sitio].tinte
         }`}
       />
 
@@ -250,9 +265,9 @@ export function LadoVoto({
         aria-hidden
         className={`absolute grid size-5 place-items-center font-display text-[12px] leading-none text-white ${
           votado ? "top-6" : "top-0"
-        } ${izquierda ? "left-0" : "right-0"} ${NUMERO[lado].fondo}`}
+        } ${izquierda ? "left-0" : "right-0"} ${NUMERO[sitio].fondo}`}
       >
-        {NUMERO[lado].n}
+        {NUMERO[sitio].n}
       </span>
 
       {/* Porcentaje en la esquina interior: los dos miran al VS */}

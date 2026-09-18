@@ -78,10 +78,14 @@ export function ApoyoPeleador({
   const rank = conteo ? puestoEnElCartel(conteos, peleador.slug) : null;
   const nombre = (l: Lado) => combate[l].nombre;
 
-  const loseta = (p: Peleador, l: Lado) => (
+  // `l` es el lado oficial (con el que se vota) y `donde` es la columna en la
+  // que se pinta. Aquí no coinciden: el peleador de la ficha va siempre a la
+  // izquierda, toque el lado que le toque en el cartel.
+  const loseta = (p: Peleador, l: Lado, donde: Lado) => (
     <LadoVoto
       peleador={p}
       lado={l}
+      posicion={donde}
       pct={pctDe(l)}
       lidera={lidera(l)}
       resultado={ganador ? (ganador === l ? "gano" : "perdio") : undefined}
@@ -126,9 +130,9 @@ export function ApoyoPeleador({
 
       {/* Las dos losetas son los botones; el rombo del VS va sobre la junta */}
       <div className="relative grid grid-cols-2 gap-1.5 p-1.5 sm:gap-2 sm:p-2">
-        {loseta(peleador, lado)}
+        {loseta(peleador, lado, "a")}
         <RomboVS />
-        {loseta(rival, ladoRival)}
+        {loseta(rival, ladoRival, "b")}
       </div>
 
       <div
