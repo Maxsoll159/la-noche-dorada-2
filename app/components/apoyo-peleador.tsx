@@ -213,7 +213,7 @@ export function ApoyoPeleador({
             href="/#pronosticos"
             className="flex items-center gap-1.5 font-bold text-oro transition-colors hover:text-oro-claro"
           >
-            Ver los 8 combates
+            Ver los {COMBATES.length} combates
             <svg
               aria-hidden
               width="13"

@@ -242,10 +242,14 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
                     // El retrato es el LCP de la ficha: se precarga.
                     preload
                     sizes="(min-width: 1024px) 430px, 380px"
-                    className={`transition-transform duration-500 group-hover:scale-[1.04] ${
+                    // Quien no tenga recorte de estudio cae en su retrato, que
+                    // es de 250×470 y está pensado para miniaturas: aquí va
+                    // también en contain. Con cover, este marco lo ampliaba
+                    // hasta dejar en pantalla un ojo.
+                    className={`object-contain object-bottom transition-transform duration-500 group-hover:scale-[1.04] ${
                       peleador.cuerpo
-                        ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
-                        : "object-cover object-top brightness-110"
+                        ? "brightness-125 contrast-[1.06] saturate-105"
+                        : "brightness-110"
                     }`}
                   />
                   <div
@@ -466,7 +470,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
             <Revelar id="combate" retardo={80} className="flex scroll-mt-28 flex-col gap-8">
               <EncabezadoSeccion antetitulo={diaYMes} titulo="Su combate" />
 
-              <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)] items-center">
+              <div className="grid items-center gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
                 <Link
                   href="/#combates"
                   className="mx-auto block w-full max-w-[360px] overflow-hidden rounded-sm border border-linea transition duration-300 hover:-translate-y-1 hover:border-oro hover:shadow-[0_16px_36px_rgba(0,0,0,0.5)]"

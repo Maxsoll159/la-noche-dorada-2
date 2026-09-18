@@ -223,18 +223,18 @@ export function LadoVoto({
       {/* La foto de estudio, entera y apoyada al pie (contain): los recortes
           vienen sin aire sobre la cabeza y cualquier cover la cortaba. La
           caja arranca un poco más abajo del borde para que la cabeza tenga
-          margen y la franja de arriba quede para el porcentaje. Si no hay
-          recorte de estudio, el retrato del arte va a cover. */}
+          margen y la franja de arriba quede para el porcentaje.
+          Quien no tenga recorte de estudio cae en su retrato, que es de
+          250×470, y va también en contain: con cover, la loseta lo ampliaba
+          hasta dejar en pantalla solo la frente. */}
       <span className="absolute inset-x-0 bottom-0 top-[12%] sm:top-[9%]">
         <Image
           src={peleador.cuerpo ?? peleador.foto}
           alt=""
           fill
           sizes="(min-width: 1024px) 280px, (min-width: 640px) 45vw, 50vw"
-          className={`transition-transform duration-500 group-hover:scale-[1.04] ${
-            peleador.cuerpo
-              ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
-              : "object-cover object-top"
+          className={`object-contain object-bottom transition-transform duration-500 group-hover:scale-[1.04] ${
+            peleador.cuerpo ? "brightness-125 contrast-[1.06] saturate-105" : ""
           } ${resultado === "perdio" ? "grayscale" : ""}`}
         />
       </span>

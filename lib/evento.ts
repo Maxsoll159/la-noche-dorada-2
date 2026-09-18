@@ -87,7 +87,7 @@ export const PREVENTAS = {
 export type Peleador = {
   slug: string;
   nombre: string;
-  pais: "PE" | "CO" | "CL";
+  pais: "PE" | "CO" | "CL" | "EC";
   /** Retrato recortado del arte del combate, para fichas y listas */
   foto: string;
   /** Sesión de estudio recortada con fondo transparente, para el cara a cara */
@@ -124,10 +124,10 @@ export type Peleador = {
 /**
  * Ficha física de cada peleador.
  *
- * Solo jh y may conservan altura y peso de un pesaje oficial: el de Stream
- * Fighters 4 (18/10/2025, publicado por El Espectador). Es otra velada de hace
- * casi un año, así que hay que reemplazarlos con el pesaje de La Noche Dorada
- * II en cuanto se publique.
+ * Solo jh conserva altura y peso de un pesaje oficial: el de Stream Fighters 4
+ * (18/10/2025, publicado por El Espectador). Es otra velada de hace casi un
+ * año, así que hay que reemplazarlos con el pesaje de La Noche Dorada II en
+ * cuanto se publique.
  *
  * Shelao salía de ese mismo pesaje (88,2 kg), pero su peso se reemplazó por
  * 102 kg de fuente no documentada. `aprox` es por peleador, no por dato, así
@@ -149,7 +149,6 @@ export type Peleador = {
  *             había; mandan los 20 y la fecha pasó a ser relleno.
  *   emetsuki— 1,62 / 57 kg sin fuente documentada. Su edad (25) sí cuadra con
  *             la fecha de nacimiento que ya estaba.
- *   zully   — 1,65 / 55 kg de Sunoti.
  *   pulsera — 1,70 / 68 kg sin fuente documentada.
  *   jeque   — 32 años, 1,80 / 80 kg sin fuente documentada.
  *   jota    — 1,72 / 82 kg sin fuente documentada.
@@ -161,9 +160,10 @@ export type Peleador = {
  *   pepita  — 1,55 / 48 kg sin fuente documentada.
  *   pauchi. — 19 años, 1,64 / 56 kg sin fuente documentada.
  *   shelao  — 102 kg sin fuente documentada; su altura sí es oficial.
+ *   neutro  — 22 años, 1,67 / 66 kg sin fuente documentada.
  *
- * Ya no queda nadie sin ningún dato. Queda un solo hueco en las dieciséis
- * fichas: pepita no tiene edad.
+ * Huecos pendientes: pepita no tiene edad, y de ismael-sanchez solo se sabe la
+ * edad, sin altura ni peso. La ficha sabe pintar "—" mientras tanto.
  */
 const FICHAS: Record<
   string,
@@ -176,8 +176,6 @@ const FICHAS: Record<
   canita: { nacimiento: "2000-01-01", altura: 1.8, peso: 71, aprox: true },
   shelao: { nacimiento: "1990-06-08", altura: 1.88, peso: 102, aprox: true },
   piero: { nacimiento: "2000-08-01", altura: 1.79, peso: 90, aprox: true },
-  zully: { nacimiento: "2004-11-07", altura: 1.65, peso: 55, aprox: true },
-  may: { nacimiento: "2001-12-21", altura: 1.58, peso: 58.1 },
   // Bebote tampoco tiene fecha de nacimiento publicada: el 1 de enero es
   // relleno para que la ficha diga 25 en la noche del evento.
   bebote: { nacimiento: "2001-01-01", altura: 1.82, peso: 76, aprox: true },
@@ -201,6 +199,14 @@ const FICHAS: Record<
   // Sin fecha de nacimiento publicada: el 1 de enero es relleno para que la
   // ficha diga 19 en la noche del evento.
   pauchikita: { nacimiento: "2007-01-01", altura: 1.64, peso: 56, aprox: true },
+  // Sin fecha de nacimiento publicada: el 1 de enero es relleno para que la
+  // ficha diga 22 en la noche del evento.
+  neutro: { nacimiento: "2004-01-01", altura: 1.67, peso: 66, aprox: true },
+  // Sin fecha de nacimiento publicada: el 1 de enero es relleno para que la
+  // ficha diga 24 en la noche del evento. De altura y peso no hay nada, y sin
+  // ellos no se marca `aprox`: el asterisco solo cuelga de esos dos datos y
+  // el flag dejaria la nota al pie sin nada que explicar.
+  "ismael-sanchez": { nacimiento: "2002-01-01" },
 };
 
 /**
@@ -219,14 +225,13 @@ export function edadEn(nacimientoISO: string, referenciaISO: string): number {
  * transparente. Todas se exportan normalizadas a proporción 0.8 con la silueta
  * centrada y apoyada al pie, así entran igual en la card sin importar que la
  * foto original fuera de medio cuerpo o de busto.
- * Ya están los dieciséis.
+ * Ya están los dieciseis.
  */
 const CON_CUERPO = new Set([
   "jh",
   "canita",
   "shelao",
   "piero",
-  "zully",
   "bebote",
   "kingteka",
   "jeque",
@@ -234,10 +239,11 @@ const CON_CUERPO = new Set([
   "sacha",
   "emetsuki",
   "pauchikita",
-  "may",
   "jota",
   "daniela",
   "pepita",
+  "neutro",
+  "ismael-sanchez",
 ]);
 
 export type Combate = {
@@ -305,17 +311,6 @@ const REDES: Record<
     { plataforma: "TikTok", url: "https://www.tiktok.com/@pieroarenas.t" },
     { plataforma: "Instagram", url: "https://www.instagram.com/pieroarenast/" },
     { plataforma: "Kick", url: "https://kick.com/pieroarenas" },
-  ],
-  zully: [
-    { plataforma: "TikTok", url: "https://www.tiktok.com/@zullyy_cs" },
-    { plataforma: "Instagram", url: "https://www.instagram.com/zullyy_cs/" },
-    { plataforma: "Kick", url: "https://kick.com/zully" },
-    { plataforma: "YouTube", url: "https://www.youtube.com/@Zullyy_cs" },
-    { plataforma: "X", url: "https://x.com/Zullyy_cs" },
-  ],
-  may: [
-    { plataforma: "TikTok", url: "https://www.tiktok.com/@may_osorioo20" },
-    { plataforma: "Kick", url: "https://kick.com/mayosorio" },
   ],
   kingteka: [
     { plataforma: "TikTok", url: "https://www.tiktok.com/@kingtekaoficial" },
@@ -386,55 +381,73 @@ const p = (
   ...FICHAS[slug],
 });
 
+/**
+ * La cartelera, del estelar al primer combate de la noche.
+ *
+ * Sigue siendo de ocho combates, pero ya no son los mismos ocho: el Sr.
+ * Pulsera vs Sacha Uzumaki se partió en dos peleas contra los que entraron al
+ * cartel ("04" y "03"), y el Zully vs May Osorio se cayó. Los dos movimientos
+ * se compensaron, así que el estelar se quedó en "08" y solo cambiaron de
+ * número los combates del medio.
+ *
+ * Ojo si hay que volver a tocar esto: `n` es la clave contra la tabla
+ * `combates` de Supabase, donde viven los votos. Renumerar aquí sin renumerar
+ * allá deja los porcentajes colgados del combate equivocado.
+ *
+ * El arte va nombrado por los dos slugs y NO por el número del combate. Es a
+ * propósito: cuando se renumeraba, el archivo cambiaba de contenido sin
+ * cambiar de nombre y los navegadores (y la CDN de imágenes) seguían sirviendo
+ * el arte del combate anterior durante días.
+ */
 export const COMBATES: Combate[] = [
   {
     n: "08",
     billing: "Combate estelar",
     estelar: true,
-    arte: "/combates/arte-08.webp",
+    arte: "/combates/jh-canita.webp",
     a: p("jh", "JH de la Cruz 777", "CO"),
     b: p("canita", "Cañita", "PE"),
   },
   {
     n: "07",
     billing: "Semifondo",
-    arte: "/combates/arte-07.webp",
+    arte: "/combates/shelao-piero.webp",
     a: p("shelao", "Shelao", "CL"),
     b: p("piero", "Piero Arenas", "PE"),
   },
   {
     n: "06",
-    arte: "/combates/arte-06.webp",
-    a: p("zully", "Zully", "PE"),
-    b: p("may", "May Osorio", "CO"),
-  },
-  {
-    n: "05",
-    arte: "/combates/arte-05.webp",
+    arte: "/combates/bebote-kingteka.webp",
     a: p("bebote", "Bebote", "PE"),
     b: p("kingteka", "Kingteka", "PE"),
   },
   {
-    n: "04",
-    arte: "/combates/arte-04.webp",
+    n: "05",
+    arte: "/combates/jeque-jota.webp",
     a: p("jeque", "El Jeque", "PE"),
     b: p("jota", "Jota Shoy", "PE"),
   },
   {
-    n: "03",
-    arte: "/combates/arte-03.webp",
+    n: "04",
+    arte: "/combates/pulsera-ismael-sanchez.webp",
     a: p("pulsera", "Sr. Pulsera", "PE"),
-    b: p("sacha", "Sacha Uzumaki", "PE"),
+    b: p("ismael-sanchez", "Ismael Sánchez", "EC"),
+  },
+  {
+    n: "03",
+    arte: "/combates/sacha-neutro.webp",
+    a: p("sacha", "Sacha Uzumaki", "PE"),
+    b: p("neutro", "Neutro", "PE"),
   },
   {
     n: "02",
-    arte: "/combates/arte-02.webp",
+    arte: "/combates/emetsuki-daniela.webp",
     a: p("emetsuki", "Emetsuki", "CO"),
     b: p("daniela", "Daniela Taquire", "PE"),
   },
   {
     n: "01",
-    arte: "/combates/arte-01.webp",
+    arte: "/combates/pepita-pauchikita.webp",
     a: p("pepita", "Pepita", "PE"),
     b: p("pauchikita", "Pauchikita", "PE"),
   },
@@ -476,6 +489,8 @@ export const BANDERAS: Record<
     bandas: [string, number][];
     /** Cuadro en la esquina superior izquierda (Chile), con estrella opcional */
     canton?: { color: string; estrella?: boolean };
+    /** Marca central que hace las veces del escudo (Ecuador) */
+    emblema?: boolean;
   }
 > = {
   PE: {
@@ -504,5 +519,20 @@ export const BANDERAS: Record<
       ["#D52B1E", 1],
     ],
     canton: { color: "#0039A6", estrella: true },
+  },
+  // Ecuador y Colombia llevan EXACTAMENTE las mismas bandas y proporciones;
+  // lo único que las separa es el escudo del centro. Por eso esta es la única
+  // que lo pide: sin él, las fichas de Ismael Sánchez y las de JH o Emetsuki
+  // enseñarían la misma bandera. El escudo real no cabe a 21 px, así que se
+  // representa con una marca centrada (ver el componente Bandera).
+  EC: {
+    nombre: "Ecuador",
+    orientacion: "h",
+    bandas: [
+      ["#FFDD00", 2],
+      ["#0033A0", 1],
+      ["#EF3340", 1],
+    ],
+    emblema: true,
   },
 };

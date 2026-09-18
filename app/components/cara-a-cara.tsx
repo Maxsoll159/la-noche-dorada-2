@@ -29,10 +29,14 @@ const COMBATE_DE = new Map(
  * servidor y el navegador pinten lo mismo. En dos filas de ocho ningún rival
  * queda al lado ni encima del otro. Si el cartel suma a alguien que no esté
  * en la lista, entra al final en vez de perderse.
+ *
+ * La primera línea es la fila de arriba y la segunda la de abajo: cada columna
+ * empareja al de una con el de la otra, así que revisa las dos direcciones si
+ * vuelves a tocar el orden.
  */
 const ORDEN_PARRILLA = [
-  "jh", "may", "jeque", "daniela", "pauchikita", "sacha", "kingteka", "piero",
-  "bebote", "shelao", "pepita", "pulsera", "canita", "emetsuki", "jota", "zully",
+  "jh", "jeque", "daniela", "pauchikita", "sacha", "kingteka", "piero", "pulsera",
+  "bebote", "shelao", "pepita", "ismael-sanchez", "canita", "emetsuki", "jota", "neutro",
 ];
 const PARRILLA: Peleador[] = [
   ...ORDEN_PARRILLA.flatMap((slug) => PELEADORES.filter((p) => p.slug === slug)),
@@ -88,10 +92,13 @@ function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
             // Los recortes salen normalizados: misma proporción, silueta
             // centrada y apoyada al pie, así que alcanza object-contain.
             // El brillo compensa que son tomas de estudio muy oscuras.
-            className={`transition-transform duration-500 group-hover:scale-[1.03] ${
+            // Quien no tenga recorte de estudio cae en su retrato, que es de
+            // 250×470: aquí va TAMBIÉN en contain. Con cover, esta caja (ancha)
+            // ampliaba el retrato hasta dejar en pantalla media ceja.
+            className={`transition-transform duration-500 group-hover:scale-[1.03] object-contain object-bottom ${
               peleador.cuerpo
-                ? "object-contain object-bottom brightness-125 contrast-[1.06] saturate-105"
-                : "object-cover object-top brightness-110"
+                ? "brightness-125 contrast-[1.06] saturate-105"
+                : "brightness-110"
             }`}
           />
         </span>

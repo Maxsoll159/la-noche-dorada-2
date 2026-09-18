@@ -73,10 +73,14 @@ export function Hero() {
     // entra, crece y se hace scroll: nunca se recorta.
     <section className="relative isolate flex min-h-svh flex-col overflow-hidden">
       {/* Cartel oficial de fondo, encuadrado para que su propio logo quede
-          fuera del recorte y no compita con el logo del hero. */}
+          fuera del recorte y no compita con el logo del hero.
+          El `-v2` no es capricho: es el cartel nuevo, el de los ocho combates
+          con Neutro e Ismael Sánchez. Va con nombre propio en vez de pisar el
+          archivo anterior porque, si no, los navegadores y la CDN de imágenes
+          siguen sirviendo el cartel viejo durante días. */}
       <div aria-hidden className="absolute inset-0 -z-30">
         <Image
-          src="/cartel-oficial.webp"
+          src="/cartel-oficial-v2.webp"
           alt=""
           fill
           // Next 16 retiró `priority`: el cartel carga con prioridad normal

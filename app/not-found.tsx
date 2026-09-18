@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 /**
  * 404 del sitio. La ve quien escribe mal una dirección o entra a una ficha de
  * peleador que no existe (las 16 rutas son fijas y cualquier otro slug cae
- * aquí). Por eso, además de volver al inicio, ofrece la lista de los 16: el
+ * aquí). Por eso, además de volver al inicio, ofrece la lista completa: el
  * error más probable es un nombre mal escrito.
  */
 export default function NoEncontrada() {

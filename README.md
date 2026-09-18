@@ -32,7 +32,16 @@ votar. El voto se puede cambiar o retirar hasta que el combate cierre.
 | `perfiles`   | Nombre y foto que devuelve Google. Lo llena un trigger sobre `auth.users`.   |
 
 `combates.numero` (`"01"`..`"08"`) es la clave con la que la web cruza cada
-combate de `lib/evento.ts` con su conteo.
+combate de `lib/evento.ts` con su conteo. **Renumerar es una operación de dos
+lados:** si el número cambia aquí y no allá (o al revés), los porcentajes
+quedan colgados del combate equivocado y nada avisa. La clave ajena de `votos`
+lleva `on update cascade`, así que renombrar un `numero` se lleva sus votos
+con él; lo que no se mueve solo es `lib/evento.ts`.
+
+Cambiar de rival a alguien **no** es renumerar: el emparejamiento es otro, así
+que sus votos dejan de significar lo que decían y hay que ponerle el conteo a
+cero (`votos_a = 0, votos_b = 0` y borrar sus filas de `votos`). `pct_a` es
+columna generada y se recalcula sola: nunca se escribe a mano.
 
 ### Reglas que vigila la base, no el cliente
 
