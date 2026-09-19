@@ -419,7 +419,14 @@ export function ModalCompartir({
                   <button
                     type="button"
                     onClick={() => compartirEn(id)}
-                    disabled={!enlace || ocupado !== null}
+                    // Instagram es el único que necesita el archivo, así que
+                    // es el único que también espera a que la imagen esté
+                    // lista. Los otros tres solo mandan el enlace.
+                    disabled={
+                      !enlace ||
+                      ocupado !== null ||
+                      (id === "instagram" && cargandoImagen)
+                    }
                     className="group flex w-full cursor-pointer flex-col items-center gap-2 rounded-sm border border-linea bg-[#0e0e12] px-1 py-3 transition duration-300 hover:-translate-y-0.5 hover:border-oro hover:bg-oro-tinte disabled:cursor-wait disabled:opacity-50"
                   >
                     <span
@@ -444,14 +451,23 @@ export function ModalCompartir({
 
           <div className="flex flex-col gap-2">
             <div className="grid gap-2 sm:grid-cols-2">
+              {/* Bloqueado mientras la imagen se está generando: descargar
+                  dispara la misma petición que la vista previa, así que antes
+                  de que esa termine solo conseguiría encolar otra y bajar un
+                  archivo a medias. La vista previa es el indicador: en cuanto
+                  carga, el botón se suelta. */}
               <button
                 type="button"
                 onClick={soloDescargar}
-                disabled={ocupado !== null}
+                disabled={cargandoImagen || ocupado !== null}
                 className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-4 py-3 font-cond text-[12px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-wait disabled:opacity-50"
               >
                 <IconoDescargar />
-                {ocupado === "descarga" ? "Preparando…" : "Descargar imagen"}
+                {cargandoImagen
+                  ? "Generando imagen…"
+                  : ocupado === "descarga"
+                    ? "Preparando…"
+                    : "Descargar imagen"}
               </button>
               <button
                 type="button"

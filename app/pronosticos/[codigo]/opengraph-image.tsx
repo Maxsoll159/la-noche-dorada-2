@@ -48,16 +48,6 @@ const logo = `data:image/png;base64,${(
     .toBuffer()
 ).toString("base64")}`;
 
-/**
- * Proporción del alto de la silueta que ocupa el recuadro de la cara.
- *
- * Los recortes de estudio vienen normalizados (misma proporción, silueta
- * centrada y apoyada al pie), así que un cuadrado anclado ARRIBA del contorno
- * real cae siempre sobre la cabeza. 0,40 es el valor con el que los dieciséis
- * quedan de cara y hombros; subirlo aleja el plano y baja la cara dentro del
- * cuadro.
- */
-const ALTO_CARA = 0.4;
 const LADO_CARA = 128;
 
 /** Data URI de la cara, o null si el recorte falla: la ficha sabe vivir sin él. */
@@ -69,31 +59,12 @@ async function caraDe(p: Peleador): Promise<string | null> {
 
   let uri: string | null = null;
   try {
-    // `cuerpo` es el recorte de estudio con fondo transparente; `foto` es el
-    // retrato sacado del arte del combate, que viene tan cerrado que a este
-    // tamaño no es una cara sino un ojo. Se prefiere el primero y el segundo
-    // queda de respaldo por si algún día entra alguien sin recorte.
-    const origen = ruta(p.cuerpo ?? p.foto);
-
-    // `trim` deja el contorno real de la silueta: sin esto, el aire
-    // transparente de arriba se llevaría medio recuadro.
-    const contorno = await sharp(origen)
-      .trim({ threshold: 5 })
-      .toBuffer({ resolveWithObject: true });
-    const { width, height } = contorno.info;
-    const lado = Math.round(Math.min(width, height * ALTO_CARA));
-
-    const jpeg = await sharp(contorno.data)
-      .extract({
-        left: Math.round((width - lado) / 2),
-        top: 0,
-        width: lado,
-        height: lado,
-      })
-      .resize(LADO_CARA, LADO_CARA)
-      // Sobre el mismo gris de las casillas del cara a cara, para que el
-      // recorte no traiga un halo transparente. En JPEG, además, pesa un
-      // tercio de lo que pesaría en PNG con alfa.
+    // `foto` (`/peleadores/<slug>.webp`) ya ES la cara: el retrato recortado
+    // del arte del combate. No hay nada que calcular aquí, solo encuadrarlo.
+    // `cover` + `top` es exactamente lo que hace la parrilla del cara a cara
+    // con estos mismos archivos, así que la cara sale igual en los dos sitios.
+    const jpeg = await sharp(ruta(p.foto))
+      .resize(LADO_CARA, LADO_CARA, { fit: "cover", position: "top" })
       .flatten({ background: "#0e0e12" })
       .jpeg({ quality: 82 })
       .toBuffer();
