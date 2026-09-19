@@ -15,6 +15,8 @@ import {
   type Conteo,
   type Lado,
 } from "@/lib/votacion";
+import { codigoDeVotos, textoCompartir } from "@/lib/compartir";
+import { ModalCompartir } from "./modal-compartir";
 
 function Candado({ className = "size-[26px]" }: { className?: string }) {
   return (
@@ -522,7 +524,7 @@ export function Pronosticos() {
   const activo = PRONOSTICOS_ACTIVOS;
   const { usuario, conteos, votos, cargando, enviando, error, votar, entrar, salir } =
     useVotacion(activo);
-  const [copiado, setCopiado] = useState(false);
+  const [compartiendo, setCompartiendo] = useState(false);
 
   const hechos = Object.keys(votos).length;
   // En cuanto la organización carga ganadores, el módulo deja de contar
@@ -530,35 +532,12 @@ export function Pronosticos() {
   const { resueltos, aciertos } = puntaje(conteos, votos);
   const hayResultados = resueltos > 0;
 
-  const compartir = async () => {
-    const elegidos = COMBATES.filter((c) => votos[c.n]).map((c) => {
-      const nombre = votos[c.n] === "a" ? c.a.nombre : c.b.nombre;
-      const ganador = conteos[c.n]?.ganador;
-      // Una marca por línea cuando ya hay resultado, para que lo compartido
-      // se lea solo sin tener que abrir el sitio.
-      const marca = !ganador ? "" : votos[c.n] === ganador ? " ✅" : " ❌";
-      return `${c.n} · ${nombre}${marca}`;
-    });
-    const texto = [
-      hayResultados
-        ? `Acerté ${aciertos} de ${resueltos} en ${EVENTO.nombre}:`
-        : `Mis pronósticos para ${EVENTO.nombre}:`,
-      ...elegidos,
-      `${window.location.origin}/#pronosticos`,
-    ].join("\n");
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: EVENTO.nombre, text: texto });
-      } else {
-        await navigator.clipboard.writeText(texto);
-        setCopiado(true);
-        setTimeout(() => setCopiado(false), 2200);
-      }
-    } catch {
-      /* el usuario canceló el diálogo de compartir, o no dio permiso */
-    }
-  };
+  // Los votos se cifran en la URL que se comparte: de ahí salen la página de
+  // llegada y su imagen. Ver `lib/compartir.ts`.
+  const codigo = codigoDeVotos(votos);
+  const ganadores = Object.fromEntries(
+    Object.entries(conteos).map(([n, c]) => [n, c.ganador]),
+  );
 
   return (
     <div className="flex w-full flex-col items-center gap-7">
@@ -636,11 +615,28 @@ export function Pronosticos() {
             </ol>
             <button
               type="button"
-              onClick={compartir}
+              onClick={() => setCompartiendo(true)}
               disabled={hechos === 0}
               className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-6 py-3.5 font-cond text-[13px] font-bold uppercase tracking-[0.14em] text-noche transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-10 sm:py-3"
             >
-              {copiado ? "Copiados" : "Compartir"}
+              <svg
+                aria-hidden
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+              </svg>
+              Compartir
             </button>
           </div>
 
@@ -715,6 +711,19 @@ export function Pronosticos() {
                 ? `${resueltos} de ${COMBATES.length} combates resueltos · El resto sigue abierto`
                 : "Un voto por combate · Puedes cambiarlo hasta que cierre cada combate · Nadie ve a quién votaste"}
       </p>
+
+      {compartiendo && (
+        <ModalCompartir
+          codigo={codigo}
+          texto={textoCompartir({ votos, ganadores, aciertos, resueltos })}
+          resumen={
+            hayResultados
+              ? `Acertaste ${aciertos} de ${resueltos} combates resueltos`
+              : `${hechos} de ${COMBATES.length} combates elegidos`
+          }
+          onCerrar={() => setCompartiendo(false)}
+        />
+      )}
     </div>
   );
 }

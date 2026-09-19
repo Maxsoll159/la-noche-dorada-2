@@ -3,8 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { clienteNavegador } from "./supabase/cliente";
+import type { Lado } from "./compartir";
 
-export type Lado = "a" | "b";
+// El lado vive en `compartir.ts`, que no es un módulo de cliente: lo necesitan
+// también la página y la imagen de los pronósticos compartidos, que son de
+// servidor. Se reexporta aquí para no tocar a quien ya lo importaba de este
+// archivo.
+export type { Lado };
 
 /** Lo que la web necesita de un combate para pintar la votación. */
 export type Conteo = {
