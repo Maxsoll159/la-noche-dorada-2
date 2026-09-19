@@ -106,9 +106,10 @@ La imagen la dibuja `app/pronosticos/[codigo]/opengraph-image.tsx` con
 
 - El rasterizador solo entiende PNG y JPEG, y todo el arte del sitio es WebP.
   Por eso `sharp` está en `dependencies`: convierte al vuelo el logo y las
-  caras. Las caras son `peleadores/<slug>.webp` —el retrato del arte, que ya
-  viene recortado a la cara— encuadradas igual que en la parrilla del cara a
-  cara (`cover` desde arriba).
+  caras, que salen de `cuerpo-<slug>.webp` recortadas a la cabeza. **No** de
+  `<slug>.webp`: ese, pese al nombre, es un plano del arte tan cerrado que
+  encuadra medio rostro, y en un recuadro de 58 px no se ve una cara sino un
+  ojo.
 - Satori llama a `.trim()` sobre cada valor de estilo, así que una sola
   propiedad con `undefined` tumba la imagen entera. Nada de
   `left: x === "left" ? 20 : undefined`.

@@ -48,6 +48,33 @@ const logo = `data:image/png;base64,${(
     .toBuffer()
 ).toString("base64")}`;
 
+/**
+ * De qué archivo sale la cara.
+ *
+ * `cuerpo` (`/peleadores/cuerpo-<slug>.webp`) es el recorte de estudio con
+ * fondo transparente, y es el bueno para esto.
+ *
+ * Lo que NO sirve es `foto` (`/peleadores/<slug>.webp`), por muy "la foto del
+ * peleador" que parezca por el nombre: son planos de 250×470 recortados del
+ * arte del combate, tan cerrados que encuadran MEDIO ROSTRO. Metidos en el
+ * cuadro de 58 px de la imagen compartida no se ve una cara, se ve un ojo.
+ * Está probado, y es el mismo motivo por el que la ficha de peleador tampoco
+ * los usa (ver el comentario de "Los otros combates" en esa página).
+ *
+ * Si algún día hay que cambiar de fuente, es esta línea.
+ */
+const archivoCara = (p: Peleador) => p.cuerpo ?? p.foto;
+
+/**
+ * Proporción del alto de la silueta que ocupa el recuadro de la cara.
+ *
+ * Los recortes de estudio vienen normalizados (misma proporción, silueta
+ * centrada y apoyada al pie), así que un cuadrado anclado ARRIBA del contorno
+ * real cae siempre sobre la cabeza. 0,40 es el valor con el que los dieciséis
+ * quedan de cara y hombros; subirlo aleja el plano y baja la cara dentro del
+ * cuadro.
+ */
+const ALTO_CARA = 0.4;
 const LADO_CARA = 128;
 
 /** Data URI de la cara, o null si el recorte falla: la ficha sabe vivir sin él. */
@@ -59,12 +86,25 @@ async function caraDe(p: Peleador): Promise<string | null> {
 
   let uri: string | null = null;
   try {
-    // `foto` (`/peleadores/<slug>.webp`) ya ES la cara: el retrato recortado
-    // del arte del combate. No hay nada que calcular aquí, solo encuadrarlo.
-    // `cover` + `top` es exactamente lo que hace la parrilla del cara a cara
-    // con estos mismos archivos, así que la cara sale igual en los dos sitios.
-    const jpeg = await sharp(ruta(p.foto))
-      .resize(LADO_CARA, LADO_CARA, { fit: "cover", position: "top" })
+    // `trim` deja el contorno real de la silueta: sin esto, el aire
+    // transparente de arriba se llevaría medio recuadro.
+    const contorno = await sharp(ruta(archivoCara(p)))
+      .trim({ threshold: 5 })
+      .toBuffer({ resolveWithObject: true });
+    const { width, height } = contorno.info;
+    const lado = Math.round(Math.min(width, height * ALTO_CARA));
+
+    const jpeg = await sharp(contorno.data)
+      .extract({
+        left: Math.round((width - lado) / 2),
+        top: 0,
+        width: lado,
+        height: lado,
+      })
+      .resize(LADO_CARA, LADO_CARA)
+      // Sobre el mismo gris de las casillas del cara a cara, para que el
+      // recorte no traiga un halo transparente. En JPEG, además, pesa un
+      // tercio de lo que pesaría en PNG con alfa.
       .flatten({ background: "#0e0e12" })
       .jpeg({ quality: 82 })
       .toBuffer();
