@@ -49,35 +49,20 @@ const logo = `data:image/png;base64,${(
 ).toString("base64")}`;
 
 /**
- * De qué archivo sale la cara.
+ * El recuadro de la cara: EXACTAMENTE el de la parrilla del cara a cara.
  *
- * `cuerpo` (`/peleadores/cuerpo-<slug>.webp`) es el recorte de estudio con
- * fondo transparente, y es el bueno para esto.
+ * Misma fuente (`/peleadores/<slug>.webp`, el retrato del arte) y mismo
+ * encuadre (proporción 3/4, `cover` desde arriba), así que la cara sale igual
+ * aquí que en el selector de la web.
  *
- * Lo que NO sirve es `foto` (`/peleadores/<slug>.webp`), por muy "la foto del
- * peleador" que parezca por el nombre: son planos de 250×470 recortados del
- * arte del combate, tan cerrados que encuadran MEDIO ROSTRO. Metidos en el
- * cuadro de 58 px de la imagen compartida no se ve una cara, se ve un ojo.
- * Está probado, y es el mismo motivo por el que la ficha de peleador tampoco
- * los usa (ver el comentario de "Los otros combates" en esa página).
- *
- * Si algún día hay que cambiar de fuente, es esta línea.
+ * La proporción no es un detalle de estilo: esos retratos son de 250×470, muy
+ * verticales. En una caja 3/4 entra el rostro; en un cuadrado la misma foto
+ * se corta por los ojos y no se reconoce a nadie.
  */
-const archivoCara = (p: Peleador) => p.cuerpo ?? p.foto;
+const ANCHO_CARA = 51;
+const ALTO_CARA = 68;
 
-/**
- * Proporción del alto de la silueta que ocupa el recuadro de la cara.
- *
- * Los recortes de estudio vienen normalizados (misma proporción, silueta
- * centrada y apoyada al pie), así que un cuadrado anclado ARRIBA del contorno
- * real cae siempre sobre la cabeza. 0,40 es el valor con el que los dieciséis
- * quedan de cara y hombros; subirlo aleja el plano y baja la cara dentro del
- * cuadro.
- */
-const ALTO_CARA = 0.4;
-const LADO_CARA = 128;
-
-/** Data URI de la cara, o null si el recorte falla: la ficha sabe vivir sin él. */
+/** Data URI de la cara, o null si falla: la celda sabe vivir sin ella. */
 const cacheCaras = new Map<string, string | null>();
 
 async function caraDe(p: Peleador): Promise<string | null> {
@@ -86,27 +71,11 @@ async function caraDe(p: Peleador): Promise<string | null> {
 
   let uri: string | null = null;
   try {
-    // `trim` deja el contorno real de la silueta: sin esto, el aire
-    // transparente de arriba se llevaría medio recuadro.
-    const contorno = await sharp(ruta(archivoCara(p)))
-      .trim({ threshold: 5 })
-      .toBuffer({ resolveWithObject: true });
-    const { width, height } = contorno.info;
-    const lado = Math.round(Math.min(width, height * ALTO_CARA));
-
-    const jpeg = await sharp(contorno.data)
-      .extract({
-        left: Math.round((width - lado) / 2),
-        top: 0,
-        width: lado,
-        height: lado,
-      })
-      .resize(LADO_CARA, LADO_CARA)
-      // Sobre el mismo gris de las casillas del cara a cara, para que el
-      // recorte no traiga un halo transparente. En JPEG, además, pesa un
-      // tercio de lo que pesaría en PNG con alfa.
-      .flatten({ background: "#0e0e12" })
-      .jpeg({ quality: 82 })
+    // Al doble de tamaño: la imagen compartida se mira ampliada en cualquier
+    // chat y a 51 px reales el retrato se vería blando.
+    const jpeg = await sharp(ruta(p.foto))
+      .resize(ANCHO_CARA * 2, ALTO_CARA * 2, { fit: "cover", position: "top" })
+      .jpeg({ quality: 84 })
       .toBuffer();
 
     uri = `data:image/jpeg;base64,${jpeg.toString("base64")}`;
@@ -254,7 +223,7 @@ export default async function Image({
           >
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logo} height={96} alt="" />
+              <img src={logo} height={84} alt="" />
               <div
                 style={{
                   width: 1,
@@ -323,7 +292,7 @@ export default async function Image({
             </div>
           </div>
 
-          <div style={{ display: "flex", marginTop: 18, marginBottom: 18 }}>
+          <div style={{ display: "flex", marginTop: 14, marginBottom: 14 }}>
             <Filete />
           </div>
 
@@ -337,7 +306,7 @@ export default async function Image({
             }}
           >
             {filas.map((fila, i) => (
-              <div key={i} style={{ display: "flex", gap: 14 }}>
+              <div key={i} style={{ display: "flex", gap: 12 }}>
                 {fila.map((e) => {
                   const elegido = e.elegido;
                   const estelar = e.combate.estelar === true;
@@ -349,24 +318,38 @@ export default async function Image({
                         display: "flex",
                         flex: 1,
                         alignItems: "center",
-                        gap: 14,
-                        padding: "9px 14px",
+                        gap: 13,
+                        padding: "8px 13px",
                         borderRadius: 3,
                         border: `1px solid ${estelar ? ORO : LINEA}`,
                         backgroundColor: estelar ? ORO_TINTE : CARBON,
                       }}
                     >
-                      {/* La cara del elegido, con el número del combate
-                          montado en la esquina como en la parrilla del cara a
-                          cara. Sin pronóstico solo queda el número. */}
+                      {/* El número va en su propia casilla y no montado sobre
+                          la foto: el retrato es estrecho (3/4) y cualquier
+                          chapa encima le tapaba medio rostro. */}
                       <div
                         style={{
-                          position: "relative",
                           display: "flex",
-                          width: 58,
-                          height: 58,
+                          width: 38,
+                          height: 38,
                           alignItems: "center",
                           justifyContent: "center",
+                          fontFamily: DISPLAY,
+                          fontSize: 19,
+                          backgroundColor: elegido ? ORO : LINEA,
+                          color: elegido ? NOCHE : TENUE,
+                        }}
+                      >
+                        {e.combate.n}
+                      </div>
+
+                      {/* La cara del elegido. Sin pronóstico, el hueco vacío. */}
+                      <div
+                        style={{
+                          display: "flex",
+                          width: ANCHO_CARA,
+                          height: ALTO_CARA,
                           borderRadius: 3,
                           overflow: "hidden",
                           backgroundColor: "#0e0e12",
@@ -377,30 +360,12 @@ export default async function Image({
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={cara}
-                            width={58}
-                            height={58}
+                            width={ANCHO_CARA}
+                            height={ALTO_CARA}
                             alt=""
                             style={{ objectFit: "cover" }}
                           />
                         ) : null}
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            display: "flex",
-                            width: 22,
-                            height: 22,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontFamily: DISPLAY,
-                            fontSize: 13,
-                            backgroundColor: elegido ? ORO : LINEA,
-                            color: elegido ? NOCHE : TENUE,
-                          }}
-                        >
-                          {e.combate.n}
-                        </div>
                       </div>
 
                       <div
@@ -444,7 +409,7 @@ export default async function Image({
             ))}
           </div>
 
-          <div style={{ display: "flex", marginTop: 18, marginBottom: 14 }}>
+          <div style={{ display: "flex", marginTop: 14, marginBottom: 12 }}>
             <Filete />
           </div>
 
@@ -466,16 +431,36 @@ export default async function Image({
             >
               {hechos} de {COMBATES.length} combates elegidos
             </div>
+            {/* La dirección del sitio, escrita dentro de la imagen.
+                La imagen viaja como archivo —se descarga, se sube a
+                Instagram, se reenvía por captura— y ahí el enlace ya no
+                existe: esto es lo único que dice adónde ir.
+                En minúsculas y sin `textTransform`: una URL en caja alta se
+                lee como un rótulo y no como algo que se pueda teclear. */}
             <div
-              style={{
-                display: "flex",
-                fontSize: 20,
-                letterSpacing: 4,
-                color: TENUE,
-                textTransform: "uppercase",
-              }}
+              style={{ display: "flex", alignItems: "baseline", gap: 10 }}
             >
-              Arma los tuyos en {DOMINIO}
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 18,
+                  letterSpacing: 3,
+                  color: TENUE,
+                  textTransform: "uppercase",
+                }}
+              >
+                Arma los tuyos en
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 20,
+                  letterSpacing: 0.5,
+                  color: ORO_CLARO,
+                }}
+              >
+                {DOMINIO}
+              </div>
             </div>
           </div>
         </div>
