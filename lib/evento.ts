@@ -30,6 +30,12 @@ export const PATROCINADORES: readonly {
   w: number;
   h: number;
   ancho: number;
+  /**
+   * Casa de apuestas del cartel. La página de pronósticos compartidos saca de
+   * aquí su botón de "Apostar": mover el flag a otra marca mueve el botón, y
+   * si ninguna lo lleva, el botón sencillamente no se pinta.
+   */
+  apuestas?: boolean;
 }[] = [
   {
     nombre: "Stake.pe",
@@ -38,6 +44,7 @@ export const PATROCINADORES: readonly {
     w: 260,
     h: 102,
     ancho: 240,
+    apuestas: true,
   },
   {
     nombre: "Pragmatic Play",
@@ -48,6 +55,16 @@ export const PATROCINADORES: readonly {
     ancho: 220,
   },
 ];
+
+/**
+ * La casa de apuestas del cartel, o null si no hay ninguna.
+ *
+ * Es el destino del botón "Apostar" de los pronósticos compartidos. Hoy
+ * apunta al dominio a secas (`https://stake.pe`), que es el mismo del bloque
+ * de patrocinadores: si la marca entrega un enlace de campaña o de afiliado,
+ * se cambia ARRIBA, en su `url`, y se mueven los dos sitios a la vez.
+ */
+export const CASA_APUESTAS = PATROCINADORES.find((p) => p.apuestas) ?? null;
 
 /**
  * Video de la gala de presentación, donde se anunció la cartelera y se hicieron

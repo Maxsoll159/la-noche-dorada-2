@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BANDERAS, COMBATES, EVENTO } from "@/lib/evento";
+import { BANDERAS, CASA_APUESTAS, COMBATES, EVENTO } from "@/lib/evento";
 import { eleccionesDe, votosDeCodigo } from "@/lib/compartir";
 import { Bandera } from "@/app/components/bandera";
 import { FileteOro } from "@/app/components/filete-oro";
@@ -30,10 +30,10 @@ export async function generateMetadata(
   if (!votos) return {};
 
   const elecciones = eleccionesDe(votos).filter((e) => e.elegido);
-  const titulo = `Pronósticos · ${elecciones.length} de ${COMBATES.length} combates`;
-  const descripcion = `${elecciones
+  const titulo = `Mis pronósticos · ${elecciones.length} de ${COMBATES.length} combates`;
+  const descripcion = `Estos son mis pronósticos para ${EVENTO.nombre}: ${elecciones
     .map((e) => e.elegido?.nombre)
-    .join(" · ")}. Arma los tuyos para ${EVENTO.nombre}: ${EVENTO.fechaLarga} en el ${EVENTO.sede}, Lima.`;
+    .join(" · ")}. Arma los tuyos. ${EVENTO.fechaLarga} en el ${EVENTO.sede}, Lima.`;
 
   return {
     title: titulo,
@@ -71,27 +71,116 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
     <>
       <SiteHeader />
       <main>
-        <section className="relative isolate overflow-hidden bg-noche pt-28 pb-16 lg:pt-36 lg:pb-20">
+        <section className="relative isolate overflow-hidden bg-noche pt-24 pb-14 lg:pt-32 lg:pb-20">
           <div
             aria-hidden
             className="absolute inset-0 -z-10 bg-[radial-gradient(60%_55%_at_50%_20%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
           />
 
-          <div className="mx-auto flex max-w-contenido flex-col items-center gap-9 px-6 lg:px-14">
+          <div className="mx-auto flex max-w-contenido flex-col items-center gap-7 px-6 lg:gap-9 lg:px-14">
+            {/* En móvil esta cabecera es lo único que se ve antes de los
+                botones, así que va corta a propósito: el titular ya dice de
+                qué va y la lista de abajo dice el resto. La sede no entra
+                aquí —está en el pie y en la imagen compartida— porque metía
+                una tercera fila de chips y empujaba los botones fuera de
+                pantalla. */}
             <header className="flex flex-col items-center gap-3 text-center">
-              <p className="flex items-center gap-3 font-cond text-[12px] font-bold uppercase tracking-[0.28em] text-oro">
-                <span aria-hidden className="h-px w-8 bg-oro-profundo" />
+              <p className="flex items-center gap-2.5 font-cond text-[11px] font-bold uppercase tracking-[0.24em] text-oro">
+                <span aria-hidden className="h-px w-6 bg-oro-profundo" />
                 Pronósticos compartidos
-                <span aria-hidden className="h-px w-8 bg-oro-profundo" />
+                <span aria-hidden className="h-px w-6 bg-oro-profundo" />
               </p>
-              <h1 className="texto-oro break-words text-[38px] leading-[1.12] sm:text-[56px] lg:text-[64px]">
-                {hechos} de {COMBATES.length} combates
+              {/* En primera persona a propósito: quien abre esto llega desde
+                  un chat, y lo que tiene delante es la quiniela de quien se la
+                  pasó. Es la misma voz del titular de la imagen compartida. */}
+              <h1 className="texto-oro break-words text-[30px] leading-[1.12] sm:text-[46px] lg:text-[56px]">
+                Estos son mis pronósticos
               </h1>
-              <p className="max-w-[40rem] text-[17px] leading-relaxed text-tenue">
-                Así quedó la quiniela de quien te pasó este enlace para{" "}
-                {EVENTO.nombre}. {EVENTO.fechaLarga} en el {EVENTO.sede}, Lima.
+              <p className="max-w-[34rem] text-[15px] leading-relaxed text-tenue sm:text-[16px]">
+                Mis elegidos en los {COMBATES.length} combates. Míralos y arma
+                tu quiniela.
               </p>
+
+              <ul className="flex flex-wrap items-center justify-center gap-2">
+                {[
+                  {
+                    etiqueta: `${hechos} de ${COMBATES.length} combates`,
+                    fuerte: true,
+                  },
+                  { etiqueta: EVENTO.fechaLarga, fuerte: false },
+                ].map((c) => (
+                  <li
+                    key={c.etiqueta}
+                    className={`rounded-full border px-3.5 py-1.5 font-cond text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[11px] ${
+                      c.fuerte
+                        ? "border-oro bg-oro-tinte text-oro"
+                        : "border-linea bg-carbon text-tenue"
+                    }`}
+                  >
+                    {c.etiqueta}
+                  </li>
+                ))}
+              </ul>
             </header>
+
+            {/* Las acciones van ARRIBA, pegadas al titular. Casi todo el
+                tráfico de esta página llega de un chat en el móvil, y ahí la
+                lista de ocho combates mide varias pantallas: un botón al pie
+                queda a tres scrolls de distancia y no lo ve nadie. A ancho
+                completo y apilados en móvil; en fila desde sm. */}
+            <div className="flex w-full flex-col items-center gap-2.5">
+              <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
+                {/* Botón de apuestas, con el logo real de la marca en vez de
+                    su nombre escrito: el wordmark es lo que la identifica y
+                    evita inventarle colores. El fondo va oscuro porque ese
+                    logo es la versión clara. Solo aparece si algún
+                    patrocinador está marcado como casa de apuestas. */}
+                {CASA_APUESTAS && (
+                  <a
+                    href={CASA_APUESTAS.url}
+                    target="_blank"
+                    rel="noreferrer sponsored"
+                    aria-label={`Apostar en ${CASA_APUESTAS.nombre} (se abre en otra pestaña)`}
+                    className="group flex min-h-[52px] items-center justify-center gap-2.5 rounded-sm border-2 border-oro bg-noche px-6 py-3 font-cond text-[13px] font-bold uppercase tracking-[0.12em] text-crema shadow-[0_8px_26px_rgba(212,175,55,0.22)] transition-colors hover:bg-oro-tinte sm:text-[14px] sm:tracking-[0.14em]"
+                  >
+                    <span aria-hidden>Apostar en</span>
+                    <Image
+                      src={CASA_APUESTAS.logo}
+                      alt=""
+                      width={CASA_APUESTAS.w}
+                      height={CASA_APUESTAS.h}
+                      sizes="84px"
+                      className="h-auto w-[84px]"
+                    />
+                    <svg
+                      aria-hidden
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      className="shrink-0 text-oro transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    >
+                      <path d="M7 17 17 7M9 7h8v8" />
+                    </svg>
+                  </a>
+                )}
+
+                <Link
+                  href="/#pronosticos"
+                  className="flex min-h-[52px] items-center justify-center gap-2.5 rounded-sm bg-oro px-6 py-3 font-cond text-[13px] font-bold uppercase tracking-[0.12em] text-noche shadow-[0_8px_26px_rgba(212,175,55,0.25)] transition-colors hover:bg-oro-claro sm:text-[14px] sm:tracking-[0.14em]"
+                >
+                  Armar mis pronósticos
+                </Link>
+              </div>
+
+              {/* El aviso viaja con el botón de apuestas, no solo en el pie. */}
+              <p className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio">
+                +18 · Juega con responsabilidad
+              </p>
+            </div>
 
             {/* Las ocho elecciones, del estelar al primer combate: el mismo
                 orden del cartel, de la imagen compartida y de la home. */}
@@ -168,20 +257,18 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
               })}
             </ul>
 
-            {/* Es una página de llegada: quien abre el enlace viene de un chat
-                y lo que tiene que encontrar es la puerta para armar los suyos. */}
-            <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
-              <Link
-                href="/#pronosticos"
-                className="flex items-center justify-center gap-2.5 rounded-sm bg-oro px-8 py-4 font-cond text-[14px] font-bold uppercase tracking-[0.14em] text-noche shadow-[0_8px_26px_rgba(212,175,55,0.25)] transition-colors hover:bg-oro-claro"
-              >
-                Armar mis pronósticos
-              </Link>
+            {/* Cierre: las dos acciones principales ya están arriba, así que
+                aquí solo queda la de asistir, para quien haya bajado leyendo
+                los ocho combates. */}
+            <div className="flex w-full flex-col items-center gap-4 rounded-sm border border-oro-profundo bg-oro-tinte px-5 py-6 text-center sm:px-8">
+              <p className="font-display text-[24px] uppercase leading-tight text-oro-claro sm:text-[30px]">
+                ¿Y tú a quién le vas?
+              </p>
               <a
                 href={EVENTO.entradasUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 rounded-sm border border-oro-profundo px-8 py-4 font-cond text-[14px] font-bold uppercase tracking-[0.14em] text-oro transition-colors hover:border-oro hover:bg-oro-tinte"
+                className="flex w-full items-center justify-center gap-2 rounded-sm border border-oro-profundo px-8 py-4 font-cond text-[14px] font-bold uppercase tracking-[0.14em] text-oro transition-colors hover:border-oro hover:bg-noche sm:w-auto"
               >
                 Comprar entradas
                 <svg
@@ -199,9 +286,11 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
               </a>
             </div>
 
-            <p className="text-center font-cond text-[12px] font-semibold uppercase tracking-[0.18em] text-oro-medio">
-              Los pronósticos de esta página son de quien compartió el enlace ·
-              No son un resultado oficial
+            {/* El +18 ya va arriba, junto al botón de apuestas; aquí solo
+                queda de qué son estos pronósticos. */}
+            <p className="text-center font-cond text-[11px] font-semibold uppercase tracking-[0.16em] text-oro-medio">
+              Pronósticos de quien compartió el enlace · No son un resultado
+              oficial
             </p>
           </div>
         </section>

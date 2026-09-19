@@ -88,6 +88,40 @@ Tras cualquier cambio de esquema:
 npx supabase gen types typescript --project-id hokvyjamnbbaxqirfbww > lib/supabase/tipos.ts
 ```
 
+## Compartir pronósticos
+
+El botón "Compartir" abre un modal con WhatsApp, Instagram, Facebook y X.
+Ninguna red acepta una imagen desde la web: las tres primeras reciben un
+**enlace** y son ellas las que van a buscar la imagen en las etiquetas Open
+Graph de esa página. Para eso existe `/pronosticos/[codigo]`; sin una URL por
+quiniela, todo el mundo compartiría la misma vista previa genérica.
+
+`codigo` es la quiniela entera: un carácter por combate (`a`, `b`, o `0` si no
+lo pronosticó), del "01" al "08". Es **posicional**, así que renumerar un
+combate cambia lo que dicen los enlaces ya compartidos —el mismo cuidado que
+pide la tabla `combates`—. El encode y el decode viven en `lib/compartir.ts`.
+
+La imagen la dibuja `app/pronosticos/[codigo]/opengraph-image.tsx` con
+`ImageResponse`. Tres cosas que conviene saber antes de tocarla:
+
+- El rasterizador solo entiende PNG y JPEG, y todo el arte del sitio es WebP.
+  Por eso `sharp` está en `dependencies`: convierte al vuelo el logo y las
+  caras, que salen de `cuerpo-<slug>.webp` recortadas a la cabeza.
+- Satori llama a `.trim()` sobre cada valor de estilo, así que una sola
+  propiedad con `undefined` tumba la imagen entera. Nada de
+  `left: x === "left" ? 20 : undefined`.
+- Las fuentes van en `assets/` y en TTF, que es lo que `ImageResponse` admite
+  (no lee el WOFF2 que sirve `next/font`).
+
+Instagram no deja publicar desde la web ni con enlace, así que es el único caso
+donde hace falta el archivo: se pasa a la hoja nativa del móvil con
+`navigator.share({ files })` y, en escritorio, se descarga el PNG.
+
+La página y la imagen no se prerrenderizan en el build (`generateStaticParams`
+vacío): cada código se genera la primera vez que se abre y queda cacheado una
+semana. Van con `noindex, follow`, que para eso son enlaces de chat y no
+páginas de buscador.
+
 ## Pendiente: habilitar Google
 
 El esquema está aplicado y probado, pero **el acceso con Google todavía hay que
