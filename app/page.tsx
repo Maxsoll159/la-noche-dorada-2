@@ -1,3 +1,4 @@
+import { siluetasBorrosas } from "@/lib/siluetas";
 import { CaraACara } from "./components/cara-a-cara";
 import { Combates } from "./components/combates";
 import { DatosEstructurados } from "./components/datos-estructurados";
@@ -12,7 +13,11 @@ import { Sede } from "./components/sede";
 import { SiteFooter } from "./components/site-footer";
 import { SiteHeader } from "./components/site-header";
 
-export default function Page() {
+export default async function Page() {
+  // Se calculan en el build (esta página es estática) y viajan en el HTML:
+  // son lo que el cara a cara pinta mientras baja la silueta buena.
+  const siluetas = await siluetasBorrosas();
+
   return (
     <>
       <DatosEstructurados />
@@ -26,7 +31,7 @@ export default function Page() {
           titulo="Cara a cara"
           bajada="Elige a cualquier peleador del cartel y mira su combate frente a frente."
         >
-          <CaraACara />
+          <CaraACara siluetas={siluetas} />
         </Seccion>
         <Seccion
           id="pronosticos"

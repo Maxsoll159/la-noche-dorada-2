@@ -2,7 +2,7 @@
 
 import Image, { getImageProps } from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BANDERAS,
   COMBATES,
@@ -10,6 +10,7 @@ import {
   fichaDe,
   type Peleador,
 } from "@/lib/evento";
+import type { Silueta } from "@/lib/siluetas";
 import { Bandera } from "./bandera";
 import { FILAS_TAPE, NotaAprox } from "./ficha-tape";
 import { VideoFondo } from "./video-fondo";
@@ -56,13 +57,11 @@ const pedidas = new Set<string>();
  * descarga (~43 KB, que en móvil es lo que de verdad pesa). Se paga una sola
  * vez —después queda cacheada—, pero la pagaba justo quien acababa de tocar.
  *
- * Se llama desde la parrilla al apuntar o apoyar el dedo en una casilla, que
- * es lo que llega antes que el clic. Deliberadamente NO se precargan las
- * dieciséis de entrada: serían unos 690 KB para alguien que quizá solo mire
- * un combate, y aquí pesa más no gastarle datos que ahorrarle el primer clic.
+ * Resuelve cuando la imagen llegó (o falló), para poder encadenar varias sin
+ * pedirlas todas a la vez. Con una URL ya pedida resuelve al instante.
  */
-function precargarFigura(src: string) {
-  if (pedidas.has(src)) return;
+function precargarFigura(src: string): Promise<void> {
+  if (pedidas.has(src)) return Promise.resolve();
   pedidas.add(src);
 
   // `getImageProps` es la forma documentada de saber qué URL pediría `<Image>`
@@ -74,17 +73,65 @@ function precargarFigura(src: string) {
     sizes: SIZES_FIGURA,
   });
 
-  const img = new window.Image();
-  // Prioridad baja: esto es trabajo adelantado para un clic que quizá no
-  // llegue, y no tiene por qué competir con lo que ya se está mirando.
-  // Donde no exista la propiedad, la asignación sencillamente no hace nada.
-  img.fetchPriority = "low";
-  // `sizes` y `srcSet` ANTES que `src`: el navegador escoge el candidato en el
-  // momento en que se asigna `src`, así que al revés se llevaría el mayor del
-  // srcset y la variante buena quedaría sin pedir.
-  if (props.sizes) img.sizes = props.sizes;
-  if (props.srcSet) img.srcset = props.srcSet;
-  img.src = props.src;
+  return new Promise((listo) => {
+    const img = new window.Image();
+    img.onload = () => listo();
+    img.onerror = () => listo();
+    // Prioridad baja: esto es trabajo adelantado para un clic que quizá no
+    // llegue, y no tiene por qué competir con lo que ya se está mirando.
+    // Donde no exista la propiedad, la asignación sencillamente no hace nada.
+    img.fetchPriority = "low";
+    // `sizes` y `srcSet` ANTES que `src`: el navegador escoge el candidato en el
+    // momento en que se asigna `src`, así que al revés se llevaría el mayor del
+    // srcset y la variante buena quedaría sin pedir.
+    if (props.sizes) img.sizes = props.sizes;
+    if (props.srcSet) img.srcset = props.srcSet;
+    img.src = props.src;
+  });
+}
+
+/**
+ * Precarga por intención: al apuntar o apoyar el dedo en una casilla, que es
+ * lo que llega antes que el clic. Van los DOS del combate, no solo el tocado:
+ * al elegir a alguien el escenario pinta también a su rival, y precargar a uno
+ * solo dejaba la otra mitad del escenario esperando igual que antes.
+ */
+function precargarCombate(slug: string) {
+  const ficha = fichaDe(slug);
+  if (!ficha) return;
+  precargarFigura(ficha.peleador.cuerpo ?? ficha.peleador.foto);
+  precargarFigura(ficha.rival.cuerpo ?? ficha.rival.foto);
+}
+
+/**
+ * Precarga de fondo de TODO el cartel, en cuanto la sección entra en pantalla.
+ *
+ * Es el remedio para quien no apunta antes de tocar (en móvil, casi todos):
+ * la primera vez que elige a alguien la silueta tarda, cree que falló, toca a
+ * otro, tarda también, y se va con la idea de que la sección no funciona. Con
+ * las dieciséis ya en caché, cada cambio es inmediato.
+ *
+ * Se paga con datos, así que va con tres frenos: no arranca hasta que la
+ * sección se ve (quien no baja hasta aquí no gasta nada), va de UNA en una y
+ * con prioridad baja para no pisar lo que se está mirando, y se salta entera si
+ * la persona tiene activado el ahorro de datos. Son unos 690 KB en total, que
+ * a esta altura de la página ya son la parte barata de la visita.
+ */
+function precargarCartel(desde: string[]) {
+  const conexion = (
+    navigator as Navigator & { connection?: { saveData?: boolean } }
+  ).connection;
+  if (conexion?.saveData) return;
+
+  // Primero los del combate en pantalla (que ya deberían estar), y el resto en
+  // el orden de la parrilla, que es el orden en que la vista los recorre.
+  const orden = [
+    ...desde,
+    ...PARRILLA.map((p) => p.cuerpo ?? p.foto),
+  ];
+  orden
+    .filter((src, i) => orden.indexOf(src) === i)
+    .reduce((cola, src) => cola.then(() => precargarFigura(src)), Promise.resolve());
 }
 
 /**
@@ -103,7 +150,16 @@ const LADO = {
  * centro para que las figuras salgan grandes; en escritorio cada una se queda
  * en su lado.
  */
-function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
+function Figura({
+  peleador,
+  lado,
+  silueta,
+}: {
+  peleador: Peleador;
+  lado: Lado;
+  /** Miniatura borrosa que se pinta en el acto, mientras baja la buena. */
+  silueta?: Silueta;
+}) {
   const izq = lado === "a";
   return (
     <Link
@@ -133,6 +189,18 @@ function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
             alt={peleador.nombre}
             fill
             sizes={SIZES_FIGURA}
+            // La persona acaba de tocar y está mirando justo aquí: esta
+            // imagen va por delante de cualquier otra que el navegador tenga
+            // en cola (la parrilla, el video de fondo, las precargas).
+            fetchPriority="high"
+            // La miniatura borrosa se pinta en el mismo fotograma del clic y
+            // la foto buena entra encima. Es lo que evita el hueco vacío que
+            // hacía pensar que la sección no cargaba. Va como data URL y no
+            // como `placeholder="blur"`: ese modo rellena de negro lo
+            // transparente y estos recortes tienen alfa (ver lib/siluetas.ts).
+            // Sin miniatura (no se pudo generar) se queda en `empty`, que es
+            // exactamente el comportamiento anterior.
+            placeholder={silueta ?? "empty"}
             // Los recortes salen normalizados: misma proporción, silueta
             // centrada y apoyada al pie, así que alcanza object-contain.
             // El brillo compensa que son tomas de estudio muy oscuras.
@@ -356,7 +424,16 @@ function FichaComparada({
   );
 }
 
-export function CaraACara() {
+export function CaraACara({
+  siluetas = {},
+}: {
+  /**
+   * Miniaturas borrosas por slug, calculadas en el servidor (lib/siluetas.ts).
+   * Es lo que el escenario pinta en el instante del clic, mientras baja la
+   * silueta buena: sin esto el hueco se quedaba vacío y parecía que fallaba.
+   */
+  siluetas?: Record<string, Silueta>;
+}) {
   // Se guarda el PELEADOR elegido, no el combate. Antes se guardaba el
   // combate y se pintaba siempre por el lado oficial del cartel, así que al
   // tocar a alguien del lado b aparecía a la derecha y su rival a la
@@ -376,6 +453,37 @@ export function CaraACara() {
   // para un solo fondo. Diez de los dieciséis tienen clip; en los combates
   // donde no lo tiene ninguno, el escenario se ve exactamente como siempre.
   const clip = izq.video ?? der.video;
+
+  // Precarga de fondo del cartel entero, una sola vez, cuando el escenario
+  // asoma en pantalla. Ver `precargarCartel` para el porqué y los frenos.
+  const escenario = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = escenario.current;
+    if (!el) return;
+
+    // Los dos que están en pantalla van primero en la cola.
+    const enPantalla = [izq.cuerpo ?? izq.foto, der.cuerpo ?? der.foto];
+
+    if (typeof IntersectionObserver === "undefined") {
+      precargarCartel(enPantalla);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      ([entrada]) => {
+        if (!entrada.isIntersecting) return;
+        precargarCartel(enPantalla);
+        obs.disconnect();
+      },
+      // Con margen: que empiece a bajar un poco antes de que la sección se
+      // vea, así el primer clic ya encuentra algo hecho.
+      { rootMargin: "400px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+    // Solo al montar: si el usuario ya cambió de peleador antes de que la
+    // sección entrara en pantalla, la cola igual los trae a todos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Al azar elige PELEADOR, no combate: así el sorteo también decide quién se
   // pone delante, y repetir combate cambiando de esquina es un resultado
@@ -401,7 +509,10 @@ export function CaraACara() {
         {/* En escritorio la altura sigue a la ventana, con piso y techo: la
             idea es que título, escenario y parrilla se vean juntos sin
             hacer scroll en un monitor normal. */}
-        <div className="relative h-[340px] w-full overflow-hidden sm:h-[480px] lg:h-[clamp(460px,58vh,680px)]">
+        <div
+          ref={escenario}
+          className="relative h-[340px] w-full overflow-hidden sm:h-[480px] lg:h-[clamp(460px,58vh,680px)]"
+        >
           {/* Clip del combate elegido, de fondo del escenario. La `key` lo
               remonta al cambiar de combate: sin ella el <video> conserva el
               reproductor anterior y el fundido de entrada no se redispara. */}
@@ -469,8 +580,8 @@ export function CaraACara() {
             className="absolute inset-x-0 top-0 z-[5] h-[32%] bg-[linear-gradient(to_bottom,rgba(11,11,13,1)_0%,rgba(11,11,13,0.6)_45%,transparent_100%)]"
           />
 
-          <Figura peleador={izq} lado="a" />
-          <Figura peleador={der} lado="b" />
+          <Figura peleador={izq} lado="a" silueta={siluetas[izq.slug]} />
+          <Figura peleador={der} lado="b" silueta={siluetas[der.slug]} />
 
           {/* Fundido al pie de TODO el escenario, no de cada figura: ahí la
               pisa la parrilla y el corte de los recortes queda camuflado. Si
@@ -566,14 +677,14 @@ export function CaraACara() {
                   <button
                     type="button"
                     onClick={() => setElegido(p.slug)}
-                    // Precarga por intención, que es la ÚNICA que hace la
-                    // sección: el puntero encima —o el dedo apoyado, que
-                    // también dispara `pointerenter`— llega antes que el clic,
-                    // y con eso la silueta se va pidiendo mientras el dedo
-                    // todavía baja. Así solo se descarga lo que la persona
-                    // está a punto de mirar.
-                    onPointerEnter={() => precargarFigura(p.cuerpo ?? p.foto)}
-                    onFocus={() => precargarFigura(p.cuerpo ?? p.foto)}
+                    // Precarga por intención: el puntero encima —o el dedo
+                    // apoyado, que también dispara `pointerenter`— llega
+                    // antes que el clic, y con eso las dos siluetas del
+                    // combate se van pidiendo mientras el dedo todavía baja.
+                    // Adelanta a la cola de fondo lo que la persona está a
+                    // punto de mirar.
+                    onPointerEnter={() => precargarCombate(p.slug)}
+                    onFocus={() => precargarCombate(p.slug)}
                     aria-pressed={lado !== null}
                     aria-label={`${p.nombre}: ver su combate`}
                     title={p.nombre}
