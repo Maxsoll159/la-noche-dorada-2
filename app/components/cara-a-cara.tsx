@@ -2,7 +2,7 @@
 
 import Image, { getImageProps } from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   BANDERAS,
   COMBATES,
@@ -57,11 +57,14 @@ const pedidas = new Set<string>();
  * descarga (~43 KB, que en móvil es lo que de verdad pesa). Se paga una sola
  * vez —después queda cacheada—, pero la pagaba justo quien acababa de tocar.
  *
- * Resuelve cuando la imagen llegó (o falló), para poder encadenar varias sin
- * pedirlas todas a la vez. Con una URL ya pedida resuelve al instante.
+ * Deliberadamente NO se precargan las dieciséis de entrada: serían unos
+ * 690 KB para alguien que quizá solo mire un combate, y aquí pesa más no
+ * gastarle datos que ahorrarle el primer clic. El hueco de ese primer clic lo
+ * cubre la silueta borrosa (ver `Figura` y lib/siluetas.ts), que se pinta al
+ * instante mientras baja la buena.
  */
-function precargarFigura(src: string): Promise<void> {
-  if (pedidas.has(src)) return Promise.resolve();
+function precargarFigura(src: string) {
+  if (pedidas.has(src)) return;
   pedidas.add(src);
 
   // `getImageProps` es la forma documentada de saber qué URL pediría `<Image>`
@@ -73,21 +76,17 @@ function precargarFigura(src: string): Promise<void> {
     sizes: SIZES_FIGURA,
   });
 
-  return new Promise((listo) => {
-    const img = new window.Image();
-    img.onload = () => listo();
-    img.onerror = () => listo();
-    // Prioridad baja: esto es trabajo adelantado para un clic que quizá no
-    // llegue, y no tiene por qué competir con lo que ya se está mirando.
-    // Donde no exista la propiedad, la asignación sencillamente no hace nada.
-    img.fetchPriority = "low";
-    // `sizes` y `srcSet` ANTES que `src`: el navegador escoge el candidato en el
-    // momento en que se asigna `src`, así que al revés se llevaría el mayor del
-    // srcset y la variante buena quedaría sin pedir.
-    if (props.sizes) img.sizes = props.sizes;
-    if (props.srcSet) img.srcset = props.srcSet;
-    img.src = props.src;
-  });
+  const img = new window.Image();
+  // Prioridad baja: esto es trabajo adelantado para un clic que quizá no
+  // llegue, y no tiene por qué competir con lo que ya se está mirando.
+  // Donde no exista la propiedad, la asignación sencillamente no hace nada.
+  img.fetchPriority = "low";
+  // `sizes` y `srcSet` ANTES que `src`: el navegador escoge el candidato en el
+  // momento en que se asigna `src`, así que al revés se llevaría el mayor del
+  // srcset y la variante buena quedaría sin pedir.
+  if (props.sizes) img.sizes = props.sizes;
+  if (props.srcSet) img.srcset = props.srcSet;
+  img.src = props.src;
 }
 
 /**
@@ -101,37 +100,6 @@ function precargarCombate(slug: string) {
   if (!ficha) return;
   precargarFigura(ficha.peleador.cuerpo ?? ficha.peleador.foto);
   precargarFigura(ficha.rival.cuerpo ?? ficha.rival.foto);
-}
-
-/**
- * Precarga de fondo de TODO el cartel, en cuanto la sección entra en pantalla.
- *
- * Es el remedio para quien no apunta antes de tocar (en móvil, casi todos):
- * la primera vez que elige a alguien la silueta tarda, cree que falló, toca a
- * otro, tarda también, y se va con la idea de que la sección no funciona. Con
- * las dieciséis ya en caché, cada cambio es inmediato.
- *
- * Se paga con datos, así que va con tres frenos: no arranca hasta que la
- * sección se ve (quien no baja hasta aquí no gasta nada), va de UNA en una y
- * con prioridad baja para no pisar lo que se está mirando, y se salta entera si
- * la persona tiene activado el ahorro de datos. Son unos 690 KB en total, que
- * a esta altura de la página ya son la parte barata de la visita.
- */
-function precargarCartel(desde: string[]) {
-  const conexion = (
-    navigator as Navigator & { connection?: { saveData?: boolean } }
-  ).connection;
-  if (conexion?.saveData) return;
-
-  // Primero los del combate en pantalla (que ya deberían estar), y el resto en
-  // el orden de la parrilla, que es el orden en que la vista los recorre.
-  const orden = [
-    ...desde,
-    ...PARRILLA.map((p) => p.cuerpo ?? p.foto),
-  ];
-  orden
-    .filter((src, i) => orden.indexOf(src) === i)
-    .reduce((cola, src) => cola.then(() => precargarFigura(src)), Promise.resolve());
 }
 
 /**
@@ -454,37 +422,6 @@ export function CaraACara({
   // donde no lo tiene ninguno, el escenario se ve exactamente como siempre.
   const clip = izq.video ?? der.video;
 
-  // Precarga de fondo del cartel entero, una sola vez, cuando el escenario
-  // asoma en pantalla. Ver `precargarCartel` para el porqué y los frenos.
-  const escenario = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = escenario.current;
-    if (!el) return;
-
-    // Los dos que están en pantalla van primero en la cola.
-    const enPantalla = [izq.cuerpo ?? izq.foto, der.cuerpo ?? der.foto];
-
-    if (typeof IntersectionObserver === "undefined") {
-      precargarCartel(enPantalla);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      ([entrada]) => {
-        if (!entrada.isIntersecting) return;
-        precargarCartel(enPantalla);
-        obs.disconnect();
-      },
-      // Con margen: que empiece a bajar un poco antes de que la sección se
-      // vea, así el primer clic ya encuentra algo hecho.
-      { rootMargin: "400px" },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-    // Solo al montar: si el usuario ya cambió de peleador antes de que la
-    // sección entrara en pantalla, la cola igual los trae a todos.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Al azar elige PELEADOR, no combate: así el sorteo también decide quién se
   // pone delante, y repetir combate cambiando de esquina es un resultado
   // válido.
@@ -509,10 +446,7 @@ export function CaraACara({
         {/* En escritorio la altura sigue a la ventana, con piso y techo: la
             idea es que título, escenario y parrilla se vean juntos sin
             hacer scroll en un monitor normal. */}
-        <div
-          ref={escenario}
-          className="relative h-[340px] w-full overflow-hidden sm:h-[480px] lg:h-[clamp(460px,58vh,680px)]"
-        >
+        <div className="relative h-[340px] w-full overflow-hidden sm:h-[480px] lg:h-[clamp(460px,58vh,680px)]">
           {/* Clip del combate elegido, de fondo del escenario. La `key` lo
               remonta al cambiar de combate: sin ella el <video> conserva el
               reproductor anterior y el fundido de entrada no se redispara. */}
