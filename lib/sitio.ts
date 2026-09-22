@@ -13,3 +13,8 @@ export const NOMBRES_ALTERNOS = [
   "lanochedorada",
   "La Noche Dorada Perú",
 ];
+
+export const DESARROLLADOR: { nombre: string; url?: string } = {
+  nombre: "Martin Rios Tineo",
+  url: "https://portafolio-martin-rios-v2.vercel.app",
+};

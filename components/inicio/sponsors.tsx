@@ -16,7 +16,7 @@ function Marca({ sponsor }: { sponsor: Sponsor }) {
         width={sponsor.logo.w}
         height={sponsor.logo.h}
         sizes="160px"
-        className={`relative h-auto max-h-11 w-auto max-w-[78%] object-contain opacity-85 brightness-0 invert transition-all duration-500 group-hover:scale-115 group-hover:opacity-100 group-hover:brightness-100 group-hover:drop-shadow-[0_0_16px_rgba(212,175,55,0.45)] group-hover:invert-0 ${REBOTE}`}
+        className={`relative h-auto max-h-8 w-auto max-w-[80%] object-contain opacity-85 brightness-0 invert transition-all duration-500 group-hover:scale-115 group-hover:opacity-100 group-hover:brightness-100 group-hover:drop-shadow-[0_0_16px_rgba(212,175,55,0.45)] group-hover:invert-0 sm:max-h-11 sm:max-w-[78%] ${REBOTE}`}
       />
     );
   }
@@ -43,7 +43,7 @@ function Contenido({ sponsor }: { sponsor: Sponsor }) {
 
 function Loseta({ sponsor }: { sponsor: Sponsor }) {
   const clases =
-    "group relative flex h-24 w-full items-center justify-center px-4 transition-transform duration-500 hover:-translate-y-1";
+    "group relative flex h-20 w-full items-center justify-center px-3 sm:h-24 sm:px-4 transition-transform duration-500 hover:-translate-y-1";
 
   if (!sponsor.url) {
     return (
@@ -76,7 +76,10 @@ export function Sponsors() {
       </p>
       <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
         {SPONSORS.map((s) => (
-          <li key={s.nombre} className="w-[calc(50%-0.375rem)] sm:w-44 lg:w-48">
+          <li
+            key={s.nombre}
+            className="w-[calc((100%-1.5rem)/3)] sm:w-44 lg:w-48"
+          >
             <Loseta sponsor={s} />
           </li>
         ))}

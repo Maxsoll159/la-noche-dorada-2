@@ -8,6 +8,7 @@ export const EVENTO = {
   distrito: "San Borja, Lima",
   direccion: "Av. Angamos Este 2681, Urb. Primavera de Monterrico",
   coordenadas: { lat: -12.1109128, lon: -77.0011657 },
+  aforo: 5000,
   entradasUrl: "https://www.ticketmaster.pe/event/la-noche-dorada-edicion-2026",
   streamUrl: "https://kick.com/elzeein",
   streamCanal: "/elzeein",
@@ -41,4 +42,36 @@ export const NAV: readonly { href: string; label: string; tag?: string }[] = [
   { href: "/#entradas", label: "Entradas" },
   { href: "/#sede", label: "Sede" },
   { href: "/#donde-verlo", label: "Dónde verlo" },
+];
+
+export const REDES_EVENTO: readonly {
+  plataforma: string;
+  url: string;
+  usuario: string;
+  color: string;
+}[] = [
+  {
+    plataforma: "Kick",
+    url: EVENTO.streamUrl,
+    usuario: EVENTO.streamCanal,
+    color: "#53fc18",
+  },
+  {
+    plataforma: "TikTok",
+    url: "https://www.tiktok.com/@elzeeinmr",
+    usuario: "/elzeeinmr",
+    color: "#f5eedc",
+  },
+  {
+    plataforma: "YouTube",
+    url: "https://www.youtube.com/@elzeein",
+    usuario: "/elzeein",
+    color: "#ff0033",
+  },
+  {
+    plataforma: "Instagram",
+    url: "https://www.instagram.com/andynsane/",
+    usuario: "/andynsane",
+    color: "#e1306c",
+  },
 ];

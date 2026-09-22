@@ -91,9 +91,11 @@
     linear-gradient(to right, transparent, var(--color-oro-claro), transparent),
     linear-gradient(
       to right,
-      transparent,
-      rgba(212, 175, 55, 0.45) 50%,
-      transparent
+      rgba(140, 107, 34, 0) 0%,
+      var(--color-oro-profundo) 18%,
+      var(--color-oro) 50%,
+      var(--color-oro-profundo) 82%,
+      rgba(140, 107, 34, 0) 100%
     );
   background-size:
     55% 100%,
@@ -479,5 +481,12 @@ textarea {
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
     scroll-behavior: auto !important;
+  }
+
+  .filete-oro {
+    animation: none;
+    background-position:
+      50% 0,
+      0 0;
   }
 }

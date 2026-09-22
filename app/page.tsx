@@ -5,6 +5,7 @@ import { DondeVerlo } from "@/components/inicio/donde-verlo";
 import { Entradas } from "@/components/inicio/entradas";
 import { Hero } from "@/components/inicio/hero";
 import { Patrocinador } from "@/components/inicio/patrocinador";
+import { PreguntasFrecuentes } from "@/components/inicio/preguntas-frecuentes";
 import { Presentacion } from "@/components/inicio/presentacion";
 import { Pronosticos } from "@/components/pronosticos/pronosticos";
 import { Seccion } from "@/components/ui/seccion";
@@ -49,6 +50,7 @@ export default function Page() {
         <Sede />
         <DondeVerlo />
         <Patrocinador />
+        <PreguntasFrecuentes />
       </main>
       <SiteFooter />
     </>

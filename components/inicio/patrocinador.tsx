@@ -1,6 +1,7 @@
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import { IconoExterno } from "@/assets/icons";
-import { EVENTO, PATROCINADORES } from "@/lib/evento";
+import { PATROCINADORES } from "@/lib/evento";
 import { Seccion } from "@/components/ui/seccion";
 import {
   BarridoLuz,
@@ -9,14 +10,6 @@ import {
   ResplandorDorado,
 } from "./efectos-marca";
 import { Sponsors } from "./sponsors";
-
-const CREDITOS = [
-  { etiqueta: "Produce", valor: EVENTO.productora },
-  { etiqueta: "Entradas", valor: "Ticketmaster.pe" },
-  { etiqueta: "En vivo", valor: `Kick ${EVENTO.streamCanal}` },
-];
-
-const CONTACTO = "comercial@lanochedorada.pe";
 
 const dominio = (url: string) => new URL(url).hostname.replace(/^www\./, "");
 
@@ -35,30 +28,37 @@ function TarjetaPatrocinador({ p }: { p: Patrocinio }) {
         aria-hidden
         className="absolute inset-x-0 top-0 z-10 h-[2px] origin-center scale-x-0 bg-gradient-to-r from-transparent via-oro-claro to-transparent transition-transform duration-500 group-hover:scale-x-100"
       />
-      <span className="relative flex h-40 items-center justify-center bg-[radial-gradient(70%_90%_at_50%_45%,rgba(212,175,55,0.12)_0%,rgba(212,175,55,0)_100%)] px-8">
+      <span className="relative flex h-16 items-center justify-center bg-[radial-gradient(70%_90%_at_50%_45%,rgba(212,175,55,0.12)_0%,rgba(212,175,55,0)_100%)] px-2.5 sm:h-40 sm:px-8">
         <ResplandorDorado />
         <BarridoLuz />
-        <EsquinasDoradas variante="dentro" />
+        <span className="hidden sm:block">
+          <EsquinasDoradas variante="dentro" />
+        </span>
         <Image
           src={p.logo}
           alt=""
           width={p.w}
           height={p.h}
           sizes={`${p.ancho}px`}
-          style={{ width: p.ancho }}
-          className={`relative h-auto max-w-full transition duration-500 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(212,175,55,0.35)] ${REBOTE}`}
+          style={{ "--ancho": `${p.ancho}px` } as CSSProperties}
+          className={`relative h-auto w-[calc(var(--ancho)*0.42)] max-w-full transition duration-500 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(212,175,55,0.35)] sm:w-(--ancho) ${REBOTE}`}
         />
       </span>
-      <span className="flex items-center justify-between gap-3 border-t border-linea bg-[#08080b] px-5 py-3.5 transition-colors duration-500 group-hover:border-oro-profundo group-hover:bg-oro-tinte">
+      <span className="flex flex-1 items-center justify-center gap-1.5 border-t border-linea bg-[#08080b] px-2 py-2 transition-colors duration-500 group-hover:border-oro-profundo group-hover:bg-oro-tinte sm:justify-between sm:gap-3 sm:px-5 sm:py-3.5">
         <span className="min-w-0">
-          <span className="block truncate font-display text-[16px] leading-tight text-crema uppercase transition-colors duration-500 group-hover:text-oro-claro">
+          <span className="block truncate font-display text-[12px] leading-tight text-crema uppercase transition-colors duration-500 group-hover:text-oro-claro sm:text-[16px]">
             {p.nombre}
           </span>
-          <span className="block truncate font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
+          <span className="hidden truncate font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase sm:block">
             {dominio(p.url)}
           </span>
         </span>
-        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-oro-profundo px-3 py-1.5 font-cond text-[11px] font-bold tracking-[0.16em] text-oro uppercase transition-colors duration-500 group-hover:border-oro group-hover:bg-oro group-hover:text-noche">
+        <IconoExterno
+          size={11}
+          strokeWidth={2.6}
+          className="shrink-0 text-oro sm:hidden"
+        />
+        <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-oro-profundo px-3 py-1.5 font-cond text-[11px] font-bold tracking-[0.16em] text-oro uppercase transition-colors duration-500 group-hover:border-oro group-hover:bg-oro group-hover:text-noche sm:flex">
           Visitar
           <IconoExterno
             size={13}
@@ -79,7 +79,7 @@ export function Patrocinador() {
       titulo="Patrocinadores"
     >
       <div className="flex w-full flex-col items-center gap-8 sm:gap-9">
-        <ul className="grid w-full gap-4 sm:grid-cols-3 lg:gap-5">
+        <ul className="grid w-full grid-cols-3 gap-2 sm:gap-4 lg:gap-5">
           {PATROCINADORES.map((p) => (
             <li key={p.nombre} className="flex">
               <TarjetaPatrocinador p={p} />
@@ -88,42 +88,6 @@ export function Patrocinador() {
         </ul>
 
         <Sponsors />
-
-        <ul className="w-full rounded-sm border border-linea bg-carbon sm:flex sm:w-auto sm:items-center sm:justify-center sm:divide-x sm:divide-oro-profundo/40 sm:border-0 sm:bg-transparent">
-          {CREDITOS.map((c, i) => (
-            <li
-              key={c.etiqueta}
-              className={`flex items-center justify-between gap-4 px-5 py-3 sm:flex-col sm:justify-center sm:gap-1.5 sm:px-9 sm:py-2 ${
-                i < CREDITOS.length - 1
-                  ? "border-b border-linea sm:border-b-0"
-                  : ""
-              }`}
-            >
-              <span className="font-cond text-[11px] font-bold tracking-[0.22em] text-oro-medio uppercase">
-                {c.etiqueta}
-              </span>
-              <span className="font-display text-[16px] text-crema uppercase sm:text-[17px]">
-                {c.valor}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex flex-col items-center gap-2.5 text-center">
-          <p className="font-cond text-[12px] font-semibold tracking-[0.2em] text-tenue uppercase">
-            Consultas comerciales
-            <span className="hidden sm:inline"> · </span>
-            <a
-              href={`mailto:${CONTACTO}?subject=${encodeURIComponent(`Patrocinio · ${EVENTO.nombre}`)}`}
-              className="mt-1 block tracking-[0.08em] underline underline-offset-2 transition-colors hover:text-oro sm:mt-0 sm:inline sm:tracking-[0.2em]"
-            >
-              {CONTACTO}
-            </a>
-          </p>
-          <p className="font-cond text-[11px] font-bold tracking-[0.22em] text-oro-medio uppercase">
-            +18 · Juega con responsabilidad
-          </p>
-        </div>
       </div>
     </Seccion>
   );

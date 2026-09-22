@@ -1,7 +1,5 @@
 import { EVENTO, PELEADORES, edadEn, type Peleador } from "@/lib/evento";
-
-const coma = (n: number, decimales: number) =>
-  n.toFixed(decimales).replace(".", ",");
+import { coma } from "@/lib/formato";
 
 const marca = (p: Peleador) => (p.aprox ? "*" : "");
 
