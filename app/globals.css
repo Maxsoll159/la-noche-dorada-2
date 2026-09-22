@@ -233,6 +233,20 @@
   }
 }
 
+@keyframes destello-fila {
+  0%,
+  45% {
+    transform: translateX(-100%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(360%) skewX(-18deg);
+  }
+}
+
+@utility destello-fila {
+  animation: destello-fila 4.5s ease-in-out infinite;
+}
+
 @utility destello {
   animation: destello 5s ease-in-out infinite;
 }

@@ -5,99 +5,9 @@ import {
   IconoReloj,
 } from "@/assets/icons";
 import { EVENTO } from "@/lib/evento";
-import { Bandera } from "@/components/ui/bandera";
+import { horariosPorPais } from "@/lib/evento/horarios";
 import { Seccion } from "@/components/ui/seccion";
-
-const HORARIOS: readonly {
-  pais: string;
-  zona: string;
-  hora: string;
-  meridiano: string;
-  nota?: string;
-  local?: boolean;
-}[] = [
-  {
-    pais: "Perú",
-    zona: "Lima · UTC−5",
-    hora: "7:00",
-    meridiano: "pm",
-    nota: "Hora local",
-    local: true,
-  },
-  { pais: "Ecuador", zona: "Quito · UTC−5", hora: "7:00", meridiano: "pm" },
-  { pais: "Colombia", zona: "Bogotá · UTC−5", hora: "7:00", meridiano: "pm" },
-  { pais: "México", zona: "CDMX · UTC−6", hora: "6:00", meridiano: "pm" },
-  { pais: "Bolivia", zona: "La Paz · UTC−4", hora: "8:00", meridiano: "pm" },
-  { pais: "Chile", zona: "Santiago · UTC−3", hora: "9:00", meridiano: "pm" },
-  {
-    pais: "Argentina",
-    zona: "Buenos Aires · UTC−3",
-    hora: "9:00",
-    meridiano: "pm",
-  },
-  {
-    pais: "España",
-    zona: "Madrid · UTC+1",
-    hora: "1:00",
-    meridiano: "am",
-    nota: "Domingo 29",
-  },
-];
-
-const EXTRA: Record<string, [string, number][]> = {
-  Ecuador: [
-    ["#FFDD00", 2],
-    ["#0033A0", 1],
-    ["#EF3340", 1],
-  ],
-  México: [
-    ["#006847", 1],
-    ["#FFFFFF", 1],
-    ["#CE1126", 1],
-  ],
-  Bolivia: [
-    ["#D52B1E", 1],
-    ["#F9E300", 1],
-    ["#007934", 1],
-  ],
-  Argentina: [
-    ["#74ACDF", 1],
-    ["#FFFFFF", 1],
-    ["#74ACDF", 1],
-  ],
-  España: [
-    ["#AA151B", 1],
-    ["#F1BF00", 2],
-    ["#AA151B", 1],
-  ],
-};
-const VERTICALES = new Set(["Perú", "México"]);
-
-function BanderaPais({ pais }: { pais: string }) {
-  if (pais === "Perú") return <Bandera pais="PE" className="h-5 w-[30px]" />;
-  if (pais === "Colombia")
-    return <Bandera pais="CO" className="h-5 w-[30px]" />;
-  if (pais === "Chile") return <Bandera pais="CL" className="h-5 w-[30px]" />;
-  const bandas = EXTRA[pais];
-  const total = bandas.reduce((s, [, p]) => s + p, 0);
-  return (
-    <span
-      role="img"
-      aria-label={pais}
-      className={`inline-flex h-5 w-[30px] overflow-hidden rounded-[2px] ring-1 ring-black/40 ${
-        VERTICALES.has(pais) ? "flex-row" : "flex-col"
-      }`}
-    >
-      {bandas.map(([color, peso], i) => (
-        <span
-          key={i}
-          style={{ flexGrow: peso / total, backgroundColor: color }}
-          className="block"
-        />
-      ))}
-    </span>
-  );
-}
+import { HorariosPorPais } from "./horarios-por-pais";
 
 export function DondeVerlo() {
   return (
@@ -183,57 +93,10 @@ export function DondeVerlo() {
           <span aria-hidden className="h-px flex-1 bg-linea" />
         </p>
 
-        <ul className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
-          {HORARIOS.map((h) => (
-            <li
-              key={h.pais}
-              className={`flex items-center justify-between gap-4 rounded-sm border px-4 py-3 transition-colors sm:py-3.5 ${
-                h.local
-                  ? "border-oro bg-oro-tinte"
-                  : "border-linea bg-carbon hover:border-oro-profundo hover:bg-oro-tinte/60"
-              }`}
-            >
-              <span className="flex min-w-0 items-center gap-3">
-                <BanderaPais pais={h.pais} />
-                <span className="min-w-0">
-                  <span
-                    className={`block font-display text-[19px] leading-tight uppercase ${
-                      h.local ? "text-oro-claro" : "text-crema"
-                    }`}
-                  >
-                    {h.pais}
-                  </span>
-                  <span className="block font-cond text-[11px] font-semibold tracking-[0.12em] text-tenue uppercase">
-                    {h.zona}
-                  </span>
-                </span>
-              </span>
-              <span
-                className={`flex shrink-0 flex-col items-end ${
-                  h.local ? "text-oro" : "text-crema"
-                }`}
-              >
-                <span className="flex items-baseline gap-1 leading-none">
-                  <span className="font-display text-[26px] tabular-nums">
-                    {h.hora}
-                  </span>
-                  <span className="font-cond text-[12px] font-bold uppercase">
-                    {h.meridiano}
-                  </span>
-                </span>
-                {h.nota && (
-                  <span
-                    className={`mt-1 font-cond text-[11px] font-bold tracking-[0.1em] uppercase ${
-                      h.local ? "text-oro" : "text-oro-medio"
-                    }`}
-                  >
-                    {h.nota}
-                  </span>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <HorariosPorPais
+          grupos={horariosPorPais()}
+          inicioISO={EVENTO.inicioISO}
+        />
       </div>
     </Seccion>
   );
