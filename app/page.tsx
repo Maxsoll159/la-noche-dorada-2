@@ -1,16 +1,16 @@
-import { CaraACara } from "./components/cara-a-cara";
-import { Combates } from "./components/combates";
-import { DatosEstructurados } from "./components/datos-estructurados";
-import { DondeVerlo } from "./components/donde-verlo";
-import { Entradas } from "./components/entradas";
-import { Hero } from "./components/hero";
-import { Patrocinador } from "./components/patrocinador";
-import { Presentacion } from "./components/presentacion";
-import { Pronosticos } from "./components/pronosticos";
-import { Seccion } from "./components/seccion";
-import { Sede } from "./components/sede";
-import { SiteFooter } from "./components/site-footer";
-import { SiteHeader } from "./components/site-header";
+import { CaraACara } from "@/components/cara-a-cara/cara-a-cara";
+import { Combates } from "@/components/inicio/combates";
+import { DatosEstructurados } from "@/components/inicio/datos-estructurados";
+import { DondeVerlo } from "@/components/inicio/donde-verlo";
+import { Entradas } from "@/components/inicio/entradas";
+import { Hero } from "@/components/inicio/hero";
+import { Patrocinador } from "@/components/inicio/patrocinador";
+import { Presentacion } from "@/components/inicio/presentacion";
+import { Pronosticos } from "@/components/pronosticos/pronosticos";
+import { Seccion } from "@/components/ui/seccion";
+import { Sede } from "@/components/inicio/sede";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export default function Page() {
   return (

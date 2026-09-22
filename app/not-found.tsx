@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IconoFlechaDerecha } from "@/assets/icons";
 import { EVENTO, PELEADORES } from "@/lib/evento";
-import { Bandera } from "@/app/components/bandera";
-import { FileteOro } from "@/app/components/filete-oro";
-import { SiteFooter } from "@/app/components/site-footer";
-import { SiteHeader } from "@/app/components/site-header";
+import { Bandera } from "@/components/ui/bandera";
+import { FileteOro } from "@/components/ui/filete-oro";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export const metadata: Metadata = {
   title: "Página no encontrada",
   robots: { index: false, follow: true },
 };
 
-/**
- * 404 del sitio. La ve quien escribe mal una dirección o entra a una ficha de
- * peleador que no existe (las 16 rutas son fijas y cualquier otro slug cae
- * aquí). Por eso, además de volver al inicio, ofrece la lista completa: el
- * error más probable es un nombre mal escrito.
- */
 export default function NoEncontrada() {
   return (
     <>
@@ -28,14 +23,15 @@ export default function NoEncontrada() {
             className="absolute inset-0 -z-10 bg-[radial-gradient(60%_55%_at_50%_30%,#2a2114_0%,#16151a_55%,#0b0b0d_100%)]"
           />
           <div className="mx-auto flex max-w-contenido flex-col items-center gap-8 px-6 text-center lg:px-14">
-            <div style={{ animationDelay: "80ms" }} className="entrada flex flex-col items-center gap-3">
-              <p className="flex items-center gap-3 font-cond text-[12px] font-bold uppercase tracking-[0.28em] text-oro">
+            <div
+              style={{ animationDelay: "80ms" }}
+              className="flex entrada flex-col items-center gap-3"
+            >
+              <p className="flex items-center gap-3 font-cond text-[12px] font-bold tracking-[0.28em] text-oro uppercase">
                 <span aria-hidden className="h-px w-8 bg-oro-profundo" />
                 Error 404
                 <span aria-hidden className="h-px w-8 bg-oro-profundo" />
               </p>
-              {/* leading holgado: texto-oro recorta el degradado a la caja
-                  de línea y con leading-none se comía el borde de los números */}
               <p
                 aria-hidden
                 className="texto-oro -skew-x-6 font-display text-[120px] leading-[1.05] drop-shadow-[0_0_30px_rgba(212,175,55,0.35)] sm:text-[160px] lg:text-[200px]"
@@ -53,41 +49,28 @@ export default function NoEncontrada() {
 
             <div
               style={{ animationDelay: "220ms" }}
-              className="entrada flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center"
+              className="flex w-full entrada flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center"
             >
               <Link
                 href="/"
-                className="flex items-center justify-center gap-2.5 rounded-sm bg-oro px-8 py-4 font-cond text-[14px] font-bold uppercase tracking-[0.14em] text-noche shadow-[0_8px_26px_rgba(212,175,55,0.25)] transition-colors hover:bg-oro-claro"
+                className="flex items-center justify-center gap-2.5 rounded-sm bg-oro px-8 py-4 font-cond text-[14px] font-bold tracking-[0.14em] text-noche uppercase shadow-[0_8px_26px_rgba(212,175,55,0.25)] transition-colors hover:bg-oro-claro"
               >
                 Ir al inicio
               </Link>
               <Link
                 href="/#combates"
-                className="flex items-center justify-center gap-2 rounded-sm border border-oro-profundo px-8 py-4 font-cond text-[14px] font-bold uppercase tracking-[0.14em] text-oro transition-colors hover:border-oro hover:bg-oro-tinte"
+                className="flex items-center justify-center gap-2 rounded-sm border border-oro-profundo px-8 py-4 font-cond text-[14px] font-bold tracking-[0.14em] text-oro uppercase transition-colors hover:border-oro hover:bg-oro-tinte"
               >
                 Ver la cartelera
-                <svg
-                  aria-hidden
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
+                <IconoFlechaDerecha size={14} strokeWidth={2.4} />
               </Link>
             </div>
 
-            {/* Los 16, por si lo que fallaba era el nombre de una ficha */}
             <div
               style={{ animationDelay: "360ms" }}
-              className="entrada flex w-full max-w-[56rem] flex-col items-center gap-4 pt-4"
+              className="flex w-full max-w-[56rem] entrada flex-col items-center gap-4 pt-4"
             >
-              <p className="flex w-full items-center gap-3 font-cond text-[11px] font-bold uppercase tracking-[0.24em] text-oro-medio">
+              <p className="flex w-full items-center gap-3 font-cond text-[11px] font-bold tracking-[0.24em] text-oro-medio uppercase">
                 <span aria-hidden className="h-px flex-1 bg-linea" />
                 ¿Buscabas a un peleador?
                 <span aria-hidden className="h-px flex-1 bg-linea" />
@@ -97,7 +80,7 @@ export default function NoEncontrada() {
                   <li key={p.slug}>
                     <Link
                       href={`/peleadores/${p.slug}`}
-                      className="flex items-center gap-2 rounded-sm border border-linea bg-carbon px-3 py-2 font-cond text-[12px] font-bold uppercase tracking-[0.1em] text-crema transition-colors hover:border-oro hover:bg-oro-tinte hover:text-oro"
+                      className="flex items-center gap-2 rounded-sm border border-linea bg-carbon px-3 py-2 font-cond text-[12px] font-bold tracking-[0.1em] text-crema uppercase transition-colors hover:border-oro hover:bg-oro-tinte hover:text-oro"
                     >
                       <Bandera pais={p.pais} className="h-2.5 w-[15px]" />
                       {p.nombre}
@@ -105,7 +88,7 @@ export default function NoEncontrada() {
                   </li>
                 ))}
               </ul>
-              <p className="font-cond text-[11px] font-semibold uppercase tracking-[0.16em] text-tenue">
+              <p className="font-cond text-[11px] font-semibold tracking-[0.16em] text-tenue uppercase">
                 {EVENTO.nombre} · {EVENTO.fechaLarga} · {EVENTO.sede}
               </p>
             </div>

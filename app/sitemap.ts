@@ -12,8 +12,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
-    // Las 16 fichas. Salen de `PELEADORES`, así que sumar o quitar un peleador
-    // del cartel actualiza el sitemap solo.
     ...PELEADORES.map((p) => ({
       url: `${SITIO}/peleadores/${p.slug}`,
       lastModified: ahora,

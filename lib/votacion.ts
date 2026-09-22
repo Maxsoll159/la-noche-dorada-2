@@ -5,25 +5,13 @@ import type { User } from "@supabase/supabase-js";
 import { clienteNavegador } from "./supabase/cliente";
 import type { Lado } from "./compartir";
 
-// El lado vive en `compartir.ts`, que no es un módulo de cliente: lo necesitan
-// también la página y la imagen de los pronósticos compartidos, que son de
-// servidor. Se reexporta aquí para no tocar a quien ya lo importaba de este
-// archivo.
 export type { Lado };
 
-/** Lo que la web necesita de un combate para pintar la votación. */
 export type Conteo = {
   votosA: number;
   votosB: number;
-  /** Porcentaje del peleador A. Nulo mientras no haya ni un voto. */
   pctA: number | null;
-  /** Pasada esta hora la base rechaza cualquier voto. */
   cierraEn: string;
-  /**
-   * Lado que ganó el combate. Nulo hasta que la organización lo carga después
-   * de la velada (`update combates set ganador = 'a' ...`). En cuanto deja de
-   * ser nulo, la sección pasa de "votación" a "resultados".
-   */
   ganador: Lado | null;
 };
 
@@ -38,11 +26,6 @@ type FilaCombate = {
 
 const COLUMNAS = "numero, votos_a, votos_b, pct_a, cierra_en, ganador";
 
-/**
- * Voto que el visitante quiso emitir sin haber iniciado sesión. Se guarda
- * antes de mandarlo a Google y se emite solo al volver, para que el rodeo del
- * login no le cueste un segundo clic.
- */
 const PENDIENTE = "nd2:voto-pendiente";
 
 function aConteo(fila: FilaCombate): Conteo {
@@ -51,24 +34,14 @@ function aConteo(fila: FilaCombate): Conteo {
     votosB: fila.votos_b,
     pctA: fila.pct_a,
     cierraEn: fila.cierra_en,
-    // La base solo admite 'a' o 'b' (check `combates_ganador_check`), pero
-    // llega como texto: se estrecha aquí para no arrastrar un string suelto.
     ganador: fila.ganador === "a" || fila.ganador === "b" ? fila.ganador : null,
   };
 }
 
-/** true mientras el combate siga admitiendo votos. */
 export function estaAbierto(conteo: Conteo | undefined) {
   return conteo ? new Date(conteo.cierraEn).getTime() > Date.now() : false;
 }
 
-/**
- * Aciertos sobre los combates que ya tienen ganador cargado.
- *
- * `resueltos` cuenta todos los combates fallados, haya votado o no el usuario:
- * así "acertaste 5 de 8" se lee contra la cartelera y no contra cuántos se
- * animó a pronosticar.
- */
 export function puntaje(
   conteos: Record<string, Conteo>,
   votos: Record<string, Lado>,
@@ -83,14 +56,6 @@ export function puntaje(
   return { resueltos, aciertos };
 }
 
-/**
- * Toda la votación: sesión de Google, conteos públicos y el voto propio.
- *
- * Los conteos son públicos y llegan aunque nadie haya iniciado sesión: el
- * visitante ve los porcentajes de la comunidad y solo se le pide la cuenta
- * cuando quiere votar. Mientras la pestaña esté abierta, Realtime va
- * empujando los cambios que hacen los demás.
- */
 export function useVotacion(activo: boolean) {
   const [usuario, setUsuario] = useState<User | null>(null);
   const [conteos, setConteos] = useState<Record<string, Conteo>>({});
@@ -99,7 +64,6 @@ export function useVotacion(activo: boolean) {
   const [enviando, setEnviando] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Conteos públicos + suscripción en vivo. No depende de la sesión.
   useEffect(() => {
     if (!activo) return;
     const supabase = clienteNavegador();
@@ -111,9 +75,7 @@ export function useVotacion(activo: boolean) {
       if (error) {
         setError("No pudimos cargar los pronósticos. Recarga la página.");
       } else {
-        setConteos(
-          Object.fromEntries(data.map((f) => [f.numero, aConteo(f)])),
-        );
+        setConteos(Object.fromEntries(data.map((f) => [f.numero, aConteo(f)])));
       }
       setCargando(false);
     })();
@@ -136,23 +98,16 @@ export function useVotacion(activo: boolean) {
     };
   }, [activo]);
 
-  // Sesión. `onAuthStateChange` avisa también al arrancar con la sesión que ya
-  // hubiera en las cookies, así que aquí no hace falta un getUser() aparte.
   useEffect(() => {
     if (!activo) return;
     const supabase = clienteNavegador();
     const { data } = supabase.auth.onAuthStateChange((_evento, sesion) => {
-      // Ojo: dentro de este callback no se llama a supabase. La consulta de
-      // los votos va en el efecto de abajo, colgada del id del usuario.
       setUsuario(sesion?.user ?? null);
-      // Al cerrar sesión los pronósticos dejan de ser de nadie: se vacían aquí y no
-      // en el efecto de abajo, que solo sabe traer.
       if (!sesion?.user) setVotos({});
     });
     return () => data.subscription.unsubscribe();
   }, [activo]);
 
-  // Los votos propios, cada vez que cambia quién está dentro.
   const idUsuario = usuario?.id;
   useEffect(() => {
     if (!activo || !idUsuario) return;
@@ -165,9 +120,7 @@ export function useVotacion(activo: boolean) {
         .select("combate_numero, lado");
       if (!vivo || error || !data) return;
       setVotos(
-        Object.fromEntries(
-          data.map((v) => [v.combate_numero, v.lado as Lado]),
-        ),
+        Object.fromEntries(data.map((v) => [v.combate_numero, v.lado as Lado])),
       );
     })();
 
@@ -178,10 +131,6 @@ export function useVotacion(activo: boolean) {
 
   const entrar = useCallback(async () => {
     const supabase = clienteNavegador();
-    // Sin query params a propósito: Supabase compara esta URL entera contra su
-    // lista blanca de Redirect URLs, así que cualquier `?loquesea` obligaría a
-    // poner un comodín `/**` en vez de la ruta exacta. Si no casa, no avisa:
-    // manda el código al Site URL y el acceso se pierde.
     const vuelta = `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -195,10 +144,6 @@ export function useVotacion(activo: boolean) {
     setVotos({});
   }, []);
 
-  /**
-   * Vota, cambia el voto o lo retira (volver a pulsar el lado ya elegido lo
-   * quita). Sin sesión, guarda la intención y manda a Google.
-   */
   const votar = useCallback(
     async (numero: string, lado: Lado) => {
       setError(null);
@@ -206,9 +151,7 @@ export function useVotacion(activo: boolean) {
       if (!usuario) {
         try {
           sessionStorage.setItem(PENDIENTE, `${numero}:${lado}`);
-        } catch {
-          /* modo privado: se pierde la intención, no el login */
-        }
+        } catch {}
         await entrar();
         return;
       }
@@ -228,8 +171,6 @@ export function useVotacion(activo: boolean) {
         return;
       }
 
-      // La función devuelve el combate ya recontado: la barra queda al día sin
-      // un segundo viaje y sin inventarnos el número.
       if (data) setConteos((prev) => ({ ...prev, [numero]: aConteo(data) }));
       setVotos((prev) => {
         const siguiente = { ...prev };
@@ -241,9 +182,6 @@ export function useVotacion(activo: boolean) {
     [entrar, usuario, votos],
   );
 
-  // El callback deja `?error=sesion` en la URL cuando Google no completó el
-  // acceso. Se lee una sola vez al montar y se borra de la barra de
-  // direcciones, para que el aviso no reaparezca al recargar.
   useEffect(() => {
     const parametros = new URLSearchParams(window.location.search);
     if (parametros.get("error") !== "sesion") return;
@@ -255,32 +193,22 @@ export function useVotacion(activo: boolean) {
       "",
       `${window.location.pathname}${busqueda ? `?${busqueda}` : ""}${window.location.hash}`,
     );
-    // La URL es un sistema externo que solo se puede leer ya montados: es el
-    // caso que contempla la regla, aunque aquí se lea una vez en vez de
-    // suscribirse a ella.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setError("No se pudo completar el acceso con Google. Inténtalo de nuevo.");
   }, []);
 
-  // Al volver de Google se emite el voto que quedó a medias.
   useEffect(() => {
     if (!activo || !usuario) return;
     let guardado: string | null = null;
     try {
       guardado = sessionStorage.getItem(PENDIENTE);
       sessionStorage.removeItem(PENDIENTE);
-    } catch {
-      /* sin sessionStorage no hay nada pendiente que emitir */
-    }
+    } catch {}
     if (!guardado) return;
 
     const [numero, lado] = guardado.split(":");
-    // Reanudar el voto es justo lo que el usuario pidió antes de irse a
-    // Google; que arranque un render de más al volver es lo de menos.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (numero && (lado === "a" || lado === "b")) votar(numero, lado);
-    // `votar` cambia en cada render (depende de `votos`); si estuviera en las
-    // dependencias, este efecto se repetiría en bucle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activo, usuario]);
 

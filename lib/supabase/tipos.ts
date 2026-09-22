@@ -1,10 +1,3 @@
-/**
- * Tipos del esquema de Supabase. Archivo generado: no se edita a mano.
- *
- * Para regenerarlo tras un cambio en la base:
- *   npx supabase gen types typescript --project-id hokvyjamnbbaxqirfbww > lib/supabase/tipos.ts
- * (o pidiéndoselo al MCP de Supabase, que es de donde salió este).
- */
 
 export type Json =
   | string
@@ -15,8 +8,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
