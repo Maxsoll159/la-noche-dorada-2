@@ -2,7 +2,7 @@
 
 import Image, { getImageProps } from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BANDERAS,
   COMBATES,
@@ -10,7 +10,6 @@ import {
   fichaDe,
   type Peleador,
 } from "@/lib/evento";
-import type { Silueta } from "@/lib/siluetas";
 import { Bandera } from "./bandera";
 import { FILAS_TAPE, NotaAprox } from "./ficha-tape";
 import { VideoFondo } from "./video-fondo";
@@ -60,8 +59,8 @@ const pedidas = new Set<string>();
  * Deliberadamente NO se precargan las dieciséis de entrada: serían unos
  * 690 KB para alguien que quizá solo mire un combate, y aquí pesa más no
  * gastarle datos que ahorrarle el primer clic. El hueco de ese primer clic lo
- * cubre la silueta borrosa (ver `Figura` y lib/siluetas.ts), que se pinta al
- * instante mientras baja la buena.
+ * cubre el indicador de carga (ver `Cargando`), que se pinta al instante y
+ * dice que la foto está en camino.
  */
 function precargarFigura(src: string) {
   if (pedidas.has(src)) return;
@@ -113,21 +112,103 @@ const LADO = {
 } as const;
 
 /**
+ * Indicador de carga de una silueta: el aro dorado girando y la palabra
+ * debajo. Ocupa el hueco mientras la foto baja.
+ *
+ * Reemplaza a la miniatura borrosa que hubo aquí antes. Las dos resuelven lo
+ * mismo —que el cuadro no se quede vacío y parezca que la sección falló— pero
+ * una foto estirada desde 14 px de ancho se veía sucia, y el escenario es la
+ * pieza más vistosa del sitio. Esto dice "espera" sin ensuciar nada.
+ *
+ * Va entero fuera del árbol de accesibilidad: el enlace que lo envuelve ya
+ * anuncia de quién es la ficha, y sin esto un lector de pantalla leería
+ * "Cargando" dos veces, una por figura, en cada cambio de peleador.
+ */
+function Cargando() {
+  return (
+    <span
+      aria-hidden
+      // Centrado en la caja de la figura, que es donde va a aparecer la foto.
+      className="pointer-events-none absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3"
+    >
+      {/* El borde de arriba en oro vivo sobre el resto apagado es lo que hace
+          visible el giro. Quien pide menos movimiento recibe el aro quieto
+          (lo apaga la regla global), y por eso el rótulo de abajo no es
+          decorativo: es lo único que sigue diciendo que algo está pasando. */}
+      <span className="girar size-9 rounded-full border-2 border-oro-profundo/40 border-t-oro sm:size-11" />
+      <span className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio">
+        Cargando
+      </span>
+    </span>
+  );
+}
+
+/**
+ * La foto del peleador y, mientras baja, el indicador de carga.
+ *
+ * Va en su propio componente porque el estado "ya cargó" tiene que volver a
+ * false en CADA cambio de peleador. El envoltorio lleva `key={slug}`, así que
+ * remontarlo lo resetea solo y no hace falta un efecto que lo ponga a mano.
+ */
+function SiluetaViva({ peleador }: { peleador: Peleador }) {
+  const [cargada, setCargada] = useState(false);
+  const img = useRef<HTMLImageElement>(null);
+
+  // Una imagen que ya está en caché puede terminar ANTES de que React enganche
+  // el `onLoad`: ahí el evento no llega nunca y el aro se quedaría girando
+  // encima de una foto que ya está puesta. `complete` es el estado real del
+  // elemento y es lo único que sabe distinguir ese caso. Pasa constantemente,
+  // porque volver a un peleador ya visto sale de la caché del navegador.
+  useEffect(() => {
+    // El <img> del DOM es un sistema externo que solo se puede consultar ya
+    // montados, que es justo el caso que la regla de los efectos contempla.
+    if (img.current?.complete) setCargada(true);
+  }, []);
+
+  return (
+    <>
+      {!cargada && <Cargando />}
+      <Image
+        ref={img}
+        src={peleador.cuerpo ?? peleador.foto}
+        alt={peleador.nombre}
+        fill
+        sizes={SIZES_FIGURA}
+        // La persona acaba de tocar y está mirando justo aquí: esta imagen va
+        // por delante de cualquier otra que el navegador tenga en cola (la
+        // parrilla, el video de fondo, las precargas).
+        fetchPriority="high"
+        onLoad={() => setCargada(true)}
+        // Con la foto rota el indicador tiene que irse igual: un aro girando
+        // para siempre promete algo que ya no va a llegar.
+        onError={() => setCargada(true)}
+        // Entra con un fundido corto sobre el indicador, en vez de aparecer de
+        // golpe encima.
+        // Los recortes salen normalizados: misma proporción, silueta centrada
+        // y apoyada al pie, así que alcanza object-contain. El brillo compensa
+        // que son tomas de estudio muy oscuras. Quien no tenga recorte de
+        // estudio cae en su retrato, que es de 250×470: aquí va TAMBIÉN en
+        // contain. Con cover, esta caja (ancha) ampliaba el retrato hasta
+        // dejar en pantalla media ceja.
+        className={`object-contain object-bottom transition-[transform,opacity] duration-500 group-hover:scale-[1.03] ${
+          cargada ? "opacity-100" : "opacity-0"
+        } ${
+          peleador.cuerpo
+            ? "brightness-125 contrast-[1.06] saturate-105"
+            : "brightness-110"
+        }`}
+      />
+    </>
+  );
+}
+
+/**
  * Silueta grande de un peleador, ocupando su mitad del escenario. Toda la foto
  * es el enlace a su ficha. En móvil las dos mitades se pisan un poco en el
  * centro para que las figuras salgan grandes; en escritorio cada una se queda
  * en su lado.
  */
-function Figura({
-  peleador,
-  lado,
-  silueta,
-}: {
-  peleador: Peleador;
-  lado: Lado;
-  /** Miniatura borrosa que se pinta en el acto, mientras baja la buena. */
-  silueta?: Silueta;
-}) {
+function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
   const izq = lado === "a";
   return (
     <Link
@@ -152,35 +233,7 @@ function Figura({
           La key remonta el nodo y eso vuelve a disparar la animación. */}
       <div className="absolute inset-0">
         <span key={peleador.slug} className="cambio absolute inset-0">
-          <Image
-            src={peleador.cuerpo ?? peleador.foto}
-            alt={peleador.nombre}
-            fill
-            sizes={SIZES_FIGURA}
-            // La persona acaba de tocar y está mirando justo aquí: esta
-            // imagen va por delante de cualquier otra que el navegador tenga
-            // en cola (la parrilla, el video de fondo, las precargas).
-            fetchPriority="high"
-            // La miniatura borrosa se pinta en el mismo fotograma del clic y
-            // la foto buena entra encima. Es lo que evita el hueco vacío que
-            // hacía pensar que la sección no cargaba. Va como data URL y no
-            // como `placeholder="blur"`: ese modo rellena de negro lo
-            // transparente y estos recortes tienen alfa (ver lib/siluetas.ts).
-            // Sin miniatura (no se pudo generar) se queda en `empty`, que es
-            // exactamente el comportamiento anterior.
-            placeholder={silueta ?? "empty"}
-            // Los recortes salen normalizados: misma proporción, silueta
-            // centrada y apoyada al pie, así que alcanza object-contain.
-            // El brillo compensa que son tomas de estudio muy oscuras.
-            // Quien no tenga recorte de estudio cae en su retrato, que es de
-            // 250×470: aquí va TAMBIÉN en contain. Con cover, esta caja (ancha)
-            // ampliaba el retrato hasta dejar en pantalla media ceja.
-            className={`transition-transform duration-500 group-hover:scale-[1.03] object-contain object-bottom ${
-              peleador.cuerpo
-                ? "brightness-125 contrast-[1.06] saturate-105"
-                : "brightness-110"
-            }`}
-          />
+          <SiluetaViva peleador={peleador} />
         </span>
       </div>
     </Link>
@@ -392,16 +445,7 @@ function FichaComparada({
   );
 }
 
-export function CaraACara({
-  siluetas = {},
-}: {
-  /**
-   * Miniaturas borrosas por slug, calculadas en el servidor (lib/siluetas.ts).
-   * Es lo que el escenario pinta en el instante del clic, mientras baja la
-   * silueta buena: sin esto el hueco se quedaba vacío y parecía que fallaba.
-   */
-  siluetas?: Record<string, Silueta>;
-}) {
+export function CaraACara() {
   // Se guarda el PELEADOR elegido, no el combate. Antes se guardaba el
   // combate y se pintaba siempre por el lado oficial del cartel, así que al
   // tocar a alguien del lado b aparecía a la derecha y su rival a la
@@ -514,8 +558,8 @@ export function CaraACara({
             className="absolute inset-x-0 top-0 z-[5] h-[32%] bg-[linear-gradient(to_bottom,rgba(11,11,13,1)_0%,rgba(11,11,13,0.6)_45%,transparent_100%)]"
           />
 
-          <Figura peleador={izq} lado="a" silueta={siluetas[izq.slug]} />
-          <Figura peleador={der} lado="b" silueta={siluetas[der.slug]} />
+          <Figura peleador={izq} lado="a" />
+          <Figura peleador={der} lado="b" />
 
           {/* Fundido al pie de TODO el escenario, no de cada figura: ahí la
               pisa la parrilla y el corte de los recortes queda camuflado. Si

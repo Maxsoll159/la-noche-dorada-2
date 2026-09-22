@@ -333,6 +333,23 @@
   animation: cambiar 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
 }
 
+/* Giro del aro que espera a la silueta en el cara a cara.
+   Va aparte de `girar-marco`, que además del giro lleva el centrado del haz
+   (`translate(-50%, -50%)`) y no se puede reutilizar aquí: aplicado a otra
+   cosa la desplazaría media caja.
+   Con `prefers-reduced-motion` la regla global lo deja quieto, y entonces el
+   aro pasa a ser un adorno: quien avisa de que algo está cargando es el
+   rótulo que lleva al lado, que es texto y no se apaga. */
+@keyframes girar {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@utility girar {
+  animation: girar 0.85s linear infinite;
+}
+
 /* Revelado al hacer scroll. Es una transición y no una animación para que el
    observador solo tenga que añadir una clase. */
 @utility revelar {
