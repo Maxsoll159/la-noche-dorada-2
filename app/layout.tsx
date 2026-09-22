@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     "velada de boxeo Perú",
     "Coliseo Eduardo Dibós",
     "Cañita",
-    "JH de la Cruz 777",
+    "JH de la Cruz",
     "Stake",
     //"Vastion",
     "Lima",

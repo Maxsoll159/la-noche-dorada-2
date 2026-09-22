@@ -452,7 +452,7 @@ export const COMBATES: Combate[] = [
     billing: "Combate estelar",
     estelar: true,
     arte: "/combates/jh-canita.webp",
-    a: p("jh", "JH de la Cruz 777", "CO"),
+    a: p("jh", "JH de la Cruz", "CO"),
     b: p("canita", "Cañita", "PE"),
   },
   {
@@ -477,7 +477,7 @@ export const COMBATES: Combate[] = [
   {
     n: "04",
     arte: "/combates/pulsera-ismael-sanchez.webp",
-    a: p("pulsera", "Sr. Pulsera", "PE"),
+    a: p("pulsera", "Pulsera", "PE"),
     b: p("ismael-sanchez", "Ismael Sánchez", "EC"),
   },
   {

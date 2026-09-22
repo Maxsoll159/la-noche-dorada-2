@@ -350,6 +350,64 @@
   animation: girar 0.85s linear infinite;
 }
 
+/* --------------------------------------------------------------------------
+   Botón "Ver su ficha" del cara a cara: luz que lo cruza y halo que late.
+
+   Son dos animaciones distintas porque piden cosas distintas —una mueve un
+   `transform`, la otra respira un `box-shadow`— pero van al MISMO ciclo de
+   2,6 s a propósito: desfasadas se leían como dos cosas pasando encima del
+   mismo botón en vez de como una sola invitación a tocarlo.
+
+   Va aparte de `destello`, que hace lo mismo en la ficha de peleador pero con
+   un ciclo de 5 s y una pausa larguísima: allí es un guiño cada tanto, y aquí
+   hace falta que insista, porque nadie sospecha que cada peleador tiene una
+   página propia.
+   -------------------------------------------------------------------------- */
+@keyframes brillo-boton {
+  0%,
+  62% {
+    transform: translateX(-170%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(330%) skewX(-20deg);
+  }
+}
+
+@utility brillo-boton {
+  animation: brillo-boton 2.6s ease-in-out infinite;
+}
+
+/* El halo se hincha y se apaga hacia fuera, como la onda de un botón que pide
+   que lo toquen. La sombra base va DENTRO de los fotogramas y no en una
+   utilidad `shadow-*`: la animación escribe `box-shadow` entera y borraría
+   cualquier sombra puesta por separado. */
+@keyframes pulso-ficha {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 26px rgba(212, 175, 55, 0.35),
+      0 0 0 0 rgba(247, 227, 161, 0.6);
+  }
+  60% {
+    box-shadow:
+      0 8px 30px rgba(212, 175, 55, 0.5),
+      0 0 0 10px rgba(247, 227, 161, 0);
+  }
+}
+
+@utility pulso-ficha {
+  animation: pulso-ficha 2.6s ease-out infinite;
+}
+
+/* El mismo latido, encadenado detrás de la entrada del cambio de peleador.
+   Dos clases sueltas no sirven: las dos escriben `animation` y la segunda
+   borra a la primera, igual que en `entrada-resplandor`. */
+@utility cambio-pulso {
+  animation:
+    cambiar 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both,
+    pulso-ficha 2.6s ease-out infinite;
+}
+
 /* Revelado al hacer scroll. Es una transición y no una animación para que el
    observador solo tenga que añadir una clase. */
 @utility revelar {

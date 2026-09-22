@@ -24,7 +24,7 @@ export default function Page() {
           ancho="amplio"
           antetitulo="Interactivo"
           titulo="Cara a cara"
-          bajada="Elige a cualquier peleador del cartel y mira su combate frente a frente."
+          bajada="Arma el combate que quieras: elige a los dos peleadores, estén o no emparejados en la cartelera, y míralos frente a frente."
         >
           <CaraACara />
         </Seccion>

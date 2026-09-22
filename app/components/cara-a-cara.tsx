@@ -37,6 +37,13 @@ const PARRILLA: Peleador[] = [
 ];
 
 /**
+ * Los dieciséis por slug. Antes alcanzaba con `fichaDe`, que devuelve el
+ * combate entero; desde que las dos esquinas se eligen por separado hace falta
+ * poder traer a UNO suelto, sin arrastrar a su rival del cartel.
+ */
+const POR_SLUG = new Map(PELEADORES.map((p) => [p.slug, p]));
+
+/**
  * Los `sizes` de la silueta grande. Es una constante y no un literal suelto
  * porque la precarga tiene que pedir EXACTAMENTE la misma variante que luego
  * va a pintar `<Image>`: si los dos valores se separan, el navegador elige
@@ -89,19 +96,6 @@ function precargarFigura(src: string) {
 }
 
 /**
- * Precarga por intención: al apuntar o apoyar el dedo en una casilla, que es
- * lo que llega antes que el clic. Van los DOS del combate, no solo el tocado:
- * al elegir a alguien el escenario pinta también a su rival, y precargar a uno
- * solo dejaba la otra mitad del escenario esperando igual que antes.
- */
-function precargarCombate(slug: string) {
-  const ficha = fichaDe(slug);
-  if (!ficha) return;
-  precargarFigura(ficha.peleador.cuerpo ?? ficha.peleador.foto);
-  precargarFigura(ficha.rival.cuerpo ?? ficha.rival.foto);
-}
-
-/**
  * Jugador 1 a la izquierda, jugador 2 a la derecha, como en una pantalla de
  * selección de personaje. El color es de interfaz: no dice nada de las
  * esquinas oficiales del combate.
@@ -128,15 +122,26 @@ function Cargando() {
   return (
     <span
       aria-hidden
-      // Centrado en la caja de la figura, que es donde va a aparecer la foto.
-      className="pointer-events-none absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3"
+      // Centrado en la caja de la figura, que es donde va a aparecer la foto,
+      // pero subido: por debajo de lg el botón "Ver ficha" cuelga del pie del
+      // escenario y el rótulo del indicador se le montaba encima.
+      className="pointer-events-none absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3.5 pb-[26%] lg:pb-0"
     >
+      {/* Resplandor dorado que late por detrás. El escenario tiene fogonazo,
+          haces de luz y a veces un clip de video moviéndose: sobre eso un aro
+          fino se perdía, y esto es lo que lo despega del fondo.
+          Va como degradado sobre la caja entera y NO como un círculo centrado
+          con `translate`: `latido` solo anima la opacidad, pero cualquier
+          utilidad que animara `transform` pisaría el centrado. */}
+      <span className="latido absolute inset-0 bg-[radial-gradient(40%_30%_at_50%_50%,rgba(212,175,55,0.32)_0%,rgba(212,175,55,0)_70%)]" />
       {/* El borde de arriba en oro vivo sobre el resto apagado es lo que hace
           visible el giro. Quien pide menos movimiento recibe el aro quieto
           (lo apaga la regla global), y por eso el rótulo de abajo no es
           decorativo: es lo único que sigue diciendo que algo está pasando. */}
-      <span className="girar size-9 rounded-full border-2 border-oro-profundo/40 border-t-oro sm:size-11" />
-      <span className="font-cond text-[11px] font-bold uppercase tracking-[0.22em] text-oro-medio">
+      <span className="girar relative size-12 rounded-full border-[3px] border-oro-profundo/35 border-t-oro drop-shadow-[0_0_14px_rgba(212,175,55,0.75)] sm:size-16 sm:border-4" />
+      {/* Con chapa propia: el rótulo cae sobre las piernas de la figura que se
+          está yendo o sobre el clip, y ahí el oro sobre oro no se leía. */}
+      <span className="relative rounded-sm border border-oro-profundo bg-noche/85 px-3.5 py-1.5 font-cond text-[12px] font-bold uppercase tracking-[0.24em] text-oro backdrop-blur-sm sm:text-[13px]">
         Cargando
       </span>
     </span>
@@ -199,6 +204,49 @@ function SiluetaViva({ peleador }: { peleador: Peleador }) {
         }`}
       />
     </>
+  );
+}
+
+/**
+ * Barrido de luz que recorre un botón cada tantos segundos.
+ *
+ * Es lo que hace que el botón de la ficha no se pierda. La sección se lee como
+ * una pantalla de selección de personaje, y ahí nadie espera que cada peleador
+ * tenga además una página propia: el botón estaba, pero quieto entre tanta
+ * caja dorada no lo miraba nadie. Es el mismo recurso con el que la ficha de
+ * peleador destaca la fila del rival, y por el mismo motivo.
+ *
+ * El contenedor tiene que ser `relative` y `overflow-hidden`, o la luz se sale
+ * por los costados.
+ */
+function Barrido({ claro = false }: { claro?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`brillo-boton pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent to-transparent ${
+        claro ? "via-white/75" : "via-oro/40"
+      }`}
+    />
+  );
+}
+
+/** Flecha de "esto lleva a otra página". */
+function FlechaFicha({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
   );
 }
 
@@ -276,23 +324,14 @@ function Rotulo({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
           {peleador.nombre}
         </h3>
         {/* El botón solo en escritorio: por debajo la esquina no da alto sin
-            llegar a la cabeza. El nombre y la foto ya son el enlace. */}
-        <span className="hidden items-center gap-2 rounded-sm border border-oro bg-oro-tinte px-3 py-1.5 font-cond text-[11px] font-bold uppercase tracking-[0.14em] text-oro transition-colors duration-300 group-hover:bg-oro group-hover:text-noche lg:flex">
-          Ver ficha
-          <svg
-            aria-hidden
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="transition-transform duration-300 group-hover:translate-x-0.5"
-          >
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
+            llegar a la cabeza. El nombre y la foto ya son el enlace.
+            Va en oro macizo y no en contorno: es la única pieza de la sección
+            que lleva a otra página, y como contorno se confundía con los
+            rótulos de al lado, que no llevan a ninguna parte. */}
+        <span className="pulso-ficha relative hidden items-center gap-2 overflow-hidden rounded-sm bg-oro px-4 py-2 font-cond text-[12px] font-bold uppercase tracking-[0.16em] text-noche transition-colors duration-300 group-hover:bg-oro-claro lg:flex">
+          <Barrido claro />
+          <span className="relative">Ver su ficha</span>
+          <FlechaFicha className="relative transition-transform duration-300 group-hover:translate-x-0.5" />
         </span>
       </Link>
     </div>
@@ -445,36 +484,142 @@ function FichaComparada({
   );
 }
 
-export function CaraACara() {
-  // Se guarda el PELEADOR elegido, no el combate. Antes se guardaba el
-  // combate y se pintaba siempre por el lado oficial del cartel, así que al
-  // tocar a alguien del lado b aparecía a la derecha y su rival a la
-  // izquierda: el que elegías nunca podía ser el primero. Con el clip de
-  // fondo el fallo se volvió obvio, porque sonaba el del rival.
-  // `fichaDe` ya devuelve el combate, el elegido y su contrincante.
-  const [elegido, setElegido] = useState(COMBATES[0].a.slug);
-  const ficha = fichaDe(elegido) ?? fichaDe(COMBATES[0].a.slug)!;
-  const { combate } = ficha;
-  // Izquierda es SIEMPRE el elegido; derecha, su rival. De aquí en adelante
-  // "a" y "b" son posiciones en pantalla, no las esquinas del cartel.
-  const izq = ficha.peleador;
-  const der = ficha.rival;
+/**
+ * Las dos esquinas como chapas, con la que está esperando toque marcada.
+ *
+ * Es la pieza que convierte la parrilla en un armador de peleas. Sin ella
+ * tocar una casilla solo podía significar una cosa, porque el rival venía
+ * impuesto por la cartelera; ahora significa dos, y hay que decir cuál. Las
+ * chapas también sirven para corregir: si querías cambiar al jugador 2 y el
+ * turno estaba en el 1, se toca su chapa y listo, sin gastar un toque en
+ * balde.
+ */
+function Turnos({
+  izq,
+  der,
+  turno,
+  onTurno,
+}: {
+  izq: Peleador;
+  der: Peleador;
+  turno: Lado;
+  onTurno: (lado: Lado) => void;
+}) {
+  return (
+    <ul className="mx-auto flex w-full max-w-[880px] items-stretch gap-2 lg:max-w-[800px]">
+      {(["a", "b"] as const).map((lado) => {
+        const p = lado === "a" ? izq : der;
+        const activo = turno === lado;
+        return (
+          <li key={lado} className="min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={() => onTurno(lado)}
+              aria-pressed={activo}
+              aria-label={`Elegir al jugador ${LADO[lado].numero}. Ahora es ${p.nombre}`}
+              className={`flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-sm border px-2.5 py-2 text-left transition duration-300 sm:px-3 ${
+                lado === "b" ? "flex-row-reverse text-right" : ""
+              } ${
+                activo
+                  ? `border-oro bg-oro-tinte ${LADO[lado].brillo}`
+                  : "border-linea bg-[#0e0e12] hover:border-oro-profundo"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`grid size-5 shrink-0 place-items-center font-display text-[12px] leading-none text-white ${LADO[lado].fondo}`}
+              >
+                {LADO[lado].numero}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-cond text-[12px] font-bold uppercase leading-tight tracking-[0.1em] text-crema sm:text-[13px]">
+                  {p.nombre}
+                </span>
+                {/* La chapa activa dice qué va a pasar con el próximo toque;
+                    la otra, que se puede tocar para corregir. */}
+                <span
+                  className={`block font-cond text-[10px] font-bold uppercase tracking-[0.16em] ${
+                    activo ? "text-oro" : "text-tenue"
+                  }`}
+                >
+                  {activo ? "Eligiendo" : "Cambiar"}
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
-  // Clip de fondo del escenario: el del ELEGIDO y, si no tiene, el del rival.
+export function CaraACara() {
+  // Las DOS esquinas se guardan por separado, no el combate ni un solo
+  // elegido. Antes se guardaba el combate y se pintaba por el lado oficial
+  // del cartel, así que al tocar a alguien del lado b aparecía a la derecha:
+  // el que elegías nunca podía ser el primero. Después pasó a guardarse el
+  // elegido, pero el rival seguía viniendo impuesto por la cartelera. Con una
+  // esquina por estado se puede armar cualquier cruce, esté o no en el cartel.
+  // "a" y "b" son posiciones en pantalla, no las esquinas oficiales.
+  const [duelo, setDuelo] = useState({
+    a: COMBATES[0].a.slug,
+    b: COMBATES[0].b.slug,
+  });
+  // Qué esquina recibe el próximo toque. Va alternando sola, como el turno de
+  // una pantalla de selección: tocas, entra el jugador 1, y el siguiente toque
+  // ya es del jugador 2. Las chapas de abajo la fijan a mano.
+  const [turno, setTurno] = useState<Lado>("a");
+
+  const izq = POR_SLUG.get(duelo.a) ?? COMBATES[0].a;
+  const der = POR_SLUG.get(duelo.b) ?? COMBATES[0].b;
+
+  // El cruce que está en pantalla, si resulta ser uno de la cartelera. Es lo
+  // que decide si el rótulo dice "Combate estelar" o "Combate soñado", y da
+  // igual el orden en que estén puestos: el cartel no distingue esquinas aquí.
+  const oficial =
+    COMBATES.find(
+      (c) =>
+        (c.a.slug === izq.slug && c.b.slug === der.slug) ||
+        (c.a.slug === der.slug && c.b.slug === izq.slug),
+    ) ?? null;
+
+  // Clip de fondo del escenario: el del JUGADOR 1 y, si no tiene, el del 2.
   // Con uno basta para ambientar el combate; dos a la vez serían dos descargas
-  // para un solo fondo. Diez de los dieciséis tienen clip; en los combates
-  // donde no lo tiene ninguno, el escenario se ve exactamente como siempre.
+  // para un solo fondo. Diez de los dieciséis tienen clip; en los cruces donde
+  // no lo tiene ninguno, el escenario se ve exactamente como siempre.
   const clip = izq.video ?? der.video;
 
-  // Al azar elige PELEADOR, no combate: así el sorteo también decide quién se
-  // pone delante, y repetir combate cambiando de esquina es un resultado
-  // válido.
-  const alAzar = () => {
-    const otros = PELEADORES.filter((p) => p.slug !== elegido);
-    setElegido(otros[Math.floor(Math.random() * otros.length)].slug);
+  /** Pone a alguien en la esquina que tenga el turno y pasa el turno a la otra. */
+  const elegir = (slug: string) => {
+    setDuelo((prev) => {
+      const ocupaLaOtra = turno === "a" ? prev.b === slug : prev.a === slug;
+      // Nadie puede pelear contra sí mismo: si ya estaba en la otra esquina,
+      // los dos cambian de lado en vez de quedar repetidos.
+      if (ocupaLaOtra) return { a: prev.b, b: prev.a };
+      return turno === "a" ? { a: slug, b: prev.b } : { a: prev.a, b: slug };
+    });
+    setTurno((t) => (t === "a" ? "b" : "a"));
   };
 
-  // Posición que ocupa un peleador en pantalla, o null si no es de este combate
+  /** Devuelve el cruce a la cartelera: el rival oficial del jugador 1. */
+  const volverAlOficial = () => {
+    const ficha = fichaDe(izq.slug);
+    if (!ficha) return;
+    setDuelo({ a: ficha.peleador.slug, b: ficha.rival.slug });
+    setTurno("a");
+  };
+
+  // Al azar sortea las DOS esquinas, no una: ahora el combate entero es lo que
+  // se arma, así que un sorteo a medias dejaría la mitad del trabajo hecho.
+  const alAzar = () => {
+    const uno = PELEADORES[Math.floor(Math.random() * PELEADORES.length)];
+    const otros = PELEADORES.filter((p) => p.slug !== uno.slug);
+    const dos = otros[Math.floor(Math.random() * otros.length)];
+    setDuelo({ a: uno.slug, b: dos.slug });
+    setTurno("a");
+  };
+
+  // Posición que ocupa un peleador en pantalla, o null si no está en el cruce
   const ladoDe = (slug: string): Lado | null =>
     izq.slug === slug ? "a" : der.slug === slug ? "b" : null;
 
@@ -588,29 +733,21 @@ export function CaraACara() {
                 // disponible es solo lo que queda hasta el borde y el texto
                 // se partía en dos líneas.
                 // min-h-11: es el objetivo táctil principal del escenario.
-                className={`cambio-texto absolute bottom-[18%] z-20 flex min-h-11 items-center gap-2 whitespace-nowrap rounded-sm bg-oro px-3.5 py-2 font-cond text-[11px] font-bold uppercase tracking-[0.16em] text-noche shadow-[0_8px_22px_rgba(0,0,0,0.6)] transition-colors hover:bg-oro-claro sm:px-4 lg:hidden ${
+                // Con barrido y un borde claro: es la única salida de la
+                // sección hacia la página del peleador, y entre el oro del
+                // escenario pasaba por adorno.
+                className={`cambio-pulso absolute bottom-[18%] z-20 flex min-h-11 items-center gap-2 overflow-hidden whitespace-nowrap rounded-sm border border-oro-claro bg-oro px-3.5 py-2.5 font-cond text-[12px] font-bold uppercase tracking-[0.16em] text-noche transition-colors hover:bg-oro-claro sm:px-4 lg:hidden ${
                   lado === "a" ? "left-3 sm:left-5" : "right-3 flex-row-reverse sm:right-5"
                 }`}
               >
+                <Barrido claro />
                 <span
-                  className={`grid size-4 place-items-center rounded-[2px] font-display text-[11px] leading-none text-white ${LADO[lado].fondo}`}
+                  className={`relative grid size-4 place-items-center rounded-[2px] font-display text-[11px] leading-none text-white ${LADO[lado].fondo}`}
                 >
                   {LADO[lado].numero}
                 </span>
-                Ver ficha
-                <svg
-                  aria-hidden
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
+                <span className="relative">Ver su ficha</span>
+                <FlechaFicha className="relative" />
               </Link>
             );
           })}
@@ -623,11 +760,12 @@ export function CaraACara() {
             aria-live="polite"
             className="absolute left-1/2 top-5 z-20 hidden -translate-x-1/2 whitespace-nowrap rounded-sm border border-oro-profundo bg-noche/80 px-4 py-2 font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro backdrop-blur-sm lg:block"
           >
-            {combate.billing ?? `Combate ${combate.n}`}
+            {oficial ? (oficial.billing ?? `Combate ${oficial.n}`) : "Combate soñado"}
             <span className="sr-only">
               : {izq.nombre} contra {der.nombre}
             </span>
-            <span className="text-oro-medio"> · </span>3 rounds
+            <span className="text-oro-medio"> · </span>
+            {oficial ? "3 rounds" : "Fuera de la cartelera"}
           </p>
         </div>
 
@@ -654,17 +792,17 @@ export function CaraACara() {
                 <li key={p.slug} className="min-w-0">
                   <button
                     type="button"
-                    onClick={() => setElegido(p.slug)}
+                    onClick={() => elegir(p.slug)}
                     // Precarga por intención: el puntero encima —o el dedo
-                    // apoyado, que también dispara `pointerenter`— llega
-                    // antes que el clic, y con eso las dos siluetas del
-                    // combate se van pidiendo mientras el dedo todavía baja.
-                    // Adelanta a la cola de fondo lo que la persona está a
-                    // punto de mirar.
-                    onPointerEnter={() => precargarCombate(p.slug)}
-                    onFocus={() => precargarCombate(p.slug)}
+                    // apoyado, que también dispara `pointerenter`— llega antes
+                    // que el clic, y con eso la silueta se va pidiendo mientras
+                    // el dedo todavía baja. Se precarga a UNO y no a su pareja
+                    // de cartel: desde que las esquinas se eligen por separado,
+                    // tocar a alguien ya no arrastra a su rival oficial.
+                    onPointerEnter={() => precargarFigura(p.cuerpo ?? p.foto)}
+                    onFocus={() => precargarFigura(p.cuerpo ?? p.foto)}
                     aria-pressed={lado !== null}
-                    aria-label={`${p.nombre}: ver su combate`}
+                    aria-label={`${p.nombre}: ponerlo de jugador ${LADO[turno].numero}`}
                     title={p.nombre}
                     className={`group relative block aspect-[3/4] w-full cursor-pointer overflow-hidden rounded-[3px] border bg-[#0e0e12] outline-none transition duration-300 ${
                       estilo
@@ -706,7 +844,7 @@ export function CaraACara() {
               <button
                 type="button"
                 onClick={alAzar}
-                aria-label="Elegir un combate al azar"
+                aria-label="Armar un combate al azar"
                 className="group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[3px] border border-oro-profundo bg-[#0e0e12]/95 outline-none transition duration-300 hover:border-oro hover:bg-oro-tinte"
               >
                 <span className="texto-oro font-display text-[44px] leading-none transition-transform duration-300 group-hover:scale-110 lg:text-[56px]">
@@ -718,26 +856,66 @@ export function CaraACara() {
               </button>
             </li>
           </ul>
-          {/* Por debajo de lg no hay costados libres: las fichas van debajo
-              de la parrilla, una a cada lado. */}
+          {/* Las chapas van DEBAJO de la parrilla y no encima: el bloque sube
+              sobre el escenario con margen negativo, y encima de la parrilla
+              esta barra chocaría con los botones de "Ver ficha" que en móvil
+              cuelgan del pie del escenario. Aquí abajo, además, queda justo
+              donde está el pulgar después de tocar una casilla. */}
+          <div className="mt-3 sm:mt-4">
+            <Turnos izq={izq} der={der} turno={turno} onTurno={setTurno} />
+          </div>
           {/* Por debajo de lg la ficha va debajo de la parrilla como UNA sola
               tabla comparativa. Dos tarjetas lado a lado no entraban en 360 px
               (se salía la edad del jugador 2) y dejaban un hueco negro en el
               medio; aquí el centro lo ocupa el dato, una sola vez. */}
           <div className="mt-3 sm:mt-4 lg:hidden">
-            <FichaComparada izq={izq} der={der} clave={combate.n} />
+            <FichaComparada
+              izq={izq}
+              der={der}
+              clave={`${izq.slug}-${der.slug}`}
+            />
           </div>
-          {/* El mismo rótulo del combate que en escritorio va arriba. */}
-          <p
-            aria-live="polite"
-            className="mx-auto mt-3 w-fit rounded-sm border border-oro-profundo bg-oro-tinte px-3.5 py-1.5 text-center font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro lg:hidden"
-          >
-            {combate.billing ?? `Combate ${combate.n}`}
-            <span className="sr-only">
-              : {izq.nombre} contra {der.nombre}
-            </span>
-            <span className="text-oro-medio"> · </span>3 rounds
-          </p>
+          {/* El mismo rótulo del cruce que en escritorio va arriba, más la
+              vuelta a la cartelera. El botón solo aparece cuando el cruce es
+              inventado: con uno oficial en pantalla no habría a dónde volver. */}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <p
+              aria-live="polite"
+              className="w-fit rounded-sm border border-oro-profundo bg-oro-tinte px-3.5 py-1.5 text-center font-cond text-[11px] font-bold uppercase tracking-[0.18em] text-oro lg:hidden"
+            >
+              {oficial ? (oficial.billing ?? `Combate ${oficial.n}`) : "Combate soñado"}
+              <span className="sr-only">
+                : {izq.nombre} contra {der.nombre}
+              </span>
+              <span className="text-oro-medio"> · </span>
+              {oficial ? "3 rounds" : "Fuera de la cartelera"}
+            </p>
+            {!oficial && (
+              <button
+                type="button"
+                onClick={volverAlOficial}
+                // En gris sobre negro no se veía. Va con borde y texto dorados,
+                // pero en oro medio y sin relleno: tiene que leerse como una
+                // salida secundaria y no competir con el chip de al lado.
+                className="flex w-fit cursor-pointer items-center gap-2 rounded-sm border border-oro-medio bg-noche px-4 py-2 font-cond text-[12px] font-bold uppercase tracking-[0.16em] text-oro-claro transition-colors hover:border-oro hover:bg-oro hover:text-noche"
+              >
+                <svg
+                  aria-hidden
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4" />
+                </svg>
+                Su combate real
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
