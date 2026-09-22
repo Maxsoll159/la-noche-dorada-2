@@ -66,6 +66,28 @@ recontado, así la barra queda al día en el mismo clic:
 `combates` está en la publicación de Realtime: los porcentajes se mueven solos
 en las pestañas abiertas. `votos` nunca se emite.
 
+### Comentarios
+
+Cada ficha de peleador tiene comentarios (tabla `comentarios`). Leerlos es
+público; comentar pide sesión con Google. Las reglas viven en la base:
+
+- **RLS:** cualquiera ve los comentarios no ocultos; cada usuario solo inserta y
+  borra los suyos. No hay edición.
+- **Trigger `preparar_comentario`:** fija el autor con `auth.uid()`, copia
+  nombre y foto de `perfiles` (que no es pública), limpia el texto (1 a 500
+  caracteres) y rechaza un segundo comentario del mismo usuario antes de 20 s.
+
+Para moderar desde el SQL Editor de Supabase:
+
+```sql
+-- ocultar un comentario (deja de verse en la web, no se borra)
+update public.comentarios set oculto = true where id = 123;
+
+-- ver los últimos comentarios de un peleador
+select id, autor_nombre, texto, creado_en from public.comentarios
+ where peleador = 'canita' order by creado_en desc limit 50;
+```
+
 ### Después de la velada
 
 Para puntuar los pronósticos, se marca el resultado real:

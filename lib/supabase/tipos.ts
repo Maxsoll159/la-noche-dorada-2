@@ -70,6 +70,47 @@ export type Database = {
           },
         ]
       }
+      comentarios: {
+        Row: {
+          autor_avatar: string | null
+          autor_nombre: string
+          creado_en: string
+          id: number
+          oculto: boolean
+          peleador: string
+          texto: string
+          usuario_id: string
+        }
+        Insert: {
+          autor_avatar?: string | null
+          autor_nombre?: string
+          creado_en?: string
+          id?: never
+          oculto?: boolean
+          peleador: string
+          texto: string
+          usuario_id?: string
+        }
+        Update: {
+          autor_avatar?: string | null
+          autor_nombre?: string
+          creado_en?: string
+          id?: never
+          oculto?: boolean
+          peleador?: string
+          texto?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comentarios_peleador_fkey"
+            columns: ["peleador"]
+            isOneToOne: false
+            referencedRelation: "peleadores"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       peleadores: {
         Row: {
           creado_en: string

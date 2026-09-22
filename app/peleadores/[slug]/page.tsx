@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { EVENTO, PELEADORES, BANDERAS, fichaDe } from "@/lib/evento";
+import { EVENTO, PELEADORES, BANDERAS, fichaDe, COMBATES } from "@/lib/evento";
 import { SITIO } from "@/lib/sitio";
 import { Patrocinador } from "@/components/inicio/patrocinador";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { Comentarios } from "@/components/peleador/comentarios";
 import { CabeceraPeleador } from "@/components/peleador/cabecera-peleador";
 import { NavegacionPeleadores } from "@/components/peleador/navegacion-peleadores";
 import { OtrosCombates } from "@/components/peleador/otros-combates";
 import { SuCombate } from "@/components/peleador/su-combate";
 import { ApoyoPeleador } from "@/components/pronosticos/apoyo-peleador";
-import { EncabezadoSeccion } from "@/components/ui/encabezado-seccion";
-import { FileteOro } from "@/components/ui/filete-oro";
-import { Revelar } from "@/components/ui/revelar";
+import { Seccion } from "@/components/ui/seccion";
 
 export function generateStaticParams() {
   return PELEADORES.map((p) => ({ slug: p.slug }));
@@ -86,6 +85,59 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
     ],
   };
 
+  const secciones = [
+    {
+      id: "pronostico",
+      antetitulo: "La comunidad",
+      titulo: "Pronóstico",
+      cuerpo: (
+        <ApoyoPeleador
+          combate={combate}
+          peleador={peleador}
+          rival={rival}
+          lado={lado}
+        />
+      ),
+    },
+    ...(peleador.resena
+      ? [
+          {
+            id: "quien-es",
+            antetitulo: "El personaje",
+            titulo: "Quién es",
+            cuerpo: (
+              <p className="mx-auto max-w-[52rem] text-center text-[17px] leading-relaxed text-tenue">
+                {peleador.resena}
+              </p>
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "combate",
+      antetitulo: diaYMes,
+      titulo: "Su combate",
+      cuerpo: <SuCombate peleador={peleador} rival={rival} combate={combate} />,
+    },
+    {
+      id: "comentarios",
+      antetitulo: "La comunidad opina",
+      titulo: "Comentarios",
+      cuerpo: <Comentarios slug={peleador.slug} nombre={peleador.nombre} />,
+    },
+    {
+      id: "otros-combates",
+      antetitulo: "La cartelera completa",
+      titulo: `Los otros ${COMBATES.length - 1} combates`,
+      cuerpo: (
+        <div className="flex flex-col gap-10">
+          <OtrosCombates combate={combate} />
+          <NavegacionPeleadores peleador={peleador} />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <script
@@ -96,58 +148,21 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
       <main>
         <CabeceraPeleador peleador={peleador} rival={rival} combate={combate} />
 
-        <FileteOro />
+        {secciones.map((sec, i) => (
+          <Seccion
+            key={sec.id}
+            id={sec.id}
+            fondo={i % 2 === 0 ? "superficie" : "noche"}
+            antetitulo={sec.antetitulo}
+            titulo={sec.titulo}
+          >
+            {sec.cuerpo}
+          </Seccion>
+        ))}
 
-        <section className="bg-superficie">
-          <div className="mx-auto flex max-w-contenido flex-col gap-12 px-6 py-16 lg:px-14 lg:py-20">
-            <Revelar
-              id="pronostico"
-              className="flex scroll-mt-28 flex-col gap-8"
-            >
-              <EncabezadoSeccion
-                antetitulo="La comunidad"
-                titulo="Pronóstico"
-              />
-              <ApoyoPeleador
-                combate={combate}
-                peleador={peleador}
-                rival={rival}
-                lado={lado}
-              />
-            </Revelar>
-
-            {peleador.resena && (
-              <Revelar className="flex flex-col items-center gap-4 text-center">
-                <EncabezadoSeccion
-                  antetitulo="El personaje"
-                  titulo="Quién es"
-                />
-                <p className="max-w-[52rem] text-[17px] leading-relaxed text-tenue">
-                  {peleador.resena}
-                </p>
-              </Revelar>
-            )}
-
-            <Revelar
-              id="combate"
-              retardo={80}
-              className="flex scroll-mt-28 flex-col gap-8"
-            >
-              <EncabezadoSeccion antetitulo={diaYMes} titulo="Su combate" />
-              <SuCombate peleador={peleador} rival={rival} combate={combate} />
-            </Revelar>
-
-            <Revelar retardo={80} className="flex flex-col gap-8">
-              <OtrosCombates combate={combate} />
-            </Revelar>
-
-            <Revelar retardo={80}>
-              <NavegacionPeleadores peleador={peleador} />
-            </Revelar>
-          </div>
-        </section>
-
-        <Patrocinador />
+        <Patrocinador
+          fondo={secciones.length % 2 === 0 ? "superficie" : "noche"}
+        />
       </main>
       <SiteFooter />
     </>

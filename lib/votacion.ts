@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { clienteNavegador } from "./supabase/cliente";
 import type { Lado } from "./compartir";
+import { iniciarSesionConGoogle } from "./sesion";
 
 export type { Lado };
 
@@ -139,13 +140,11 @@ export function useVotacion(activo: boolean) {
   }, [activo, idUsuario]);
 
   const entrar = useCallback(async () => {
-    const supabase = clienteNavegador();
-    const vuelta = `${window.location.origin}/auth/callback`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: vuelta },
-    });
-    if (error) setError("No pudimos abrir el acceso con Google.");
+    const { pathname } = window.location;
+    const ok = await iniciarSesionConGoogle(
+      pathname === "/" ? "/#pronosticos" : `${pathname}#pronostico`,
+    );
+    if (!ok) setError("No pudimos abrir el acceso con Google.");
   }, []);
 
   const salir = useCallback(async () => {

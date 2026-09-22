@@ -71,10 +71,15 @@ function TarjetaPatrocinador({ p }: { p: Patrocinio }) {
   );
 }
 
-export function Patrocinador() {
+export function Patrocinador({
+  fondo = "noche",
+}: {
+  fondo?: "noche" | "superficie";
+}) {
   return (
     <Seccion
       id="patrocinadores"
+      fondo={fondo}
       antetitulo="Con el respaldo de"
       titulo="Patrocinadores"
     >
