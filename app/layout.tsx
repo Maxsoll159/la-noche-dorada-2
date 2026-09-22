@@ -55,6 +55,9 @@ export const metadata: Metadata = {
     "Perú",
   ],
   alternates: { canonical: "/" },
+  verification: {
+    google: "3DQ_tEGLL_KxjM45WyB_yLtsaglzKuUemebbI8pGZho",
+  },
   robots: {
     index: true,
     follow: true,

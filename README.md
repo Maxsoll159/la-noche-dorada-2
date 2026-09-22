@@ -175,11 +175,18 @@ Las dos variables de `.env.local` van también en el hosting (en Vercel,
 navegador y lo que se puede hacer con ellas lo decide la RLS. La `service_role`
 no se usa en este proyecto y no debe acabar en ninguna variable `NEXT_PUBLIC_`.
 
-Aparte, `NEXT_PUBLIC_SITIO` no está puesta en Vercel, así que el canónico, el
-`sitemap.xml` y el `robots.txt` de producción anuncian `https://lanochedorada.pe`
-—el dominio definitivo— y no donde el sitio vive hoy. No afecta a la votación.
-Cuando se decida el dominio de salida, o se apunta el real al despliegue o se
-pone `NEXT_PUBLIC_SITIO=https://la-noche-dorada-2.vercel.app`.
+El dominio público sale de `lib/sitio.ts`: manda `NEXT_PUBLIC_SITIO` si está puesta;
+si no, el dominio de producción que Vercel inyecta en cada build; y como último
+respaldo `https://la-noche-dorada-2.vercel.app`. De ahí salen el canónico, el
+`sitemap.xml` y el `robots.txt`.
+
+## Google Search Console
+
+La propiedad es `https://la-noche-dorada-2.vercel.app` (prefijo de URL),
+verificada con la etiqueta `google-site-verification` que va en
+`metadata.verification` de `app/layout.tsx`. No la quites: si desaparece,
+Search Console pierde la verificación. Si el sitio cambia de dominio, hay que
+crear una propiedad nueva para ese dominio.
 
 ## Apagar la votación
 
