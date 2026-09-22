@@ -460,29 +460,12 @@
   animation: tic 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-body {
-  cursor:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='24' viewBox='0 0 20 24'%3E%3Cpath d='M10 1 18 12 10 23 2 12Z' fill='%23d4af37' stroke='%230b0b0d' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10 5.5 14.6 12 10 18.5 5.4 12Z' fill='%23f7e3a1'/%3E%3C/svg%3E")
-      10 1,
-    auto;
-}
-
-a,
-summary,
-[role="button"],
-button:not(:disabled),
-.cursor-pointer:not(:disabled) {
-  cursor:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='%230b0b0d' stroke-width='3.2' opacity='.6'/%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='%23d4af37' stroke-width='1.3'/%3E%3Cpath d='M15 7.5 22.5 15 15 22.5 7.5 15Z' fill='none' stroke='%230b0b0d' stroke-width='3.6' stroke-linejoin='round'/%3E%3Cpath d='M15 7.5 22.5 15 15 22.5 7.5 15Z' fill='%23d4af37' fill-opacity='.22' stroke='%23f7e3a1' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E")
-      15 15,
-    pointer;
-}
-
-input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not(
-    [type="radio"]
-  ),
-textarea {
-  cursor: text;
+@layer base {
+  button:not(:disabled),
+  [role="button"],
+  summary {
+    cursor: pointer;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

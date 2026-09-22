@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { clienteNavegador } from "./supabase/cliente";
 import type { Lado } from "./compartir";
@@ -56,13 +56,11 @@ export function puntaje(
   return { resueltos, aciertos };
 }
 
-export function useVotacion(activo: boolean) {
-  const [usuario, setUsuario] = useState<User | null>(null);
+export function useConteos(activo: boolean) {
+  const idCanal = useId();
   const [conteos, setConteos] = useState<Record<string, Conteo>>({});
-  const [votos, setVotos] = useState<Record<string, Lado>>({});
   const [cargando, setCargando] = useState(activo);
-  const [enviando, setEnviando] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorCarga, setErrorCarga] = useState(false);
 
   useEffect(() => {
     if (!activo) return;
@@ -72,16 +70,14 @@ export function useVotacion(activo: boolean) {
     (async () => {
       const { data, error } = await supabase.from("combates").select(COLUMNAS);
       if (!vivo) return;
-      if (error) {
-        setError("No pudimos cargar los pronósticos. Recarga la página.");
-      } else {
+      if (error) setErrorCarga(true);
+      else
         setConteos(Object.fromEntries(data.map((f) => [f.numero, aConteo(f)])));
-      }
       setCargando(false);
     })();
 
     const canal = supabase
-      .channel("conteo-combates")
+      .channel(`conteo-combates-${idCanal}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "combates" },
@@ -96,7 +92,20 @@ export function useVotacion(activo: boolean) {
       vivo = false;
       supabase.removeChannel(canal);
     };
-  }, [activo]);
+  }, [activo, idCanal]);
+
+  return { conteos, setConteos, cargando, errorCarga };
+}
+
+export function useVotacion(activo: boolean) {
+  const { conteos, setConteos, cargando, errorCarga } = useConteos(activo);
+  const [usuario, setUsuario] = useState<User | null>(null);
+  const [votos, setVotos] = useState<Record<string, Lado>>({});
+  const [enviando, setEnviando] = useState<string | null>(null);
+  const [errorAccion, setError] = useState<string | null>(null);
+  const error = errorCarga
+    ? "No pudimos cargar los pronósticos. Recarga la página."
+    : errorAccion;
 
   useEffect(() => {
     if (!activo) return;
@@ -179,7 +188,7 @@ export function useVotacion(activo: boolean) {
         return siguiente;
       });
     },
-    [entrar, usuario, votos],
+    [entrar, setConteos, usuario, votos],
   );
 
   useEffect(() => {

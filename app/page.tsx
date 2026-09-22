@@ -7,6 +7,7 @@ import { Hero } from "@/components/inicio/hero";
 import { Patrocinador } from "@/components/inicio/patrocinador";
 import { PreguntasFrecuentes } from "@/components/inicio/preguntas-frecuentes";
 import { Presentacion } from "@/components/inicio/presentacion";
+import { Favoritos } from "@/components/pronosticos/favoritos";
 import { Pronosticos } from "@/components/pronosticos/pronosticos";
 import { Seccion } from "@/components/ui/seccion";
 import { Sede } from "@/components/inicio/sede";
@@ -31,11 +32,20 @@ export default function Page() {
         </Seccion>
         <Seccion
           id="pronosticos"
+          fondo="superficie"
           antetitulo="Votación abierta"
           titulo="Pronósticos"
           bajada="Elige a tu favorito en cada uno de los ocho combates, arma tus pronósticos y compártelos antes de la gran noche."
         >
           <Pronosticos />
+        </Seccion>
+        <Seccion
+          id="favoritos"
+          antetitulo="Ranking en vivo"
+          titulo="Los favoritos"
+          bajada="Así apoya la comunidad a cada peleador. El ranking cambia con cada voto."
+        >
+          <Favoritos />
         </Seccion>
         <Combates />
         <Seccion
