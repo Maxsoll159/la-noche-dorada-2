@@ -30,7 +30,8 @@ export const PARRILLA: Peleador[] = [
 
 export const POR_SLUG = new Map(PELEADORES.map((p) => [p.slug, p]));
 
-export const SIZES_FIGURA = "(min-width: 1024px) 600px, 62vw";
+export const SIZES_FIGURA =
+  "(min-width: 1024px) 40vh, (min-width: 640px) 330px, 235px";
 
 const pedidas = new Set<string>();
 

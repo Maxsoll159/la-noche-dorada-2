@@ -111,6 +111,7 @@ export function SiteHeader() {
               width={455}
               height={406}
               loading="eager"
+              sizes="72px"
               className="h-14 w-auto lg:h-16"
             />
           </Link>

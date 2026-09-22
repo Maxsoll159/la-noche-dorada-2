@@ -49,6 +49,7 @@ export function Hero() {
           fill
           loading="eager"
           sizes="100vw"
+          quality={50}
           style={{ objectPosition: "center 25%" }}
           className="zoom-lento object-cover opacity-85"
         />
@@ -106,6 +107,9 @@ export function Hero() {
           width={455}
           height={406}
           preload
+          fetchPriority="high"
+          quality={70}
+          sizes="(min-width: 1024px) 400px, (min-width: 640px) 520px, 72vw"
           style={{ animationDelay: "260ms, 1110ms" }}
           className="w-[72%] max-w-[520px] entrada-flotante drop-shadow-[0_18px_60px_rgba(0,0,0,0.6)] sm:w-full lg:max-w-[400px]"
         />
