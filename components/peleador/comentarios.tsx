@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { LogoGoogle } from "@/assets/icons";
+import { IconoComentario, IconoEnviar, LogoGoogle } from "@/assets/icons";
 import { iniciarSesionConGoogle, useUsuario } from "@/lib/sesion";
 import { clienteNavegador } from "@/lib/supabase/cliente";
 
@@ -38,31 +38,40 @@ function haceCuanto(iso: string) {
   return "ahora";
 }
 
-function Avatar({ nombre, url }: { nombre: string; url: string | null }) {
+function Avatar({
+  nombre,
+  url,
+  grande = false,
+}: {
+  nombre: string;
+  url: string | null | undefined;
+  grande?: boolean;
+}) {
+  const tamano = grande ? "size-12" : "size-11";
   if (url) {
     return (
       <Image
         src={url}
         alt=""
-        width={40}
-        height={40}
+        width={48}
+        height={48}
         unoptimized
         referrerPolicy="no-referrer"
-        className="size-10 shrink-0 rounded-full border border-oro-profundo object-cover"
+        className={`${tamano} shrink-0 rounded-full object-cover ring-2 ring-oro-profundo ring-offset-2 ring-offset-carbon`}
       />
     );
   }
   return (
     <span
       aria-hidden
-      className="grid size-10 shrink-0 place-items-center rounded-full border border-oro-profundo bg-oro-tinte font-display text-[16px] text-oro uppercase"
+      className={`${tamano} grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-oro-claro to-oro-profundo font-display text-[18px] text-noche uppercase ring-2 ring-oro-profundo ring-offset-2 ring-offset-carbon`}
     >
       {nombre.charAt(0)}
     </span>
   );
 }
 
-function ItemComentario({
+function TarjetaComentario({
   comentario,
   propio,
   onEliminar,
@@ -75,31 +84,44 @@ function ItemComentario({
   const [borrando, setBorrando] = useState(false);
 
   return (
-    <li className="flex gap-3 border-t border-linea px-4 py-4 first:border-t-0 sm:gap-4 sm:px-6">
+    <li
+      className={`relative flex cambio gap-3.5 overflow-hidden rounded-sm border p-4 transition-colors duration-300 sm:gap-4 sm:p-5 ${
+        propio
+          ? "border-oro-profundo bg-oro-tinte/60"
+          : "border-linea bg-carbon hover:border-oro-profundo/60"
+      }`}
+    >
+      {propio && (
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-oro-claro via-oro to-oro-profundo"
+        />
+      )}
       <Avatar nombre={comentario.autor_nombre} url={comentario.autor_avatar} />
       <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="font-cond text-[14px] font-bold tracking-[0.06em] text-crema uppercase">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="font-cond text-[15px] font-bold tracking-[0.04em] text-crema">
             {comentario.autor_nombre}
           </span>
           {propio && (
-            <span className="rounded-full border border-oro-profundo px-1.5 py-px font-cond text-[9px] font-bold tracking-[0.16em] text-oro uppercase">
+            <span className="rounded-full bg-oro px-2 py-0.5 font-cond text-[9px] leading-none font-bold tracking-[0.16em] text-noche uppercase">
               Tú
             </span>
           )}
+          <span aria-hidden className="size-1 rounded-full bg-humo" />
           <time
             dateTime={comentario.creado_en}
             title={new Date(comentario.creado_en).toLocaleString("es-PE")}
-            className="font-cond text-[11px] font-semibold tracking-[0.1em] text-tenue uppercase"
+            className="font-cond text-[12px] font-semibold tracking-[0.06em] text-tenue"
           >
             {haceCuanto(comentario.creado_en)}
           </time>
         </p>
-        <p className="mt-1 text-[15px] leading-relaxed break-words whitespace-pre-line text-crema/90">
+        <p className="mt-1.5 text-[15px] leading-relaxed break-words whitespace-pre-line text-crema/90 sm:text-[16px]">
           {comentario.texto}
         </p>
         {propio && (
-          <div className="mt-2 flex items-center gap-3 font-cond text-[11px] font-bold tracking-[0.14em] uppercase">
+          <div className="mt-3 flex items-center gap-3 font-cond text-[11px] font-bold tracking-[0.14em] uppercase">
             {confirmando ? (
               <>
                 <span className="text-tenue">¿Eliminar tu comentario?</span>
@@ -112,7 +134,7 @@ function ItemComentario({
                     setBorrando(false);
                     setConfirmando(false);
                   }}
-                  className="text-[#ffb4b4] transition-colors hover:text-white disabled:cursor-wait disabled:opacity-50"
+                  className="rounded-sm border border-[#7a2b2b] px-2.5 py-1 text-[#ffb4b4] transition-colors hover:bg-[#7a2b2b] hover:text-white disabled:cursor-wait disabled:opacity-50"
                 >
                   Sí, eliminar
                 </button>
@@ -128,7 +150,7 @@ function ItemComentario({
               <button
                 type="button"
                 onClick={() => setConfirmando(true)}
-                className="text-tenue underline transition-colors hover:text-oro"
+                className="text-tenue transition-colors hover:text-oro"
               >
                 Eliminar
               </button>
@@ -137,6 +159,26 @@ function ItemComentario({
         )}
       </div>
     </li>
+  );
+}
+
+function Esqueleto() {
+  return (
+    <ul aria-hidden className="flex flex-col gap-3">
+      {[0, 1, 2].map((i) => (
+        <li
+          key={i}
+          className="flex animate-pulse gap-4 rounded-sm border border-linea bg-carbon p-5"
+        >
+          <span className="size-11 shrink-0 rounded-full bg-linea" />
+          <span className="flex flex-1 flex-col gap-2.5 pt-1">
+            <span className="h-3 w-1/3 rounded-full bg-linea" />
+            <span className="h-3 w-full rounded-full bg-linea/70" />
+            <span className="h-3 w-2/3 rounded-full bg-linea/70" />
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -149,6 +191,7 @@ export function Comentarios({
 }) {
   const { usuario, listo } = useUsuario();
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [hayMas, setHayMas] = useState(false);
   const [texto, setTexto] = useState("");
@@ -157,9 +200,9 @@ export function Comentarios({
 
   const cargar = useCallback(
     async (desde: number) => {
-      const { data, error } = await clienteNavegador()
+      const { data, error, count } = await clienteNavegador()
         .from("comentarios")
-        .select(COLUMNAS)
+        .select(COLUMNAS, { count: "exact" })
         .eq("peleador", slug)
         .order("creado_en", { ascending: false })
         .range(desde, desde + POR_PAGINA);
@@ -167,6 +210,7 @@ export function Comentarios({
         setError("No pudimos cargar los comentarios.");
         return;
       }
+      if (count !== null) setTotal(count);
       setHayMas(data.length > POR_PAGINA);
       const pagina = data.slice(0, POR_PAGINA);
       setComentarios((prev) => (desde === 0 ? pagina : [...prev, ...pagina]));
@@ -203,6 +247,7 @@ export function Comentarios({
     }
     setTexto("");
     setComentarios((prev) => [data, ...prev]);
+    setTotal((t) => (t ?? 0) + 1);
   };
 
   const eliminar = async (id: number) => {
@@ -215,59 +260,105 @@ export function Comentarios({
       return;
     }
     setComentarios((prev) => prev.filter((c) => c.id !== id));
+    setTotal((t) => Math.max((t ?? 1) - 1, 0));
   };
 
-  const restantes = MAXIMO - texto.length;
+  const usados = texto.length;
+  const avatarPropio = usuario?.user_metadata?.avatar_url as string | undefined;
+  const nombrePropio =
+    (usuario?.user_metadata?.full_name as string | undefined) ?? "Tú";
 
   return (
-    <div className="mx-auto w-full max-w-[780px] overflow-hidden rounded-sm border border-oro-profundo bg-carbon">
-      <div className="border-b border-linea bg-[#08080b] px-4 py-4 sm:px-6">
+    <div className="mx-auto flex w-full max-w-[820px] flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-linea pb-4">
+        <p className="flex items-center gap-2.5 font-display text-[20px] tracking-wide text-crema uppercase sm:text-[22px]">
+          <span className="text-oro">
+            <IconoComentario size={22} />
+          </span>
+          {total === null
+            ? "Comentarios"
+            : `${total} ${total === 1 ? "comentario" : "comentarios"}`}
+        </p>
+        <p className="font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
+          Opina con respeto · Sin insultos ni spam
+        </p>
+      </div>
+
+      <div className="relative overflow-hidden rounded-sm border border-oro-profundo bg-[linear-gradient(135deg,var(--color-oro-tinte)_0%,var(--color-carbon)_60%)] p-4 transition-shadow duration-300 focus-within:border-oro focus-within:shadow-[0_0_0_1px_rgba(212,175,55,0.35),0_12px_40px_-12px_rgba(212,175,55,0.35)] sm:p-5">
         {!listo ? (
-          <p className="font-cond text-[12px] font-semibold tracking-[0.14em] text-tenue uppercase">
-            Cargando…
-          </p>
+          <div className="h-[92px] animate-pulse rounded-sm bg-linea/40" />
         ) : usuario ? (
-          <form onSubmit={enviar} className="flex flex-col gap-3">
-            <label
-              htmlFor={`comentario-${slug}`}
-              className="font-cond text-[11px] font-bold tracking-[0.2em] text-oro uppercase"
-            >
-              ¿Qué opinas de {nombre}?
-            </label>
-            <textarea
-              id={`comentario-${slug}`}
-              value={texto}
-              onChange={(e) => setTexto(e.target.value.slice(0, MAXIMO))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) enviar();
-              }}
-              maxLength={MAXIMO}
-              rows={3}
-              placeholder="Escribe tu comentario…"
-              className="w-full resize-y rounded-sm border border-linea bg-noche px-3.5 py-3 text-[15px] leading-relaxed text-crema placeholder:text-humo focus:border-oro focus:outline-none"
-            />
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span
-                className={`font-cond text-[11px] font-semibold tracking-[0.12em] uppercase ${
-                  restantes < 50 ? "text-oro" : "text-tenue"
-                }`}
-              >
-                {restantes} caracteres
-              </span>
-              <button
-                type="submit"
-                disabled={enviando || texto.trim().length === 0}
-                className="rounded-sm bg-oro px-6 py-2.5 font-cond text-[13px] font-bold tracking-[0.14em] text-noche uppercase transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {enviando ? "Publicando…" : "Comentar"}
-              </button>
+          <form onSubmit={enviar} className="flex gap-3.5 sm:gap-4">
+            <span className="hidden sm:block">
+              <Avatar nombre={nombrePropio} url={avatarPropio} grande />
+            </span>
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <label htmlFor={`comentario-${slug}`} className="sr-only">
+                Tu comentario sobre {nombre}
+              </label>
+              <textarea
+                id={`comentario-${slug}`}
+                value={texto}
+                onChange={(e) => setTexto(e.target.value.slice(0, MAXIMO))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) enviar();
+                }}
+                maxLength={MAXIMO}
+                rows={3}
+                placeholder={`¿Qué opinas de ${nombre}?`}
+                className="field-sizing-content min-h-[84px] w-full resize-none rounded-sm border border-linea bg-noche/70 px-4 py-3 text-[15px] leading-relaxed text-crema placeholder:text-humo focus:border-oro-profundo focus:outline-none sm:text-[16px]"
+              />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span
+                    aria-hidden
+                    className="h-1 w-24 overflow-hidden rounded-full bg-linea sm:w-32"
+                  >
+                    <span
+                      style={{ width: `${(usados / MAXIMO) * 100}%` }}
+                      className={`block h-full rounded-full transition-[width] duration-200 ${
+                        usados > MAXIMO - 50
+                          ? "bg-oro-claro"
+                          : "bg-oro-profundo"
+                      }`}
+                    />
+                  </span>
+                  <span
+                    className={`font-cond text-[11px] font-semibold tracking-[0.1em] tabular-nums ${
+                      usados > MAXIMO - 50 ? "text-oro" : "text-tenue"
+                    }`}
+                  >
+                    {usados}/{MAXIMO}
+                  </span>
+                </div>
+                <button
+                  type="submit"
+                  disabled={enviando || texto.trim().length === 0}
+                  className="group flex shrink-0 items-center gap-2 rounded-sm bg-oro px-5 py-2.5 font-cond text-[13px] font-bold tracking-[0.14em] text-noche uppercase shadow-[0_8px_22px_-8px_rgba(212,175,55,0.6)] transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                >
+                  {enviando ? "Publicando…" : "Publicar"}
+                  <IconoEnviar
+                    size={15}
+                    strokeWidth={2.2}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  />
+                </button>
+              </div>
             </div>
           </form>
         ) : (
-          <div className="flex flex-col items-center gap-3 py-2 text-center sm:flex-row sm:justify-between sm:text-left">
-            <p className="font-cond text-[13px] font-semibold tracking-[0.12em] text-tenue uppercase">
-              Entra con tu cuenta de Google para comentar
-            </p>
+          <div className="flex flex-col items-center gap-4 py-2 text-center sm:flex-row sm:text-left">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full border border-oro-profundo bg-noche/60 text-oro">
+              <IconoComentario size={22} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[18px] leading-tight tracking-wide text-crema uppercase">
+                Únete a la conversación
+              </p>
+              <p className="mt-1 font-cond text-[12px] font-semibold tracking-[0.12em] text-tenue uppercase">
+                Entra con Google para comentar sobre {nombre}
+              </p>
+            </div>
             <button
               type="button"
               onClick={() =>
@@ -275,36 +366,46 @@ export function Comentarios({
                   `${window.location.pathname}#comentarios`,
                 )
               }
-              className="flex shrink-0 items-center justify-center gap-2.5 rounded-sm bg-crema px-5 py-2.5 font-cond text-[13px] font-bold tracking-[0.13em] text-noche uppercase transition-colors hover:bg-white"
+              className="flex shrink-0 items-center justify-center gap-2.5 rounded-sm bg-crema px-5 py-3 font-cond text-[13px] font-bold tracking-[0.13em] text-noche uppercase transition-colors hover:bg-white"
             >
-              <LogoGoogle className="size-[16px] shrink-0" />
+              <LogoGoogle className="size-[17px] shrink-0" />
               Entrar con Google
             </button>
           </div>
         )}
-        {error && (
-          <p
-            role="status"
-            className="mt-3 rounded-sm border border-[#7a2b2b] bg-[#1c0d0d] px-3 py-2 font-cond text-[12px] font-semibold tracking-[0.1em] text-[#ffb4b4] uppercase"
-          >
-            {error}
-          </p>
-        )}
       </div>
 
+      {error && (
+        <p
+          role="status"
+          className="rounded-sm border border-[#7a2b2b] bg-[#1c0d0d] px-4 py-2.5 font-cond text-[12px] font-semibold tracking-[0.1em] text-[#ffb4b4] uppercase"
+        >
+          {error}
+        </p>
+      )}
+
       {cargando ? (
-        <p className="px-6 py-8 text-center font-cond text-[12px] font-semibold tracking-[0.14em] text-tenue uppercase">
-          Cargando comentarios…
-        </p>
+        <Esqueleto />
       ) : comentarios.length === 0 ? (
-        <p className="px-6 py-8 text-center font-cond text-[13px] font-semibold tracking-[0.12em] text-tenue uppercase">
-          Todavía nadie comentó. ¡Sé el primero!
-        </p>
+        <div className="flex flex-col items-center gap-3 rounded-sm border border-dashed border-oro-profundo/60 px-6 py-10 text-center">
+          <span className="text-oro-profundo">
+            <IconoComentario size={36} strokeWidth={1.5} />
+          </span>
+          <p className="font-display text-[20px] tracking-wide text-crema uppercase">
+            Todavía no hay comentarios
+          </p>
+          <p className="font-cond text-[12px] font-semibold tracking-[0.14em] text-tenue uppercase">
+            Sé el primero en opinar sobre {nombre}
+          </p>
+        </div>
       ) : (
         <>
-          <ul aria-label={`Comentarios sobre ${nombre}`}>
+          <ul
+            aria-label={`Comentarios sobre ${nombre}`}
+            className="flex flex-col gap-3"
+          >
             {comentarios.map((c) => (
-              <ItemComentario
+              <TarjetaComentario
                 key={c.id}
                 comentario={c}
                 propio={c.usuario_id === usuario?.id}
@@ -313,15 +414,13 @@ export function Comentarios({
             ))}
           </ul>
           {hayMas && (
-            <div className="border-t border-linea px-6 py-3 text-center">
-              <button
-                type="button"
-                onClick={() => cargar(comentarios.length)}
-                className="font-cond text-[12px] font-bold tracking-[0.16em] text-oro-medio uppercase transition-colors hover:text-oro"
-              >
-                Ver más comentarios
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => cargar(comentarios.length)}
+              className="mx-auto rounded-sm border border-oro-profundo px-6 py-2.5 font-cond text-[12px] font-bold tracking-[0.16em] text-oro uppercase transition-colors hover:border-oro hover:bg-oro-tinte"
+            >
+              Ver más comentarios
+            </button>
           )}
         </>
       )}
