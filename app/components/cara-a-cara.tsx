@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BANDERAS,
   COMBATES,
@@ -35,6 +35,76 @@ const PARRILLA: Peleador[] = [
   ...ORDEN_PARRILLA.flatMap((slug) => PELEADORES.filter((p) => p.slug === slug)),
   ...PELEADORES.filter((p) => !ORDEN_PARRILLA.includes(p.slug)),
 ];
+
+/**
+ * Los `sizes` de la silueta grande. Es una constante y no un literal suelto
+ * porque la precarga tiene que pedir EXACTAMENTE la misma variante que luego
+ * va a pintar `<Image>`: si los dos valores se separan, el navegador elige
+ * candidatos distintos del `srcset` y la silueta se descarga dos veces.
+ */
+const SIZES_FIGURA = "(min-width: 1024px) 600px, 62vw";
+
+/**
+ * Orden en que se van pidiendo las siluetas de fondo: primero las dos que ya
+ * están en el escenario al abrir (el estelar), y detrás el resto de la
+ * parrilla. Así la precarga ociosa también adelanta lo que se ve primero.
+ */
+const ORDEN_PRECARGA: readonly string[] = [
+  COMBATES[0].a,
+  COMBATES[0].b,
+  ...PARRILLA.filter(
+    (p) => p.slug !== COMBATES[0].a.slug && p.slug !== COMBATES[0].b.slug,
+  ),
+].map((p) => p.cuerpo ?? p.foto);
+
+/** Siluetas ya pedidas. A nivel de módulo: una sola vez por carga de página. */
+const pedidas = new Set<string>();
+
+/**
+ * Adelanta una silueta al navegador.
+ *
+ * El retraso que se veía al cambiar de peleador no era la descarga: era el
+ * optimizador de imágenes de Next, que la primera vez que le piden una
+ * variante tiene que decodificar el WebP original, redimensionarlo y volver a
+ * codificarlo. Medido sobre estos archivos, eso es de 0,8 a 4 segundos por
+ * silueta. Se paga una sola vez —después queda cacheada—, pero la pagaba
+ * justo quien acababa de tocar la casilla.
+ *
+ * Pidiéndola antes, el trabajo se hace mientras la persona mira otra cosa y
+ * el clic ya encuentra la imagen hecha.
+ */
+function precargarFigura(src: string, alTerminar?: () => void) {
+  if (pedidas.has(src)) {
+    alTerminar?.();
+    return;
+  }
+  pedidas.add(src);
+
+  // `getImageProps` es la forma documentada de saber qué URL pediría `<Image>`
+  // sin replicar a mano las rutas del optimizador, que son internas.
+  const { props } = getImageProps({
+    src,
+    alt: "",
+    fill: true,
+    sizes: SIZES_FIGURA,
+  });
+
+  const img = new window.Image();
+  // Prioridad baja: esto es trabajo adelantado para un clic que quizá no
+  // llegue, y no tiene por qué competir con lo que ya se está mirando.
+  // Donde no exista la propiedad, la asignación sencillamente no hace nada.
+  img.fetchPriority = "low";
+  if (alTerminar) {
+    img.onload = alTerminar;
+    img.onerror = alTerminar;
+  }
+  // `sizes` y `srcSet` ANTES que `src`: el navegador escoge el candidato en el
+  // momento en que se asigna `src`, así que al revés se llevaría el mayor del
+  // srcset y la variante buena quedaría sin pedir.
+  if (props.sizes) img.sizes = props.sizes;
+  if (props.srcSet) img.srcset = props.srcSet;
+  img.src = props.src;
+}
 
 /**
  * Jugador 1 a la izquierda, jugador 2 a la derecha, como en una pantalla de
@@ -81,7 +151,7 @@ function Figura({ peleador, lado }: { peleador: Peleador; lado: Lado }) {
             src={peleador.cuerpo ?? peleador.foto}
             alt={peleador.nombre}
             fill
-            sizes="(min-width: 1024px) 600px, 62vw"
+            sizes={SIZES_FIGURA}
             // Los recortes salen normalizados: misma proporción, silueta
             // centrada y apoyada al pie, así que alcanza object-contain.
             // El brillo compensa que son tomas de estudio muy oscuras.
@@ -313,6 +383,8 @@ export function CaraACara() {
   // fondo el fallo se volvió obvio, porque sonaba el del rival.
   // `fichaDe` ya devuelve el combate, el elegido y su contrincante.
   const [elegido, setElegido] = useState(COMBATES[0].a.slug);
+  // Ancla del observador que dispara la precarga de las siluetas.
+  const escenario = useRef<HTMLDivElement>(null);
   const ficha = fichaDe(elegido) ?? fichaDe(COMBATES[0].a.slug)!;
   const { combate } = ficha;
   // Izquierda es SIEMPRE el elegido; derecha, su rival. De aquí en adelante
@@ -325,6 +397,75 @@ export function CaraACara() {
   // para un solo fondo. Diez de los dieciséis tienen clip; en los combates
   // donde no lo tiene ninguno, el escenario se ve exactamente como siempre.
   const clip = izq.video ?? der.video;
+
+  // Las dieciséis siluetas, pedidas de a una cuando la sección se acerca a
+  // pantalla y el navegador queda ocioso.
+  //
+  // De a una y encadenadas a propósito: dieciséis peticiones de golpe le harían
+  // cola al optimizador y la primera —que es justo la que se está mirando—
+  // saldría la última. Y colgadas del observador, como el clip de fondo, para
+  // no gastarle algo más de un mega a quien se queda en el hero y nunca baja.
+  useEffect(() => {
+    const el = escenario.current;
+    if (!el) return;
+
+    // Con ahorro de datos o en una conexión mala no se precarga nada: ahí
+    // queda la precarga por intención de la parrilla, que pide de a una y
+    // solo lo que la persona está a punto de tocar.
+    const conexion = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    if (conexion?.saveData) return;
+    if (conexion?.effectiveType && /2g$/.test(conexion.effectiveType)) return;
+
+    let vivo = true;
+    let ocioso: number | undefined;
+    const cola = [...ORDEN_PRECARGA];
+
+    const siguiente = () => {
+      if (!vivo) return;
+      const src = cola.shift();
+      if (src) precargarFigura(src, siguiente);
+    };
+
+    // `requestIdleCallback` no está en Safari antes de la 17, pero el tipo de
+    // TypeScript lo da por presente: la comprobación va sobre `typeof` para
+    // que no se dé por siempre verdadera.
+    const hayOcioso = typeof window.requestIdleCallback === "function";
+    const arrancar = () => {
+      ocioso = hayOcioso
+        ? window.requestIdleCallback(siguiente, { timeout: 3000 })
+        : window.setTimeout(siguiente, 1200);
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      arrancar();
+      return () => {
+        vivo = false;
+      };
+    }
+
+    const obs = new IntersectionObserver(
+      ([entrada]) => {
+        if (!entrada.isIntersecting) return;
+        obs.disconnect();
+        arrancar();
+      },
+      // El mismo margen del clip de fondo: empieza poco antes de entrar.
+      { rootMargin: "300px" },
+    );
+    obs.observe(el);
+
+    return () => {
+      vivo = false;
+      obs.disconnect();
+      if (ocioso === undefined) return;
+      if (hayOcioso) window.cancelIdleCallback(ocioso);
+      else window.clearTimeout(ocioso);
+    };
+  }, []);
 
   // Al azar elige PELEADOR, no combate: así el sorteo también decide quién se
   // pone delante, y repetir combate cambiando de esquina es un resultado
@@ -339,7 +480,7 @@ export function CaraACara() {
     izq.slug === slug ? "a" : der.slug === slug ? "b" : null;
 
   return (
-    <div className="flex w-full flex-col items-center gap-6">
+    <div ref={escenario} className="flex w-full flex-col items-center gap-6">
       {/* Sin marco ni fondo propio: el escenario se funde con el fondo de la
           sección hacia los bordes, así no se lee como un rectángulo. */}
       <div className="relative w-full overflow-hidden">
@@ -515,6 +656,13 @@ export function CaraACara() {
                   <button
                     type="button"
                     onClick={() => setElegido(p.slug)}
+                    // Precarga por intención: el puntero encima (o el dedo
+                    // apoyado, que también dispara `pointerenter`) llega antes
+                    // que el clic. Son unos cientos de milisegundos de ventaja
+                    // y, en una conexión con ahorro de datos, la única precarga
+                    // que se hace.
+                    onPointerEnter={() => precargarFigura(p.cuerpo ?? p.foto)}
+                    onFocus={() => precargarFigura(p.cuerpo ?? p.foto)}
                     aria-pressed={lado !== null}
                     aria-label={`${p.nombre}: ver su combate`}
                     title={p.nombre}
