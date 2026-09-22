@@ -2,6 +2,13 @@ import Image from "next/image";
 import { IconoExterno } from "@/assets/icons";
 import { EVENTO, PATROCINADORES } from "@/lib/evento";
 import { Seccion } from "@/components/ui/seccion";
+import {
+  BarridoLuz,
+  EsquinasDoradas,
+  REBOTE,
+  ResplandorDorado,
+} from "./efectos-marca";
+import { Sponsors } from "./sponsors";
 
 const CREDITOS = [
   { etiqueta: "Produce", valor: EVENTO.productora },
@@ -13,6 +20,57 @@ const CONTACTO = "comercial@lanochedorada.pe";
 
 const dominio = (url: string) => new URL(url).hostname.replace(/^www\./, "");
 
+type Patrocinio = (typeof PATROCINADORES)[number];
+
+function TarjetaPatrocinador({ p }: { p: Patrocinio }) {
+  return (
+    <a
+      href={p.url}
+      target="_blank"
+      rel="noreferrer sponsored"
+      aria-label={`Ir al sitio de ${p.nombre} (se abre en otra pestaña)`}
+      className={`group relative isolate flex w-full flex-col overflow-hidden rounded-sm border border-oro-profundo/70 bg-carbon transition duration-500 hover:-translate-y-1.5 hover:border-oro hover:shadow-[0_26px_50px_-20px_rgba(212,175,55,0.5)] ${REBOTE}`}
+    >
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-10 h-[2px] origin-center scale-x-0 bg-gradient-to-r from-transparent via-oro-claro to-transparent transition-transform duration-500 group-hover:scale-x-100"
+      />
+      <span className="relative flex h-40 items-center justify-center bg-[radial-gradient(70%_90%_at_50%_45%,rgba(212,175,55,0.12)_0%,rgba(212,175,55,0)_100%)] px-8">
+        <ResplandorDorado />
+        <BarridoLuz />
+        <EsquinasDoradas variante="dentro" />
+        <Image
+          src={p.logo}
+          alt=""
+          width={p.w}
+          height={p.h}
+          sizes={`${p.ancho}px`}
+          style={{ width: p.ancho }}
+          className={`relative h-auto max-w-full transition duration-500 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(212,175,55,0.35)] ${REBOTE}`}
+        />
+      </span>
+      <span className="flex items-center justify-between gap-3 border-t border-linea bg-[#08080b] px-5 py-3.5 transition-colors duration-500 group-hover:border-oro-profundo group-hover:bg-oro-tinte">
+        <span className="min-w-0">
+          <span className="block truncate font-display text-[16px] leading-tight text-crema uppercase transition-colors duration-500 group-hover:text-oro-claro">
+            {p.nombre}
+          </span>
+          <span className="block truncate font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
+            {dominio(p.url)}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-oro-profundo px-3 py-1.5 font-cond text-[11px] font-bold tracking-[0.16em] text-oro uppercase transition-colors duration-500 group-hover:border-oro group-hover:bg-oro group-hover:text-noche">
+          Visitar
+          <IconoExterno
+            size={13}
+            strokeWidth={2.4}
+            className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
+        </span>
+      </span>
+    </a>
+  );
+}
+
 export function Patrocinador() {
   return (
     <Seccion
@@ -21,53 +79,15 @@ export function Patrocinador() {
       titulo="Patrocinadores"
     >
       <div className="flex w-full flex-col items-center gap-8 sm:gap-9">
-        <ul className="grid w-full gap-4 sm:grid-cols-2 lg:gap-5">
+        <ul className="grid w-full gap-4 sm:grid-cols-3 lg:gap-5">
           {PATROCINADORES.map((p) => (
             <li key={p.nombre} className="flex">
-              <a
-                href={p.url}
-                target="_blank"
-                rel="noreferrer sponsored"
-                aria-label={`Ir al sitio de ${p.nombre} (se abre en otra pestaña)`}
-                className="group relative isolate flex w-full flex-col overflow-hidden rounded-sm border border-oro-profundo bg-carbon transition duration-300 hover:-translate-y-1 hover:border-oro hover:shadow-[0_18px_40px_rgba(0,0,0,0.5)]"
-              >
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-[radial-gradient(60%_80%_at_50%_50%,rgba(212,175,55,0.18)_0%,rgba(212,175,55,0)_100%)]"
-                />
-                <span className="flex h-32 items-center justify-center px-8">
-                  <Image
-                    src={p.logo}
-                    alt=""
-                    width={p.w}
-                    height={p.h}
-                    sizes={`${p.ancho}px`}
-                    style={{ width: p.ancho }}
-                    className="h-auto max-w-full transition-transform duration-300 group-hover:scale-105"
-                  />
-                </span>
-                <span className="flex items-center justify-between gap-3 border-t border-linea bg-[#08080b] px-5 py-3">
-                  <span className="min-w-0">
-                    <span className="block truncate font-display text-[15px] leading-tight text-crema uppercase">
-                      {p.nombre}
-                    </span>
-                    <span className="block truncate font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
-                      {dominio(p.url)}
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1.5 font-cond text-[11px] font-bold tracking-[0.16em] text-oro uppercase">
-                    Visitar
-                    <IconoExterno
-                      size={14}
-                      strokeWidth={2.4}
-                      className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                    />
-                  </span>
-                </span>
-              </a>
+              <TarjetaPatrocinador p={p} />
             </li>
           ))}
         </ul>
+
+        <Sponsors />
 
         <ul className="w-full rounded-sm border border-linea bg-carbon sm:flex sm:w-auto sm:items-center sm:justify-center sm:divide-x sm:divide-oro-profundo/40 sm:border-0 sm:bg-transparent">
           {CREDITOS.map((c, i) => (
