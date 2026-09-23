@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { IconoComentario, IconoEnviar, LogoGoogle } from "@/assets/icons";
 import { iniciarSesionConGoogle, useUsuario } from "@/lib/sesion";
 import { clienteNavegador } from "@/lib/supabase/cliente";
@@ -197,6 +203,20 @@ export function Comentarios({
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const vistos = useRef(new Set<number>());
+
+  const agregar = useCallback((c: Comentario) => {
+    if (vistos.current.has(c.id)) return;
+    vistos.current.add(c.id);
+    setComentarios((prev) => [c, ...prev]);
+    setTotal((t) => (t ?? 0) + 1);
+  }, []);
+
+  const quitar = useCallback((id: number) => {
+    if (!vistos.current.delete(id)) return;
+    setComentarios((prev) => prev.filter((c) => c.id !== id));
+    setTotal((t) => Math.max((t ?? 1) - 1, 0));
+  }, []);
 
   const cargar = useCallback(
     async (desde: number) => {
@@ -212,22 +232,52 @@ export function Comentarios({
       }
       if (count !== null) setTotal(count);
       setHayMas(data.length > POR_PAGINA);
-      const pagina = data.slice(0, POR_PAGINA);
+      if (desde === 0) vistos.current = new Set();
+      const pagina = data
+        .slice(0, POR_PAGINA)
+        .filter((c) => !vistos.current.has(c.id));
+      for (const c of pagina) vistos.current.add(c.id);
       setComentarios((prev) => (desde === 0 ? pagina : [...prev, ...pagina]));
     },
     [slug],
   );
 
   useEffect(() => {
+    const supabase = clienteNavegador();
     let vivo = true;
+
+    const canal = supabase
+      .channel(`comentarios-${slug}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "comentarios",
+          filter: `peleador=eq.${slug}`,
+        },
+        ({ new: fila }) => agregar(fila as Comentario),
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "comentarios" },
+        ({ old: fila }) => {
+          const id = (fila as Partial<Comentario>).id;
+          if (id !== undefined) quitar(id);
+        },
+      )
+      .subscribe();
+
     (async () => {
       await cargar(0);
       if (vivo) setCargando(false);
     })();
+
     return () => {
       vivo = false;
+      supabase.removeChannel(canal);
     };
-  }, [cargar]);
+  }, [agregar, cargar, quitar, slug]);
 
   const enviar = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -246,8 +296,7 @@ export function Comentarios({
       return;
     }
     setTexto("");
-    setComentarios((prev) => [data, ...prev]);
-    setTotal((t) => (t ?? 0) + 1);
+    agregar(data);
   };
 
   const eliminar = async (id: number) => {
@@ -259,8 +308,7 @@ export function Comentarios({
       setError("No pudimos eliminar el comentario.");
       return;
     }
-    setComentarios((prev) => prev.filter((c) => c.id !== id));
-    setTotal((t) => Math.max((t ?? 1) - 1, 0));
+    quitar(id);
   };
 
   const usados = texto.length;
