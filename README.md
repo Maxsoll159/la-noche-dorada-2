@@ -177,11 +177,11 @@ entrar no lleva a ninguna parte.
   Supabase **no da error** — manda el `code` al Site URL y el acceso se pierde.
   Acabar en `http://localhost:3000/?code=...` desde producción es exactamente
   ese síntoma.
-  - Site URL: `https://la-noche-dorada-2.vercel.app`. Es solo el respaldo, pero
+  - Site URL: `https://lanochedorada.com.pe`. Es solo el respaldo, pero
     si se queda en `http://localhost:3000` cualquier hueco en la lista de abajo
     despacha a los usuarios a su propia máquina.
   - Redirect URLs, con la **ruta exacta**, una por entorno:
-    - `https://la-noche-dorada-2.vercel.app/auth/callback`
+    - `https://lanochedorada.com.pe/auth/callback`
     - `http://localhost:3000/auth/callback`
     - `https://la-noche-dorada-2-*.vercel.app/auth/callback` (deploys de
       preview de Vercel)
@@ -197,18 +197,35 @@ Las dos variables de `.env.local` van también en el hosting (en Vercel,
 navegador y lo que se puede hacer con ellas lo decide la RLS. La `service_role`
 no se usa en este proyecto y no debe acabar en ninguna variable `NEXT_PUBLIC_`.
 
-El dominio público sale de `lib/sitio.ts`: manda `NEXT_PUBLIC_SITIO` si está puesta;
-si no, el dominio de producción que Vercel inyecta en cada build; y como último
-respaldo `https://la-noche-dorada-2.vercel.app`. De ahí salen el canónico, el
-`sitemap.xml` y el `robots.txt`.
+## Dominio
+
+El sitio vive en `https://lanochedorada.com.pe` (`DOMINIO` en `lib/sitio.ts`).
+De ahí salen el canónico, el `sitemap.xml`, el `robots.txt`, los datos
+estructurados y el dominio que se lee en las imágenes de compartir.
+`NEXT_PUBLIC_SITIO` lo pisa si hace falta; no hay que ponerla en producción.
+
+`next.config.ts` redirige con un 308 todo lo que entre por
+`DOMINIOS_ANTERIORES` (`la-noche-dorada-2.vercel.app` y `www.`) al dominio
+bueno, ruta incluida, para que Google traspase lo ya indexado y no haya
+contenido duplicado. Los deploys de preview (`la-noche-dorada-2-*.vercel.app`)
+no se redirigen.
+
+En Vercel (*Settings → Domains*) tienen que estar `lanochedorada.com.pe` y
+`www.lanochedorada.com.pe`, con los DNS del registrador apuntando a Vercel.
+**No despliegues la redirección antes de que el dominio responda**, o
+`vercel.app` mandará a los visitantes a un dominio que todavía no carga.
 
 ## Google Search Console
 
-La propiedad es `https://la-noche-dorada-2.vercel.app` (prefijo de URL),
-verificada con la etiqueta `google-site-verification` que va en
-`metadata.verification` de `app/layout.tsx`. No la quites: si desaparece,
-Search Console pierde la verificación. Si el sitio cambia de dominio, hay que
-crear una propiedad nueva para ese dominio.
+La propiedad original es `https://la-noche-dorada-2.vercel.app` (prefijo de
+URL), verificada con la etiqueta `google-site-verification` de
+`metadata.verification` en `app/layout.tsx`. No la quites mientras se hace el
+cambio de dirección.
+
+Para el dominio nuevo, una propiedad de tipo **Dominio** `lanochedorada.com.pe`,
+verificada con un registro TXT en el DNS (cubre `www`, `http` y `https`). Luego,
+desde la propiedad vieja, *Configuración → Cambio de dirección* hacia la nueva,
+y enviar `https://lanochedorada.com.pe/sitemap.xml` en la nueva.
 
 ## Apagar la votación
 

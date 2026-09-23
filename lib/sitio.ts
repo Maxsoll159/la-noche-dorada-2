@@ -1,8 +1,12 @@
+export const DOMINIO = "lanochedorada.com.pe";
+
+export const DOMINIOS_ANTERIORES = [
+  "la-noche-dorada-2.vercel.app",
+  `www.${DOMINIO}`,
+];
+
 export const SITIO = (
-  process.env.NEXT_PUBLIC_SITIO ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "https://la-noche-dorada-2.vercel.app")
+  process.env.NEXT_PUBLIC_SITIO ?? `https://${DOMINIO}`
 ).replace(/\/$/, "");
 
 export const NOMBRES_ALTERNOS = [

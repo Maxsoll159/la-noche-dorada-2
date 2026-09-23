@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
+import { DOMINIO, DOMINIOS_ANTERIORES } from "./lib/sitio";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return DOMINIOS_ANTERIORES.map((host) => ({
+      source: "/:ruta*",
+      has: [{ type: "host" as const, value: host }],
+      destination: `https://${DOMINIO}/:ruta*`,
+      permanent: true,
+    }));
+  },
   experimental: {
     inlineCss: true,
   },
