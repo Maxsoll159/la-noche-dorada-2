@@ -36,6 +36,8 @@ export async function generateMetadata(
     alternates: { canonical: `/peleadores/${peleador.slug}` },
     openGraph: {
       type: "profile",
+      locale: "es_PE",
+      siteName: EVENTO.nombre,
       title: `${titulo} · ${EVENTO.nombre}`,
       description: descripcion,
       url: `/peleadores/${peleador.slug}`,
@@ -65,8 +67,26 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
   const { peleador, rival, combate, lado } = ficha;
   const diaYMes = EVENTO.fechaLarga.split(" ").slice(1).join(" ");
 
+  const url = `${SITIO}/peleadores/${peleador.slug}`;
+
+  const perfil = {
+    "@type": "ProfilePage",
+    "@id": `${url}#perfil`,
+    url,
+    inLanguage: "es-PE",
+    mainEntity: {
+      "@type": "Person",
+      name: peleador.nombre,
+      image: `${SITIO}${peleador.foto}`,
+      nationality: { "@type": "Country", name: BANDERAS[peleador.pais].nombre },
+      ...(peleador.resena && { description: peleador.resena }),
+      ...(peleador.redes?.length && {
+        sameAs: peleador.redes.map((r) => r.url),
+      }),
+    },
+  };
+
   const migas = {
-    "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: EVENTO.nombre, item: SITIO },
@@ -80,9 +100,14 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
         "@type": "ListItem",
         position: 3,
         name: peleador.nombre,
-        item: `${SITIO}/peleadores/${peleador.slug}`,
+        item: url,
       },
     ],
+  };
+
+  const grafo = {
+    "@context": "https://schema.org",
+    "@graph": [perfil, migas],
   };
 
   const secciones = [
@@ -142,7 +167,7 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(migas) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(grafo) }}
       />
       <SiteHeader />
       <main>

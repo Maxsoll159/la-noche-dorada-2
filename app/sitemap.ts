@@ -4,19 +4,8 @@ import { PELEADORES } from "@/lib/evento";
 import { SITIO } from "@/lib/sitio";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const ahora = new Date();
   return [
-    {
-      url: SITIO,
-      lastModified: ahora,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    ...PELEADORES.map((p) => ({
-      url: `${SITIO}/peleadores/${p.slug}`,
-      lastModified: ahora,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    })),
+    { url: SITIO },
+    ...PELEADORES.map((p) => ({ url: `${SITIO}/peleadores/${p.slug}` })),
   ];
 }

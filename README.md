@@ -202,7 +202,8 @@ no se usa en este proyecto y no debe acabar en ninguna variable `NEXT_PUBLIC_`.
 El sitio vive en `https://lanochedorada.com.pe` (`DOMINIO` en `lib/sitio.ts`).
 De ahí salen el canónico, el `sitemap.xml`, el `robots.txt`, los datos
 estructurados y el dominio que se lee en las imágenes de compartir.
-`NEXT_PUBLIC_SITIO` lo pisa si hace falta; no hay que ponerla en producción.
+Está fijo en el código a propósito: ninguna variable de entorno lo pisa, así un
+deploy nunca puede publicar un canónico con otro dominio.
 
 `next.config.ts` redirige con un 308 todo lo que entre por
 `DOMINIOS_ANTERIORES` (`la-noche-dorada-2.vercel.app` y `www.`) al dominio

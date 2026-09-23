@@ -4,8 +4,7 @@ import { SITIO } from "@/lib/sitio";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
+    rules: [{ userAgent: "*", allow: "/", disallow: "/auth/" }],
     sitemap: `${SITIO}/sitemap.xml`,
-    host: SITIO,
   };
 }

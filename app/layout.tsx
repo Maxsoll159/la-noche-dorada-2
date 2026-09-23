@@ -24,7 +24,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 const DESCRIPCION =
-  "La Noche Dorada II (Noche Dorada 2): la segunda edición del evento de boxeo entre creadores de contenido más grande del Perú. Ocho combates, dieciséis creadores, una sola noche. Sábado 28 de noviembre de 2026 en el Coliseo Eduardo Dibós, Lima. Cartelera, pronósticos y entradas.";
+  "Boxeo entre creadores de contenido: 8 combates el sábado 28 de noviembre de 2026 en el Coliseo Eduardo Dibós, Lima. Cartelera, pronósticos y entradas.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITIO),
@@ -35,9 +35,6 @@ export const metadata: Metadata = {
   },
   description: DESCRIPCION,
   applicationName: "La Noche Dorada II",
-  authors: [{ name: "Vastion" }],
-  creator: "Vastion",
-  publisher: "Vastion",
   category: "sports",
   keywords: [
     "La Noche Dorada II",

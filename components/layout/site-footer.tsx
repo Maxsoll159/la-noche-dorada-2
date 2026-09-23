@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { IconoExterno, IconoRed } from "@/assets/icons";
+import { IconoRed } from "@/assets/icons";
 import { CASA_APUESTAS, EVENTO, REDES_EVENTO } from "@/lib/evento";
 import { DESARROLLADOR } from "@/lib/sitio";
 import { FileteOro } from "@/components/ui/filete-oro";
@@ -90,41 +90,25 @@ function Franja() {
 }
 
 function CreditoDesarrollo() {
-  const contenido = (
-    <>
-      <span className="font-cond text-[11px] font-semibold tracking-[0.2em] text-tenue uppercase transition-colors duration-300 group-hover:text-crema sm:text-[12px]">
-        Desarrollado por
-      </span>
-      <span className="font-display text-[15px] tracking-wide text-oro-claro uppercase transition-colors duration-300 group-hover:text-oro sm:text-[17px]">
-        {DESARROLLADOR.nombre}
-      </span>
-    </>
-  );
-
-  const clases =
-    "group relative mt-3 inline-flex items-center gap-2.5 overflow-hidden rounded-full border border-oro-profundo bg-oro-tinte/70 px-5 py-2.5 shadow-[0_0_0_rgba(212,175,55,0)] transition duration-300";
-
-  if (!DESARROLLADOR.url) return <p className={clases}>{contenido}</p>;
+  const nombre =
+    "text-crema underline decoration-oro-profundo decoration-1 underline-offset-[5px]";
 
   return (
-    <a
-      href={DESARROLLADOR.url}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`Portafolio de ${DESARROLLADOR.nombre} (se abre en otra pestaña)`}
-      className={`${clases} hover:-translate-y-0.5 hover:border-oro hover:shadow-[0_10px_30px_-8px_rgba(212,175,55,0.55)]`}
-    >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[140%] skew-x-[-18deg] bg-gradient-to-r from-transparent via-oro-claro/30 to-transparent duration-0 group-hover:translate-x-[420%] group-hover:transition-transform group-hover:duration-700"
-      />
-      {contenido}
-      <IconoExterno
-        size={14}
-        strokeWidth={2.4}
-        className="text-oro transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-      />
-    </a>
+    <p className={ROTULO}>
+      Desarrollado por{" "}
+      {DESARROLLADOR.url ? (
+        <a
+          href={DESARROLLADOR.url}
+          target="_blank"
+          rel="noreferrer"
+          className={`${nombre} transition-colors hover:text-oro hover:decoration-oro`}
+        >
+          {DESARROLLADOR.nombre}
+        </a>
+      ) : (
+        <span className={nombre}>{DESARROLLADOR.nombre}</span>
+      )}
+    </p>
   );
 }
 
@@ -181,7 +165,7 @@ export function SiteFooter() {
 
         <Separador />
 
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-3">
           <p className={ROTULO}>
             <span className="text-crema">© 2026 {EVENTO.nombre}</span>
             <span className="text-oro-medio"> · </span>

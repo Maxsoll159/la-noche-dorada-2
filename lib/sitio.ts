@@ -5,9 +5,7 @@ export const DOMINIOS_ANTERIORES = [
   `www.${DOMINIO}`,
 ];
 
-export const SITIO = (
-  process.env.NEXT_PUBLIC_SITIO ?? `https://${DOMINIO}`
-).replace(/\/$/, "");
+export const SITIO = `https://${DOMINIO}`;
 
 export const NOMBRES_ALTERNOS = [
   "La Noche Dorada",
