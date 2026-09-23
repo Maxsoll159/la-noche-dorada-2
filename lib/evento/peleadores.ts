@@ -36,7 +36,7 @@ const FICHAS: Record<
   sacha: { nacimiento: "2004-06-15", altura: 1.8, peso: 80, aprox: true },
   emetsuki: { nacimiento: "2001-03-18", altura: 1.62, peso: 57, aprox: true },
   daniela: { nacimiento: "2006-01-01", altura: 1.51, peso: 53, aprox: true },
-  pepita: { altura: 1.55, peso: 48, aprox: true },
+  pepita: { altura: 1.55, peso: 47, aprox: true },
   pauchikita: { nacimiento: "2007-01-01", altura: 1.65, peso: 57, aprox: true },
   neutro: { nacimiento: "2004-01-01", altura: 1.73, peso: 73, aprox: true },
   "ismael-sanchez": { nacimiento: "2002-01-01" },
@@ -164,6 +164,7 @@ const REDES: Record<
   ],
   pepita: [
     { plataforma: "TikTok", url: "https://www.tiktok.com/@allisonkiara_" },
+    { plataforma: "Kick", url: "https://kick.com/dulcepepita" },
   ],
   pauchikita: [
     { plataforma: "TikTok", url: "https://www.tiktok.com/@pauchikita_" },
