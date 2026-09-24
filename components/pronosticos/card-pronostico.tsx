@@ -1,4 +1,9 @@
-import { IconoCandado, IconoTrofeo } from "@/assets/icons";
+import Link from "next/link";
+import {
+  IconoCandado,
+  IconoFlechaDerecha,
+  IconoTrofeo,
+} from "@/assets/icons";
 import { PRONOSTICOS_ACTIVOS, type Combate } from "@/lib/evento";
 import { estaAbierto, type Conteo, type Lado } from "@/lib/votacion";
 import { LadoVoto } from "./lado-voto";
@@ -164,6 +169,30 @@ export function CardPronostico({
                 : "bg-linea"
             }`}
           />
+        </div>
+
+        <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:gap-2">
+          {(["a", "b"] as const).map((lado) => (
+            <Link
+              key={lado}
+              href={`/peleadores/${c[lado].slug}`}
+              aria-label={`Ver la ficha de ${nombre(lado)}`}
+              className={`group relative flex min-h-9 w-fit items-center gap-1.5 overflow-hidden rounded-full border border-oro-profundo bg-oro-tinte px-3.5 font-cond text-[11px] font-bold tracking-[0.14em] text-oro-claro uppercase shadow-[0_0_14px_-4px_rgba(212,175,55,0.45)] transition duration-300 hover:border-oro hover:bg-oro hover:text-noche hover:shadow-[0_0_20px_-2px_rgba(212,175,55,0.6)] sm:px-4 sm:text-[12px] ${
+                lado === "a" ? "justify-self-start" : "justify-self-end"
+              }`}
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 brillo-boton bg-gradient-to-r from-transparent via-oro-claro/30 to-transparent"
+              />
+              <span className="relative">Ver su ficha</span>
+              <IconoFlechaDerecha
+                size={12}
+                strokeWidth={2.6}
+                className="relative shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
+              />
+            </Link>
+          ))}
         </div>
       </div>
 

@@ -44,6 +44,12 @@ function haceCuanto(iso: string) {
   return "ahora";
 }
 
+function nombreOculto(nombre: string) {
+  const [primero, ...resto] = nombre.trim().split(/\s+/);
+  const oculto = resto.join(" ");
+  return oculto ? `${primero} ${"*".repeat(oculto.length)}` : primero;
+}
+
 function Avatar({
   nombre,
   url,
@@ -107,7 +113,7 @@ function TarjetaComentario({
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-cond text-[15px] font-bold tracking-[0.04em] text-crema">
-            {comentario.autor_nombre}
+            {nombreOculto(comentario.autor_nombre)}
           </span>
           {propio && (
             <span className="rounded-full bg-oro px-2 py-0.5 font-cond text-[9px] leading-none font-bold tracking-[0.16em] text-noche uppercase">

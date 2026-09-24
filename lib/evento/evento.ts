@@ -1,9 +1,9 @@
 export const EVENTO = {
   nombre: "La Noche Dorada II",
   edicion: "Segunda edición",
-  inicioISO: "2026-11-28T19:00:00-05:00",
+  inicioISO: "2026-11-28T15:00:00-05:00",
   fechaLarga: "Sábado 28 de noviembre",
-  hora: "7:00 pm PET",
+  hora: "3:00 pm PET",
   sede: "Coliseo Eduardo Dibós",
   distrito: "San Borja, Lima",
   direccion: "Av. Angamos Este 2681, Urb. Primavera de Monterrico",
