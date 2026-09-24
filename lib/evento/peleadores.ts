@@ -27,7 +27,7 @@ const FICHAS: Record<
   jh: { nacimiento: "1995-04-14", altura: 1.67, peso: 62.9 },
   canita: { nacimiento: "2000-01-01", altura: 1.8, peso: 71, aprox: true },
   shelao: { nacimiento: "1990-06-08", altura: 1.88, peso: 102, aprox: true },
-  piero: { nacimiento: "2000-08-01", altura: 1.79, peso: 90, aprox: true },
+  piero: { nacimiento: "2000-08-01", altura: 1.86, peso: 90, aprox: true },
   bebote: { nacimiento: "2001-01-01", altura: 1.82, peso: 76, aprox: true },
   kingteka: { nacimiento: "1997-01-01", altura: 1.7, peso: 114, aprox: true },
   jeque: { nacimiento: "1994-01-01", altura: 1.8, peso: 80, aprox: true },
