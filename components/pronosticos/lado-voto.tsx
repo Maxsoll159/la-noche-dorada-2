@@ -4,6 +4,8 @@ import type { Combate } from "@/lib/evento";
 import type { Lado } from "@/lib/votacion";
 import { Bandera } from "@/components/ui/bandera";
 
+const SIZES_LOSETA = "(min-width: 1024px) 270px, calc(50vw - 34px)";
+
 const NUMERO: Record<
   Lado,
   { n: number; fondo: string; tira: string; tinte: string }
@@ -36,6 +38,7 @@ export function LadoVoto({
   puedeVotar,
   enviando,
   onVotar,
+  sizes = SIZES_LOSETA,
 }: {
   peleador: Combate["a"];
   lado: Lado;
@@ -48,6 +51,7 @@ export function LadoVoto({
   puedeVotar: boolean;
   enviando: boolean;
   onVotar: () => void;
+  sizes?: string;
 }) {
   const sitio = posicion ?? lado;
   const izquierda = sitio === "a";
@@ -99,7 +103,8 @@ export function LadoVoto({
           src={peleador.cuerpo ?? peleador.foto}
           alt=""
           fill
-          sizes="(min-width: 1024px) 280px, (min-width: 640px) 45vw, 50vw"
+          sizes={sizes}
+          quality={70}
           className={`object-contain object-bottom transition-transform duration-500 group-hover:scale-[1.04] ${
             peleador.cuerpo ? "brightness-125 contrast-[1.06] saturate-105" : ""
           } ${resultado === "perdio" ? "grayscale" : ""}`}

@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { CLAVE_INTRO } from "@/lib/carga";
 import { EVENTO } from "@/lib/evento";
+import { LOGO } from "@/lib/imagenes";
 
 const MINIMO = 1600;
 const MAXIMO = 6000;
@@ -24,6 +25,7 @@ function Cielo() {
 
 export function PantallaCarga() {
   const [fase, setFase] = useState<"cargando" | "saliendo" | "fin">("cargando");
+  const [mascara, setMascara] = useState<string | null>(null);
 
   useEffect(() => {
     const raiz = document.documentElement;
@@ -146,15 +148,20 @@ export function PantallaCarga() {
 
         <div className="carga-logo relative w-[200px] sm:w-[240px]">
           <Image
-            src="/marca/logo-noche-dorada.webp"
+            {...LOGO}
             alt=""
-            width={455}
-            height={406}
-            sizes="240px"
+            loading="eager"
             fetchPriority="high"
+            onLoad={(e) => setMascara(e.currentTarget.currentSrc)}
             className="h-auto w-full drop-shadow-[0_14px_40px_rgba(0,0,0,0.8)]"
           />
-          <span aria-hidden className="carga-brillo absolute inset-0" />
+          {mascara && (
+            <span
+              aria-hidden
+              style={{ "--mascara": `url("${mascara}")` } as CSSProperties}
+              className="carga-brillo absolute inset-0"
+            />
+          )}
         </div>
 
         <div className="relative flex w-[220px] flex-col items-center gap-3 sm:w-[260px]">

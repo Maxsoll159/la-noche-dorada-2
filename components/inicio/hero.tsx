@@ -7,6 +7,7 @@ import {
   IconoReloj,
 } from "@/assets/icons";
 import { EVENTO, PREVENTAS } from "@/lib/evento";
+import { LOGO } from "@/lib/imagenes";
 import { CuentaRegresiva } from "@/components/ui/cuenta-regresiva";
 
 const BRASAS: readonly {
@@ -93,14 +94,10 @@ export function Hero() {
           {EVENTO.nombre} — {EVENTO.fechaLarga} en el {EVENTO.sede}
         </h1>
         <Image
-          src="/marca/logo-noche-dorada.webp"
+          {...LOGO}
           alt={EVENTO.nombre}
-          width={455}
-          height={406}
           preload
           fetchPriority="high"
-          quality={70}
-          sizes="(min-width: 1024px) 400px, (min-width: 640px) 520px, 72vw"
           style={{ animationDelay: "180ms, 1030ms" }}
           className="w-[72%] max-w-[520px] entrada-flotante drop-shadow-[0_18px_60px_rgba(0,0,0,0.6)] sm:w-full lg:max-w-[400px]"
         />

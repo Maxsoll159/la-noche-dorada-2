@@ -65,6 +65,7 @@ export function ApoyoPeleador({
 
   const loseta = (p: Peleador, l: Lado, donde: Lado) => (
     <LadoVoto
+      sizes="(min-width: 832px) 380px, calc(50vw - 34px)"
       peleador={p}
       lado={l}
       posicion={donde}
