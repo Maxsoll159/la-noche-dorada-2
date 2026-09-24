@@ -36,9 +36,9 @@ export const PREVENTAS = {
 export const REDES_ACTUALIZADAS = "septiembre de 2026";
 
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
-  { href: "/#combates", label: "Combates" },
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
+  { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },
   { href: "/#sede", label: "Sede" },
   { href: "/#donde-verlo", label: "Dónde verlo" },

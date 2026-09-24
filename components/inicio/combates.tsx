@@ -137,9 +137,10 @@ function CardCombate({ c }: { c: Combate }) {
 
         <a
           href="#pronosticos"
-          className="hidden w-fit items-center gap-2 rounded-sm border border-oro-profundo px-3.5 py-2 font-cond text-[11px] font-bold tracking-[0.16em] text-oro uppercase transition-colors hover:border-oro hover:bg-oro-tinte sm:flex"
+          className="flex w-fit items-center gap-2 rounded-sm border border-oro-profundo px-2.5 py-1.5 font-cond text-[10px] font-bold tracking-[0.14em] text-oro uppercase transition-colors hover:border-oro hover:bg-oro-tinte sm:px-3.5 sm:py-2 sm:text-[11px] sm:tracking-[0.16em]"
         >
-          Votar pronóstico
+          <span className="sm:hidden">Votar</span>
+          <span className="hidden sm:inline">Votar pronóstico</span>
           <IconoFlechaDerecha
             size={12}
             strokeWidth={2.6}

@@ -65,6 +65,8 @@ export function FrenteAFrente({
             ? fila.diferencia(Math.abs(a - b))
             : null;
 
+          const mayor = a !== null && b !== null ? Math.max(a, b) : null;
+
           const celda = (
             n: number | null,
             p: Peleador,
@@ -72,18 +74,45 @@ export function FrenteAFrente({
             derecha: boolean,
           ) => (
             <dd
-              className={`flex flex-col gap-1 ${derecha ? "items-end" : "items-start"}`}
+              className={`flex min-w-0 flex-col gap-1.5 ${derecha ? "items-end" : "items-start"}`}
             >
               <span
-                className={`font-display text-[22px] leading-none tabular-nums sm:text-[26px] ${
-                  n === null ? "text-tenue" : gana ? "text-oro" : "text-crema"
-                }`}
+                className={`flex items-center gap-2 ${derecha ? "flex-row-reverse" : ""}`}
               >
-                {n === null ? "—" : fila.texto(n, p)}
+                <span
+                  className={`font-display text-[22px] leading-none tabular-nums sm:text-[28px] ${
+                    n === null
+                      ? "text-tenue"
+                      : gana
+                        ? "texto-oro"
+                        : "text-crema"
+                  }`}
+                >
+                  {n === null ? "—" : fila.texto(n, p)}
+                </span>
+                {gana && distancia && (
+                  <span className="rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[2px] font-cond text-[10px] leading-none font-bold tracking-[0.1em] text-oro uppercase">
+                    {distancia}
+                  </span>
+                )}
               </span>
-              {gana && distancia && (
-                <span className="rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[2px] font-cond text-[10px] leading-none font-bold tracking-[0.1em] text-oro uppercase">
-                  {distancia}
+              {n !== null && mayor !== null && (
+                <span
+                  aria-hidden
+                  className={`flex h-1.5 w-full overflow-hidden rounded-full bg-linea/60 ${
+                    derecha ? "justify-start" : "justify-end"
+                  }`}
+                >
+                  <span
+                    style={{ width: `${(n / mayor) * 100}%` }}
+                    className={`h-full rounded-full transition-[width] duration-700 ${
+                      gana
+                        ? `from-oro-profundo to-oro-claro shadow-[0_0_10px_rgba(212,175,55,0.55)] ${
+                            derecha ? "bg-gradient-to-r" : "bg-gradient-to-l"
+                          }`
+                        : "bg-humo/70"
+                    }`}
+                  />
                 </span>
               )}
             </dd>

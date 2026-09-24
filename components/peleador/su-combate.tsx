@@ -40,7 +40,7 @@ export function SuCombate({
 
   return (
     <>
-      <div className="grid items-center gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <Link
           href="/#combates"
           className="mx-auto block w-full max-w-[360px] overflow-hidden rounded-sm border border-linea transition duration-300 hover:-translate-y-1 hover:border-oro hover:shadow-[0_16px_36px_rgba(0,0,0,0.5)]"

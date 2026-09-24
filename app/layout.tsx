@@ -3,6 +3,8 @@ import { Anton, Barlow, Barlow_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NOMBRES_ALTERNOS, SITIO } from "@/lib/sitio";
+import { SCRIPT_CARGA } from "@/lib/carga";
+import { PantallaCarga } from "@/components/layout/pantalla-carga";
 import "./globals.css";
 
 const anton = Anton({
@@ -84,9 +86,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-PE"
+      suppressHydrationWarning
       className={`${anton.variable} ${barlow.variable} ${barlowCondensed.variable} antialiased`}
     >
       <body className="min-h-screen bg-noche text-crema">
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_CARGA }} />
+        <PantallaCarga />
         {children}
         <Analytics />
         <SpeedInsights />

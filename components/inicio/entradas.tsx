@@ -79,11 +79,19 @@ export function Entradas() {
             ))}
           </ul>
           <div className="flex flex-col items-center gap-3.5 border-t border-linea bg-oro-tinte px-5 py-6 text-center sm:px-7">
-            <p className="font-cond text-[11px] leading-relaxed font-semibold tracking-[0.16em] text-tenue uppercase">
-              Preventa exclusiva agotada · {PREVENTAS.actual.nombre} hasta el{" "}
-              {PREVENTAS.actual.hasta} · {PREVENTAS.siguiente.nombre} del{" "}
-              {PREVENTAS.siguiente.desde} al {PREVENTAS.siguiente.hasta}
-            </p>
+            <ul className="flex flex-col gap-1 font-cond text-[12px] leading-snug font-semibold tracking-[0.14em] text-tenue uppercase">
+              <li>
+                <span className="text-oro">{PREVENTAS.actual.nombre}</span> ·
+                hasta el {PREVENTAS.actual.hasta}
+              </li>
+              <li>
+                <span className="text-crema">{PREVENTAS.siguiente.nombre}</span>{" "}
+                · del {PREVENTAS.siguiente.desde} al {PREVENTAS.siguiente.hasta}
+              </li>
+              <li className="text-[11px] text-humo">
+                Preventa exclusiva agotada
+              </li>
+            </ul>
             <a
               href={EVENTO.entradasUrl}
               target="_blank"

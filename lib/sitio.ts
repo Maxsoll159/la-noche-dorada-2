@@ -18,5 +18,4 @@ export const NOMBRES_ALTERNOS = [
 
 export const DESARROLLADOR: { nombre: string; url?: string } = {
   nombre: "Martin Rios Tineo",
-  url: "https://portafolio-martin-rios-v2.vercel.app",
 };

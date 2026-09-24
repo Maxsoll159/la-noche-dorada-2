@@ -5,9 +5,9 @@ import { DESARROLLADOR } from "@/lib/sitio";
 import { FileteOro } from "@/components/ui/filete-oro";
 
 const ENLACES = [
-  { href: "/#combates", label: "Combates" },
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
+  { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },
   { href: "/#sede", label: "Sede" },
   { href: "/#donde-verlo", label: "Dónde verlo" },
@@ -106,7 +106,7 @@ function CreditoDesarrollo() {
           {DESARROLLADOR.nombre}
         </a>
       ) : (
-        <span className={nombre}>{DESARROLLADOR.nombre}</span>
+        <span className="text-crema">{DESARROLLADOR.nombre}</span>
       )}
     </p>
   );

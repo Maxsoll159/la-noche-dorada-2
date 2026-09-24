@@ -37,7 +37,7 @@ function MapaInteractivo() {
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
         allowFullScreen
-        className="absolute inset-0 size-full border-0"
+        className="absolute inset-0 size-full border-0 [filter:invert(0.9)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)_contrast(0.95)]"
       />
       <figcaption className="pointer-events-none absolute top-4 left-4 flex items-center gap-2 rounded-sm border border-oro-profundo bg-noche/90 px-3 py-1.5 font-cond text-[11px] font-bold tracking-[0.18em] text-oro uppercase shadow-[0_6px_18px_rgba(0,0,0,0.45)] backdrop-blur-sm">
         <IconoPin size={14} />

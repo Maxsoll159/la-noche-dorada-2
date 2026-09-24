@@ -40,8 +40,12 @@ export function CuentaRegresiva({ inicioISO }: { inicioISO: string }) {
       {UNIDADES.map(([clave, etiqueta]) => (
         <li
           key={clave}
-          className="flex w-[74px] flex-col items-center gap-0.5 rounded-sm border border-linea border-t-oro/60 bg-noche/55 py-2.5 backdrop-blur-sm sm:w-[104px] sm:gap-1 sm:py-4 lg:w-[120px]"
+          className="relative flex w-[74px] flex-col items-center gap-0.5 overflow-hidden rounded-sm border border-oro-profundo/50 bg-[linear-gradient(180deg,rgba(40,31,12,0.75)_0%,rgba(11,11,13,0.7)_70%)] py-2.5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)] backdrop-blur-sm sm:w-[104px] sm:gap-1 sm:py-4 lg:w-[120px]"
         >
+          <span
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-oro-claro to-transparent"
+          />
           <span className="block overflow-hidden">
             <span
               key={restante ? restante[clave] : "--"}

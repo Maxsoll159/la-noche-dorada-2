@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { IconoExterno } from "@/assets/icons";
 import { EVENTO, NAV } from "@/lib/evento";
@@ -28,6 +29,24 @@ export function SiteHeader() {
   const [bajando, setBajando] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const barra = useRef<HTMLSpanElement>(null);
+  const enInicio = usePathname() === "/";
+  const [activa, setActiva] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!enInicio) return;
+    const secciones = document.querySelectorAll("main > section");
+
+    const obs = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) {
+          if (e.isIntersecting) setActiva(e.target.id || null);
+        }
+      },
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    for (const s of secciones) obs.observe(s);
+    return () => obs.disconnect();
+  }, [enInicio]);
 
   useEffect(() => {
     let encolado = false;
@@ -117,15 +136,27 @@ export function SiteHeader() {
           </Link>
 
           <nav className="hidden items-center gap-5 lg:flex xl:gap-7">
-            {NAV.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="relative font-cond text-[14px] font-semibold tracking-[0.1em] text-tenue uppercase transition-colors hover:text-oro xl:text-[15px] xl:tracking-[0.11em]"
-              >
-                {item.label}
-              </a>
-            ))}
+            {NAV.map((item) => {
+              const actual = enInicio && item.href === `/#${activa}`;
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  aria-current={actual ? "location" : undefined}
+                  className={`relative py-1 font-cond text-[14px] font-semibold tracking-[0.1em] uppercase transition-colors hover:text-oro xl:text-[15px] xl:tracking-[0.11em] ${
+                    actual ? "text-oro" : "text-tenue"
+                  }`}
+                >
+                  {item.label}
+                  <span
+                    aria-hidden
+                    className={`absolute inset-x-0 -bottom-0.5 h-[2px] origin-center rounded-full bg-oro transition-transform duration-300 ${
+                      actual ? "scale-x-100" : "scale-x-0"
+                    }`}
+                  />
+                </a>
+              );
+            })}
           </nav>
 
           <a

@@ -30,7 +30,7 @@ export function CabeceraPeleador({
       {peleador.video && (
         <VideoFondo
           src={peleador.video}
-          className="absolute inset-x-0 top-[81px] -z-20 h-[calc(100%-81px)] w-full object-cover lg:top-[89px] lg:h-[calc(100%-89px)]"
+          className="absolute inset-x-0 top-[81px] -z-20 h-[calc(100%-81px)] w-full [mask-image:linear-gradient(to_bottom,transparent_0%,transparent_14%,#000_34%,#000_66%,transparent_88%)] object-cover lg:top-[89px] lg:h-[calc(100%-89px)]"
         />
       )}
       <div
@@ -78,7 +78,7 @@ export function CabeceraPeleador({
                 {EVENTO.fechaLarga}
               </span>
             </p>
-            <h1 className="texto-oro w-full text-[36px] leading-[1.12] break-words sm:text-[58px] lg:text-[72px]">
+            <h1 className="texto-oro w-full text-[40px] leading-[1.12] break-words drop-shadow-[0_4px_18px_rgba(11,11,13,0.85)] [text-shadow:none] sm:text-[58px] lg:text-[72px]">
               {peleador.nombre}
             </h1>
             <p className="flex items-center gap-2.5 font-cond text-[12px] font-bold tracking-[0.18em] text-oro uppercase">
@@ -96,10 +96,9 @@ export function CabeceraPeleador({
               style={entra(340)}
             />
             <TarjetaRival rival={rival} style={entra(420)} />
+            <RedesPeleador peleador={peleador} style={entra(520)} />
           </div>
         </div>
-
-        <RedesPeleador peleador={peleador} style={entra(580)} />
       </div>
 
       {peleador.video && (
