@@ -4,7 +4,12 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { COMBATES, EVENTO, type Peleador } from "@/lib/evento";
 import { SITIO } from "@/lib/sitio";
-import { eleccionesDe, votosDeCodigo } from "@/lib/compartir";
+import {
+  METODO,
+  eleccionesDe,
+  metodosDeCodigo,
+  votosDeCodigo,
+} from "@/lib/compartir";
 
 export const alt = `Pronósticos para ${EVENTO.nombre}`;
 export const size = { width: 1200, height: 630 };
@@ -112,7 +117,7 @@ export default async function Image({
   const votos = votosDeCodigo(codigo);
   if (!votos) return new Response("Código no válido", { status: 404 });
 
-  const elecciones = eleccionesDe(votos);
+  const elecciones = eleccionesDe(votos, metodosDeCodigo(codigo) ?? {});
   const hechos = elecciones.filter((e) => e.elegido).length;
 
   const caras = new Map<string, string | null>(
@@ -344,7 +349,7 @@ export default async function Image({
                         }}
                       >
                         {elegido
-                          ? `vs ${e.rival?.nombre ?? ""}`
+                          ? `vs ${e.rival?.nombre ?? ""}${e.metodo ? ` · ${METODO[e.metodo].nombre}` : ""}`
                           : `${e.combate.a.nombre} vs ${e.combate.b.nombre}`}
                       </div>
                     </div>

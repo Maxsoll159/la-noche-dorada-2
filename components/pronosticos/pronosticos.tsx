@@ -21,23 +21,32 @@ export function Pronosticos() {
     usuario,
     conteos,
     votos,
+    metodos,
     cargando,
     enviando,
+    enviandoMetodo,
     error,
     votar,
+    elegirMetodo,
     entrar,
     salir,
   } = useVotacion(activo);
   const [compartiendo, setCompartiendo] = useState(false);
 
   const hechos = Object.keys(votos).length;
-  const { resueltos, aciertos } = puntaje(conteos, votos);
-  const hayResultados = resueltos > 0;
-
-  const codigo = codigoDeVotos(votos);
-  const ganadores = Object.fromEntries(
-    Object.entries(conteos).map(([n, c]) => [n, c.ganador]),
+  const { resueltos, aciertos, aciertosMetodo } = puntaje(
+    conteos,
+    votos,
+    metodos,
   );
+  const hayResultados = resueltos > 0;
+  const textoPuntaje = `Acertaste ${aciertos} de ${resueltos} combates resueltos${
+    aciertosMetodo > 0
+      ? ` · ${aciertosMetodo} ${aciertosMetodo === 1 ? "método" : "métodos"}`
+      : ""
+  }`;
+
+  const codigo = codigoDeVotos(votos, metodos);
 
   return (
     <div className="flex w-full flex-col items-center gap-7">
@@ -86,15 +95,18 @@ export function Pronosticos() {
                 </p>
                 <p className="font-cond text-[12px] font-semibold tracking-[0.14em] text-tenue uppercase sm:tracking-[0.16em]">
                   {hayResultados
-                    ? `Acertaste ${aciertos} de ${resueltos} combates resueltos`
+                    ? textoPuntaje
                     : `${hechos} de ${COMBATES.length} combates elegidos`}
                 </p>
               </div>
             </div>
             <ol className="flex w-full flex-1 items-center gap-1.5" aria-hidden>
               {COMBATES.map((c) => {
-                const ganador = conteos[c.n]?.ganador;
-                const fallado = ganador && votos[c.n] && votos[c.n] !== ganador;
+                const conteo = conteos[c.n];
+                const fallado =
+                  conteo?.resuelto &&
+                  votos[c.n] &&
+                  votos[c.n] !== conteo.ganador;
                 return (
                   <li
                     key={c.n}
@@ -177,8 +189,11 @@ export function Pronosticos() {
             c={c}
             conteo={conteos[c.n]}
             voto={votos[c.n]}
+            metodo={metodos[c.n]}
             enviando={enviando === c.n}
+            enviandoMetodo={enviandoMetodo === c.n}
             onVotar={(lado) => votar(c.n, lado)}
+            onMetodo={(m) => elegirMetodo(c.n, m)}
           />
         ))}
       </div>
@@ -198,10 +213,16 @@ export function Pronosticos() {
       {compartiendo && (
         <ModalCompartir
           codigo={codigo}
-          texto={textoCompartir({ votos, ganadores, aciertos, resueltos })}
+          texto={textoCompartir({
+            votos,
+            metodos,
+            resultados: conteos,
+            aciertos,
+            resueltos,
+          })}
           resumen={
             hayResultados
-              ? `Acertaste ${aciertos} de ${resueltos} combates resueltos`
+              ? textoPuntaje
               : `${hechos} de ${COMBATES.length} combates elegidos`
           }
           onCerrar={() => setCompartiendo(false)}

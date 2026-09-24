@@ -1,13 +1,16 @@
-import Link from "next/link";
-import {
-  IconoCandado,
-  IconoFlechaDerecha,
-  IconoTrofeo,
-} from "@/assets/icons";
+import { IconoCandado, IconoTrofeo } from "@/assets/icons";
 import { PRONOSTICOS_ACTIVOS, type Combate } from "@/lib/evento";
-import { estaAbierto, type Conteo, type Lado } from "@/lib/votacion";
+import { METODO } from "@/lib/compartir";
+import {
+  estaAbierto,
+  type Conteo,
+  type Lado,
+  type Metodo,
+} from "@/lib/votacion";
+import { BotonFicha } from "./boton-ficha";
 import { LadoVoto } from "./lado-voto";
 import { RomboVS } from "./rombo-vs";
+import { SelectorMetodo } from "./selector-metodo";
 
 const TONO = {
   vivo: {
@@ -22,14 +25,20 @@ export function CardPronostico({
   c,
   conteo,
   voto,
+  metodo,
   enviando,
+  enviandoMetodo,
   onVotar,
+  onMetodo,
 }: {
   c: Combate;
   conteo?: Conteo;
   voto?: Lado;
+  metodo?: Metodo;
   enviando: boolean;
+  enviandoMetodo: boolean;
   onVotar: (lado: Lado) => void;
+  onMetodo: (metodo: Metodo) => void;
 }) {
   const activo = PRONOSTICOS_ACTIVOS;
   const pctA = activo && conteo ? conteo.pctA : null;
@@ -38,9 +47,15 @@ export function CardPronostico({
   const lideraB = pctA !== null && pctA < 50;
   const abierto = activo && estaAbierto(conteo);
   const esperando = activo && !conteo;
+  const resuelto = activo && (conteo?.resuelto ?? false);
   const ganador = activo ? (conteo?.ganador ?? null) : null;
+  const metodoReal = activo ? (conteo?.metodo ?? null) : null;
   const acerto = ganador !== null && voto === ganador;
-  const puedeVotar = activo && !esperando && abierto && !ganador;
+  const acertoMetodo = metodoReal !== null && !!voto && metodo === metodoReal;
+  const puedeVotar = activo && !esperando && abierto && !resuelto;
+  const totalMetodos = conteo
+    ? Object.values(conteo.votosMetodo).reduce((s, n) => s + n, 0)
+    : 0;
 
   const nombre = (lado: Lado) => c[lado].nombre;
 
@@ -48,7 +63,7 @@ export function CardPronostico({
     ? { texto: "Próximamente", tono: "apagado" }
     : esperando
       ? { texto: "Cargando", tono: "apagado" }
-      : ganador
+      : resuelto
         ? { texto: "Resultado final", tono: "lleno" }
         : !abierto
           ? { texto: "Votación cerrada", tono: "apagado" }
@@ -113,35 +128,41 @@ export function CardPronostico({
       </header>
 
       <div className="relative grid grid-cols-2 gap-1.5 px-1.5 sm:gap-2 sm:px-2">
-        <LadoVoto
-          peleador={c.a}
-          lado="a"
-          pct={pctA}
-          lidera={lideraA}
-          resultado={
-            ganador ? (ganador === "a" ? "gano" : "perdio") : undefined
-          }
-          votado={voto === "a"}
-          otroVotado={voto === "b"}
-          puedeVotar={puedeVotar}
-          enviando={enviando}
-          onVotar={() => onVotar("a")}
-        />
+        <div className="relative">
+          <LadoVoto
+            peleador={c.a}
+            lado="a"
+            pct={pctA}
+            lidera={lideraA}
+            resultado={
+              ganador ? (ganador === "a" ? "gano" : "perdio") : undefined
+            }
+            votado={voto === "a"}
+            otroVotado={voto === "b"}
+            puedeVotar={puedeVotar}
+            enviando={enviando}
+            onVotar={() => onVotar("a")}
+          />
+          <BotonFicha peleador={c.a} lado="a" votado={voto === "a"} />
+        </div>
         <RomboVS />
-        <LadoVoto
-          peleador={c.b}
-          lado="b"
-          pct={pctA === null ? null : 100 - pctA}
-          lidera={lideraB}
-          resultado={
-            ganador ? (ganador === "b" ? "gano" : "perdio") : undefined
-          }
-          votado={voto === "b"}
-          otroVotado={voto === "a"}
-          puedeVotar={puedeVotar}
-          enviando={enviando}
-          onVotar={() => onVotar("b")}
-        />
+        <div className="relative">
+          <LadoVoto
+            peleador={c.b}
+            lado="b"
+            pct={pctA === null ? null : 100 - pctA}
+            lidera={lideraB}
+            resultado={
+              ganador ? (ganador === "b" ? "gano" : "perdio") : undefined
+            }
+            votado={voto === "b"}
+            otroVotado={voto === "a"}
+            puedeVotar={puedeVotar}
+            enviando={enviando}
+            onVotar={() => onVotar("b")}
+          />
+          <BotonFicha peleador={c.b} lado="b" votado={voto === "b"} />
+        </div>
       </div>
 
       <div className="px-1.5 pt-2 pb-2.5 sm:px-2 sm:pt-2.5 sm:pb-3">
@@ -170,45 +191,42 @@ export function CardPronostico({
             }`}
           />
         </div>
-
-        <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:gap-2">
-          {(["a", "b"] as const).map((lado) => (
-            <Link
-              key={lado}
-              href={`/peleadores/${c[lado].slug}`}
-              aria-label={`Ver la ficha de ${nombre(lado)}`}
-              className={`group relative flex min-h-9 w-fit items-center gap-1.5 overflow-hidden rounded-full border border-oro-profundo bg-oro-tinte px-3.5 font-cond text-[11px] font-bold tracking-[0.14em] text-oro-claro uppercase shadow-[0_0_14px_-4px_rgba(212,175,55,0.45)] transition duration-300 hover:border-oro hover:bg-oro hover:text-noche hover:shadow-[0_0_20px_-2px_rgba(212,175,55,0.6)] sm:px-4 sm:text-[12px] ${
-                lado === "a" ? "justify-self-start" : "justify-self-end"
-              }`}
-            >
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 brillo-boton bg-gradient-to-r from-transparent via-oro-claro/30 to-transparent"
-              />
-              <span className="relative">Ver su ficha</span>
-              <IconoFlechaDerecha
-                size={12}
-                strokeWidth={2.6}
-                className="relative shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
-              />
-            </Link>
-          ))}
-        </div>
       </div>
 
-      {(ganador || !activo || esperando || !abierto || voto) && (
+      {conteo && (puedeVotar || totalMetodos > 0) && (
+        <SelectorMetodo
+          metodo={voto ? metodo : undefined}
+          votos={conteo.votosMetodo}
+          puedeElegir={puedeVotar && !!voto}
+          abierto={puedeVotar}
+          enviando={enviandoMetodo}
+          onElegir={onMetodo}
+        />
+      )}
+
+      {(resuelto || !activo || esperando || !abierto || voto) && (
         <footer className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-linea/70 bg-noche/50 px-3 py-2.5 font-cond text-[11px] font-semibold tracking-[0.12em] text-tenue uppercase sm:px-4">
-          {ganador ? (
+          {resuelto ? (
             <>
               <span className="flex items-center gap-2 text-oro-claro">
                 <span className="text-oro">
                   <IconoTrofeo className="size-[15px]" />
                 </span>
-                Ganó {nombre(ganador)}
+                {ganador
+                  ? `Ganó ${nombre(ganador)}${metodoReal ? ` · ${METODO[metodoReal].nombre}` : ""}`
+                  : "Terminó en empate"}
               </span>
               {voto && (
-                <span className={acerto ? "text-oro" : "text-tenue"}>
-                  {acerto ? "Acertaste" : `Votaste por ${nombre(voto)}`}
+                <span
+                  className={acerto || acertoMetodo ? "text-oro" : "text-tenue"}
+                >
+                  {acerto && acertoMetodo
+                    ? "Acertaste ganador y método"
+                    : acerto
+                      ? "Acertaste el ganador"
+                      : acertoMetodo
+                        ? "Acertaste el método"
+                        : `Votaste por ${nombre(voto)}${metodo ? ` · ${METODO[metodo].nombre}` : ""}`}
                 </span>
               )}
             </>
@@ -222,7 +240,9 @@ export function CardPronostico({
           ) : !abierto ? (
             <span className="flex items-center gap-2">
               <IconoCandado className="size-[14px] shrink-0" />
-              La votación de este combate ya cerró
+              {voto
+                ? `Cerró · Votaste por ${nombre(voto)}${metodo ? ` · ${METODO[metodo].nombre}` : ""}`
+                : "La votación de este combate ya cerró"}
             </span>
           ) : voto ? (
             <>

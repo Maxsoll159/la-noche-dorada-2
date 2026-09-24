@@ -135,7 +135,9 @@ const PREGUNTAS: readonly ItemAcordeon[] = [
       <p>
         Entras con tu cuenta de Google y eliges a tu favorito en cada combate.
         Es <strong>un voto por combate</strong>, puedes cambiarlo hasta que
-        cierre la votación y nadie ve a quién votaste. Al final puedes{" "}
+        cierre la votación y nadie ve a quién votaste. Si quieres, también
+        eliges <strong>cómo termina</strong> (KO, KO técnico, decisión unánime,
+        descalificación o empate) para sumar un punto más. Al final puedes{" "}
         <a href="#pronosticos">compartir tus pronósticos</a>.
       </p>
     ),

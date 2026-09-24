@@ -19,6 +19,12 @@ export type Database = {
           cierra_en: string
           estelar: boolean
           ganador: string | null
+          metodo: string | null
+          metodo_descalificacion: number
+          metodo_empate: number
+          metodo_ko: number
+          metodo_kot: number
+          metodo_unanime: number
           numero: string
           orden: number
           pct_a: number | null
@@ -32,6 +38,12 @@ export type Database = {
           cierra_en?: string
           estelar?: boolean
           ganador?: string | null
+          metodo?: string | null
+          metodo_descalificacion?: number
+          metodo_empate?: number
+          metodo_ko?: number
+          metodo_kot?: number
+          metodo_unanime?: number
           numero: string
           orden: number
           pct_a?: number | null
@@ -45,6 +57,12 @@ export type Database = {
           cierra_en?: string
           estelar?: boolean
           ganador?: string | null
+          metodo?: string | null
+          metodo_descalificacion?: number
+          metodo_empate?: number
+          metodo_ko?: number
+          metodo_kot?: number
+          metodo_unanime?: number
           numero?: string
           orden?: number
           pct_a?: number | null
@@ -159,6 +177,7 @@ export type Database = {
           combate_numero: string
           creado_en: string
           lado: string
+          metodo: string | null
           usuario_id: string
         }
         Insert: {
@@ -166,6 +185,7 @@ export type Database = {
           combate_numero: string
           creado_en?: string
           lado: string
+          metodo?: string | null
           usuario_id: string
         }
         Update: {
@@ -173,6 +193,7 @@ export type Database = {
           combate_numero?: string
           creado_en?: string
           lado?: string
+          metodo?: string | null
           usuario_id?: string
         }
         Relationships: [
@@ -197,6 +218,12 @@ export type Database = {
           cierra_en: string
           estelar: boolean
           ganador: string | null
+          metodo: string | null
+          metodo_descalificacion: number
+          metodo_empate: number
+          metodo_ko: number
+          metodo_kot: number
+          metodo_unanime: number
           numero: string
           orden: number
           pct_a: number | null
@@ -219,6 +246,12 @@ export type Database = {
           cierra_en: string
           estelar: boolean
           ganador: string | null
+          metodo: string | null
+          metodo_descalificacion: number
+          metodo_empate: number
+          metodo_ko: number
+          metodo_kot: number
+          metodo_unanime: number
           numero: string
           orden: number
           pct_a: number | null

@@ -8,9 +8,11 @@ import {
   type Combate,
   type Peleador,
 } from "@/lib/evento";
+import { METODO } from "@/lib/compartir";
 import { estaAbierto, useVotacion, type Lado } from "@/lib/votacion";
 import { LadoVoto } from "./lado-voto";
 import { RomboVS } from "./rombo-vs";
+import { SelectorMetodo } from "./selector-metodo";
 
 function puestoEnElCartel(
   conteos: Record<string, { pctA: number | null }>,
@@ -40,8 +42,18 @@ export function ApoyoPeleador({
   lado: Lado;
 }) {
   const activo = PRONOSTICOS_ACTIVOS;
-  const { usuario, conteos, votos, cargando, enviando, error, votar } =
-    useVotacion(activo);
+  const {
+    usuario,
+    conteos,
+    votos,
+    metodos,
+    cargando,
+    enviando,
+    enviandoMetodo,
+    error,
+    votar,
+    elegirMetodo,
+  } = useVotacion(activo);
   const conteo = conteos[combate.n];
   const ladoRival: Lado = lado === "a" ? "b" : "a";
 
@@ -55,10 +67,15 @@ export function ApoyoPeleador({
 
   const totalVotos = conteo ? conteo.votosA + conteo.votosB : 0;
   const ganador = activo ? (conteo?.ganador ?? null) : null;
+  const resuelto = activo && (conteo?.resuelto ?? false);
+  const metodoReal = activo ? (conteo?.metodo ?? null) : null;
   const abierto = activo && estaAbierto(conteo);
   const esperando = activo && !conteo;
-  const puedeVotar = activo && !esperando && abierto && !ganador;
+  const puedeVotar = activo && !esperando && abierto && !resuelto;
   const miVoto = votos[combate.n];
+  const miMetodo = metodos[combate.n];
+  const conMetodo = (m: typeof metodoReal | undefined) =>
+    m ? ` · ${METODO[m].nombre}` : "";
   const enviandoEste = enviando === combate.n;
   const rank = conteo ? puestoEnElCartel(conteos, peleador.slug) : null;
   const nombre = (l: Lado) => combate[l].nombre;
@@ -86,20 +103,20 @@ export function ApoyoPeleador({
     <article className="mx-auto w-full max-w-[780px] overflow-hidden rounded-sm border border-oro-profundo bg-oro-tinte">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-oro-profundo/40 bg-noche/40 px-4 py-3 sm:px-6">
         <p className="font-cond text-[11px] font-bold tracking-[0.2em] text-oro uppercase">
-          {ganador ? "Resultado final" : "Pronóstico de la comunidad"}
+          {resuelto ? "Resultado final" : "Pronóstico de la comunidad"}
         </p>
         <p className="flex items-center gap-2 font-cond text-[11px] font-bold tracking-[0.14em] text-tenue uppercase">
           <span
             aria-hidden
             className={`inline-block size-[7px] rounded-full ${
-              ganador || miVoto ? "bg-oro" : "bg-humo"
+              resuelto || miVoto ? "bg-oro" : "bg-humo"
             }`}
           />
           {!activo
             ? "Próximamente"
             : cargando
               ? "Cargando"
-              : ganador
+              : resuelto
                 ? "Combate resuelto"
                 : !abierto
                   ? "Votación cerrada"
@@ -141,6 +158,22 @@ export function ApoyoPeleador({
         />
       </div>
 
+      {activo &&
+        conteo &&
+        (puedeVotar ||
+          Object.values(conteo.votosMetodo).some((n) => n > 0)) && (
+          <div className="bg-noche/40">
+            <SelectorMetodo
+              metodo={miVoto ? miMetodo : undefined}
+              votos={conteo.votosMetodo}
+              puedeElegir={puedeVotar && !!miVoto}
+              abierto={puedeVotar}
+              enviando={enviandoMetodo === combate.n}
+              onElegir={(m) => elegirMetodo(combate.n, m)}
+            />
+          </div>
+        )}
+
       {error && (
         <p
           role="status"
@@ -152,18 +185,40 @@ export function ApoyoPeleador({
 
       <footer className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 bg-noche/40 px-4 py-3 font-cond text-[11px] font-semibold tracking-[0.12em] text-tenue uppercase sm:px-6">
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          {ganador ? (
-            <span className="text-oro-claro">
-              {miVoto
-                ? miVoto === ganador
-                  ? "Acertaste"
-                  : `Votaste por ${nombre(miVoto)}`
-                : `Ganó ${nombre(ganador)}`}
-            </span>
+          {resuelto ? (
+            <>
+              <span className="text-oro-claro">
+                {ganador
+                  ? `Ganó ${nombre(ganador)}${conMetodo(metodoReal)}`
+                  : "Terminó en empate"}
+              </span>
+              {miVoto && (
+                <span
+                  className={
+                    miVoto === ganador ||
+                    (metodoReal !== null && miMetodo === metodoReal)
+                      ? "text-oro"
+                      : ""
+                  }
+                >
+                  {miVoto === ganador && miMetodo === metodoReal
+                    ? "Acertaste ganador y método"
+                    : miVoto === ganador
+                      ? "Acertaste el ganador"
+                      : metodoReal !== null && miMetodo === metodoReal
+                        ? "Acertaste el método"
+                        : `Votaste por ${nombre(miVoto)}${conMetodo(miMetodo)}`}
+                </span>
+              )}
+            </>
           ) : !activo ? (
             <span>La votación se habilita en la segunda fase</span>
           ) : !abierto && !esperando ? (
-            <span>La votación de este combate ya cerró</span>
+            <span>
+              {miVoto
+                ? `Cerró · Votaste por ${nombre(miVoto)}${conMetodo(miMetodo)}`
+                : "La votación de este combate ya cerró"}
+            </span>
           ) : miVoto ? (
             <>
               <span className="text-oro-claro">

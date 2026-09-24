@@ -4,7 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IconoExterno } from "@/assets/icons";
 import { BANDERAS, CASA_APUESTAS, COMBATES, EVENTO } from "@/lib/evento";
-import { eleccionesDe, votosDeCodigo } from "@/lib/compartir";
+import {
+  METODO,
+  eleccionesDe,
+  metodosDeCodigo,
+  votosDeCodigo,
+} from "@/lib/compartir";
 import { Bandera } from "@/components/ui/bandera";
 import { FileteOro } from "@/components/ui/filete-oro";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -56,7 +61,7 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
   const votos = votosDeCodigo(codigo);
   if (!votos) notFound();
 
-  const elecciones = eleccionesDe(votos);
+  const elecciones = eleccionesDe(votos, metodosDeCodigo(codigo) ?? {});
   const hechos = elecciones.filter((e) => e.elegido).length;
 
   return (
@@ -148,7 +153,7 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
 
             <ul className="grid w-full gap-3 lg:grid-cols-2 lg:gap-4">
               {elecciones.map((e) => {
-                const { combate, elegido, rival } = e;
+                const { combate, elegido, rival, metodo } = e;
                 return (
                   <li key={combate.n}>
                     <div
@@ -201,6 +206,11 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
                                 · {BANDERAS[elegido.pais].nombre}
                               </span>
                             </span>
+                            {metodo && (
+                              <span className="mt-1.5 inline-flex rounded-full border border-oro-profundo bg-oro-tinte px-2.5 py-[3px] font-cond text-[10px] leading-none font-bold tracking-[0.14em] text-oro uppercase">
+                                {METODO[metodo].nombre}
+                              </span>
+                            )}
                           </span>
                         </>
                       ) : (

@@ -90,11 +90,23 @@ select id, autor_nombre, texto, creado_en from public.comentarios
 
 ### Después de la velada
 
-Para puntuar los pronósticos, se marca el resultado real:
+Para puntuar los pronósticos, se marca el resultado real: el ganador y, si se
+quiere puntuar el método, cómo terminó (`ko`, `kot`, `unanime`,
+`descalificacion` o `empate`):
 
 ```sql
-update public.combates set ganador = 'a' where numero = '08';
+update public.combates set ganador = 'a', metodo = 'ko' where numero = '08';
+
+-- empate: sin ganador
+update public.combates set ganador = null, metodo = 'empate' where numero = '08';
 ```
+
+El método que elige cada usuario (`votos.metodo`) es opcional y cuelga de su
+voto: si retira el voto, se va con él. Un check en `combates` impide guardar
+un empate con ganador o un método sin ganador. Acertar el método suma aparte
+del ganador. El porcentaje público por método sale de `combates.metodo_ko`,
+`metodo_kot`, `metodo_unanime`, `metodo_descalificacion` y `metodo_empate`, que
+mantiene el mismo trigger `contar_votos`.
 
 Para cerrar un combate antes de tiempo, se adelanta su fecha:
 
@@ -119,7 +131,10 @@ Graph de esa página. Para eso existe `/pronosticos/[codigo]`; sin una URL por
 quiniela, todo el mundo compartiría la misma vista previa genérica.
 
 `codigo` es la quiniela entera: un carácter por combate (`a`, `b`, o `0` si no
-lo pronosticó), del "01" al "08". Es **posicional**, así que renumerar un
+lo pronosticó), del "01" al "08". Si eligió algún método, lleva 8 caracteres
+más con la letra de cada uno (`k` KO, `t` KO técnico, `u` decisión unánime,
+`d` descalificación, `e` empate, `0` ninguno); los enlaces de 8 siguen
+valiendo. Es **posicional**, así que renumerar un
 combate cambia lo que dicen los enlaces ya compartidos —el mismo cuidado que
 pide la tabla `combates`—. El encode y el decode viven en `lib/compartir.ts`.
 
