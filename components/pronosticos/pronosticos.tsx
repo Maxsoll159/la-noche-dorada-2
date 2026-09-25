@@ -81,17 +81,17 @@ export function Pronosticos() {
             className="pointer-events-none absolute inset-0 -z-10 bg-[repeating-linear-gradient(135deg,rgba(212,175,55,0.03)_0_1px,transparent_1px_12px)]"
           />
 
-          <div className="flex flex-col items-center gap-5 px-5 py-7 text-center sm:px-8 sm:py-9 lg:flex-row lg:gap-8 lg:text-left">
-            <span className="relative grid size-16 shrink-0 place-items-center sm:size-[72px]">
+          <div className="flex flex-col items-center gap-3.5 px-4 py-5 text-center sm:gap-5 sm:px-8 sm:py-9 lg:flex-row lg:gap-8 lg:text-left">
+            <span className="relative grid size-11 shrink-0 place-items-center sm:size-[72px]">
               <span
                 aria-hidden
                 className="absolute inset-0 rotate-45 rounded-[6px] border border-oro bg-[linear-gradient(135deg,#2a2010_0%,#0b0b0d_75%)] shadow-[0_0_28px_rgba(212,175,55,0.35)]"
               />
-              <IconoTrofeo size={30} className="relative text-oro-claro" />
+              <IconoTrofeo className="relative size-5 text-oro-claro sm:size-[30px]" />
             </span>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <p className="font-display text-[26px] leading-[1.05] text-crema uppercase sm:text-[34px]">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:gap-2">
+              <p className="font-display text-[20px] leading-[1.1] text-crema uppercase sm:text-[34px] sm:leading-[1.05]">
                 Arma tus pronósticos{" "}
                 <span className="relative inline-block overflow-hidden">
                   <span className="texto-oro drop-shadow-[0_0_18px_rgba(212,175,55,0.45)]">
@@ -103,7 +103,7 @@ export function Pronosticos() {
                   />
                 </span>
               </p>
-              <p className="font-cond text-[12px] font-semibold tracking-[0.12em] text-tenue uppercase sm:text-[13px] sm:tracking-[0.14em]">
+              <p className="font-cond text-[11px] font-semibold tracking-[0.1em] text-tenue uppercase sm:text-[13px] sm:tracking-[0.14em]">
                 Entra con Google y elige a tu favorito en los ocho combates
               </p>
             </div>
