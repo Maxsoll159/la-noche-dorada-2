@@ -174,6 +174,10 @@ const REDES: Record<
     { plataforma: "TikTok", url: "https://www.tiktok.com/@neutroogg" },
     { plataforma: "Instagram", url: "https://www.instagram.com/neutroogg/" },
   ],
+  "ismael-sanchez": [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@ismaelsanchez18_" },
+    { plataforma: "Kick", url: "https://kick.com/ismaelsanchez18" },
+  ],
 };
 
 export const crearPeleador = (
