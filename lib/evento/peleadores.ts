@@ -25,7 +25,7 @@ const FICHAS: Record<
   { nacimiento?: string; altura?: number; peso?: number; aprox?: boolean }
 > = {
   jh: { nacimiento: "1995-04-14", altura: 1.67, peso: 62.9 },
-  canita: { nacimiento: "2000-01-01", altura: 1.8, peso: 71, aprox: true },
+  canita: { nacimiento: "2002-01-01", altura: 1.8, peso: 71, aprox: true },
   shelao: { nacimiento: "1990-06-08", altura: 1.88, peso: 102, aprox: true },
   piero: { nacimiento: "2000-08-01", altura: 1.86, peso: 90, aprox: true },
   bebote: { nacimiento: "2001-01-01", altura: 1.82, peso: 76, aprox: true },
