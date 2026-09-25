@@ -114,7 +114,7 @@ export function Pronosticos() {
                 className="pointer-events-none absolute -inset-1.5 latido rounded-md bg-oro/25 blur-md"
               />
               <div className="relative">
-                <BotonGoogle onClick={E}>Entrar con Google</BotonGoogle>
+                <BotonGoogle onClick={entrar}>Entrar con Google</BotonGoogle>
               </div>
             </div>
           </div>
