@@ -68,19 +68,56 @@ export function Pronosticos() {
           </span>
         </div>
       ) : !usuario ? (
-        <div className="flex w-full flex-col items-center gap-5 rounded-sm border border-oro-profundo bg-oro-tinte px-4 py-6 text-center sm:px-7 sm:py-8 lg:flex-row lg:gap-6 lg:text-left">
-          <span className="text-oro">
-            <IconoTrofeo size={30} />
+        <div className="relative isolate w-full overflow-hidden rounded-md border border-oro-profundo bg-[linear-gradient(135deg,#1f180a_0%,#120f09_45%,#0d0c0b_100%)] shadow-[0_24px_60px_-30px_rgba(212,175,55,0.6)]">
+          <span aria-hidden className="marco-vivo">
+            <span className="marco-vivo-haz" />
           </span>
-          <div className="flex-1">
-            <p className="font-display text-[19px] leading-tight text-oro-claro uppercase sm:text-[22px]">
-              Arma tus pronósticos
-            </p>
-            <p className="font-cond text-[12px] font-semibold tracking-[0.12em] text-tenue uppercase sm:text-[13px] sm:tracking-[0.14em]">
-              Entra con Google y elige a tu favorito en los ocho combates
-            </p>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-24 left-1/2 -z-10 size-[420px] -translate-x-1/2 respirar rounded-full bg-[radial-gradient(closest-side,rgba(212,175,55,0.22),rgba(212,175,55,0))] lg:left-24"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 bg-[repeating-linear-gradient(135deg,rgba(212,175,55,0.03)_0_1px,transparent_1px_12px)]"
+          />
+
+          <div className="flex flex-col items-center gap-5 px-5 py-7 text-center sm:px-8 sm:py-9 lg:flex-row lg:gap-8 lg:text-left">
+            <span className="relative grid size-16 shrink-0 place-items-center sm:size-[72px]">
+              <span
+                aria-hidden
+                className="absolute inset-0 rotate-45 rounded-[6px] border border-oro bg-[linear-gradient(135deg,#2a2010_0%,#0b0b0d_75%)] shadow-[0_0_28px_rgba(212,175,55,0.35)]"
+              />
+              <IconoTrofeo size={30} className="relative text-oro-claro" />
+            </span>
+
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <p className="font-display text-[26px] leading-[1.05] text-crema uppercase sm:text-[34px]">
+                Arma tus pronósticos{" "}
+                <span className="relative inline-block overflow-hidden">
+                  <span className="texto-oro drop-shadow-[0_0_18px_rgba(212,175,55,0.45)]">
+                    y compártelos
+                  </span>
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 brillo-boton bg-gradient-to-r from-transparent via-white/35 to-transparent"
+                  />
+                </span>
+              </p>
+              <p className="font-cond text-[12px] font-semibold tracking-[0.12em] text-tenue uppercase sm:text-[13px] sm:tracking-[0.14em]">
+                Entra con Google y elige a tu favorito en los ocho combates
+              </p>
+            </div>
+
+            <div className="relative shrink-0">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -inset-1.5 latido rounded-md bg-oro/25 blur-md"
+              />
+              <div className="relative">
+                <BotonGoogle onClick={E}>Entrar con Google</BotonGoogle>
+              </div>
+            </div>
           </div>
-          <BotonGoogle onClick={entrar}>Entrar con Google</BotonGoogle>
         </div>
       ) : (
         <div className="flex w-full flex-col gap-4">
