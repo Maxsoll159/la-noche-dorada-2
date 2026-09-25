@@ -170,6 +170,10 @@ const REDES: Record<
     { plataforma: "TikTok", url: "https://www.tiktok.com/@pauchikita_" },
     { plataforma: "Kick", url: "https://kick.com/pauchikita" },
   ],
+  neutro: [
+    { plataforma: "TikTok", url: "https://www.tiktok.com/@neutroogg" },
+    { plataforma: "Instagram", url: "https://www.instagram.com/neutroogg/" },
+  ],
 };
 
 export const crearPeleador = (
