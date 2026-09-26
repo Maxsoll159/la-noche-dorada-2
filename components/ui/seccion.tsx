@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Estrellas } from "@/components/ui/estrellas";
 import { FileteOro } from "@/components/ui/filete-oro";
 import { Revelar } from "@/components/ui/revelar";
 
@@ -26,8 +27,9 @@ export function Seccion({
   return (
     <section
       id={id}
-      className={`scroll-mt-24 ${fondo === "superficie" ? "bg-superficie" : "bg-noche"}`}
+      className={`relative isolate scroll-mt-24 overflow-hidden ${fondo === "superficie" ? "bg-superficie" : "bg-noche"}`}
     >
+      <Estrellas />
       <FileteOro />
       <div
         className={`mx-auto flex flex-col items-center gap-8 px-6 py-14 sm:py-16 lg:px-14 lg:py-20 ${
