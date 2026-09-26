@@ -9,26 +9,11 @@ import {
   type Peleador,
 } from "@/lib/evento";
 import { METODO } from "@/lib/compartir";
+import { puestoDe, rankingFavoritos } from "@/lib/favoritos";
 import { estaAbierto, useVotacion, type Lado } from "@/lib/votacion";
 import { LadoVoto } from "./lado-voto";
 import { RomboVS } from "./rombo-vs";
 import { SelectorMetodo } from "./selector-metodo";
-
-function puestoEnElCartel(
-  conteos: Record<string, { pctA: number | null }>,
-  slug: string,
-) {
-  const lista: { slug: string; pct: number }[] = [];
-  for (const c of COMBATES) {
-    const k = conteos[c.n];
-    if (!k || k.pctA === null) continue;
-    lista.push({ slug: c.a.slug, pct: k.pctA });
-    lista.push({ slug: c.b.slug, pct: 100 - k.pctA });
-  }
-  lista.sort((x, y) => y.pct - x.pct);
-  const i = lista.findIndex((x) => x.slug === slug);
-  return i === -1 ? null : { puesto: i + 1, total: lista.length };
-}
 
 export function ApoyoPeleador({
   combate,
@@ -77,7 +62,9 @@ export function ApoyoPeleador({
   const conMetodo = (m: typeof metodoReal | undefined) =>
     m ? ` · ${METODO[m].nombre}` : "";
   const enviandoEste = enviando === combate.n;
-  const rank = conteo ? puestoEnElCartel(conteos, peleador.slug) : null;
+  const rank = conteo
+    ? puestoDe(rankingFavoritos(conteos), peleador.slug)
+    : null;
   const nombre = (l: Lado) => combate[l].nombre;
 
   const loseta = (p: Peleador, l: Lado, donde: Lado) => (

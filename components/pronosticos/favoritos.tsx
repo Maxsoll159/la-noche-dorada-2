@@ -34,6 +34,9 @@ const PODIO = [
 const VISIBLES = 8;
 
 const porcentaje = (pct: number | null) => (pct === null ? "—" : `${pct}%`);
+const numero = new Intl.NumberFormat("es-PE");
+const votosTexto = (n: number) =>
+  `${numero.format(n)} ${n === 1 ? "voto" : "votos"}`;
 
 function TarjetaPodio({
   favorito,
@@ -95,7 +98,10 @@ function TarjetaPodio({
               : "text-[24px] text-crema sm:text-[36px]"
           }`}
         >
-          {porcentaje(favorito.pct)}
+          {numero.format(favorito.votos)}
+        </span>
+        <span className="font-cond text-[10px] font-bold tracking-[0.14em] text-oro-medio uppercase sm:text-[11px]">
+          {favorito.votos === 1 ? "voto" : "votos"} · {porcentaje(favorito.pct)}
         </span>
         <span className="flex max-w-full items-center gap-1.5 font-display text-[13px] leading-tight text-crema uppercase sm:text-[18px]">
           <Bandera
@@ -115,11 +121,13 @@ function TarjetaPodio({
 function FilaRanking({
   favorito,
   puesto,
+  maximo,
 }: {
   favorito: Favorito;
   puesto: number;
+  maximo: number;
 }) {
-  const { peleador, rival, pct } = favorito;
+  const { peleador, rival, pct, votos } = favorito;
   const lidera = pct !== null && pct >= 50;
 
   return (
@@ -146,7 +154,11 @@ function FilaRanking({
             <span className="truncate">{peleador.nombre}</span>
           </span>
           <span className="block truncate font-cond text-[10px] font-bold tracking-[0.14em] text-tenue uppercase sm:text-[11px]">
-            vs {rival.nombre} · {BANDERAS[rival.pais].nombre}
+            vs {rival.nombre} · {porcentaje(pct)} en su combate
+            <span className="hidden sm:inline">
+              {" "}
+              · {BANDERAS[rival.pais].nombre}
+            </span>
           </span>
         </span>
         <span
@@ -154,7 +166,7 @@ function FilaRanking({
           className="hidden h-2 overflow-hidden rounded-full bg-linea sm:block"
         >
           <span
-            style={{ width: `${pct ?? 0}%` }}
+            style={{ width: `${maximo > 0 ? (votos / maximo) * 100 : 0}%` }}
             className={`block h-full rounded-full transition-[width] duration-700 ${
               lidera
                 ? "bg-gradient-to-r from-oro-profundo to-oro-claro"
@@ -163,11 +175,12 @@ function FilaRanking({
           />
         </span>
         <span
+          title={votosTexto(votos)}
           className={`text-right font-display text-[18px] leading-none tabular-nums sm:text-[20px] ${
             lidera ? "text-oro" : "text-tenue"
           }`}
         >
-          {porcentaje(pct)}
+          {numero.format(votos)}
         </span>
       </Link>
     </li>
@@ -242,6 +255,7 @@ export function Favoritos() {
                   key={f.peleador.slug}
                   favorito={f}
                   puesto={i + 4}
+                  maximo={ranking[0]?.votos ?? 0}
                 />
               ))}
             </ol>
@@ -269,7 +283,8 @@ export function Favoritos() {
 
       <div className="flex flex-col items-center gap-3 text-center">
         <p className="font-cond text-[11px] font-semibold tracking-[0.16em] text-oro-medio uppercase">
-          Porcentaje de apoyo de cada peleador en su propio combate
+          Ordenado por votos recibidos · El porcentaje es su apoyo en su propio
+          combate
         </p>
         <a
           href="#pronosticos"

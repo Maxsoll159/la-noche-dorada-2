@@ -35,10 +35,22 @@ export function rankingFavoritos(conteos: Record<string, Conteo>): Favorito[] {
     ];
   });
 
+  // Manda la cantidad de votos. El porcentaje solo desempata, y sin redondear:
+  // el `pct_a` de la base es entero y fabrica empates que no existen.
+  const exacto = (f: Favorito) =>
+    f.votosCombate > 0 ? f.votos / f.votosCombate : -1;
+
   return lista.sort(
     (x, y) =>
-      (y.pct ?? -1) - (x.pct ?? -1) ||
       y.votos - x.votos ||
+      exacto(y) - exacto(x) ||
       x.peleador.nombre.localeCompare(y.peleador.nombre, "es"),
   );
+}
+
+export function puestoDe(ranking: Favorito[], slug: string) {
+  const i = ranking.findIndex((f) => f.peleador.slug === slug);
+  return i === -1 || ranking[i].votos === 0
+    ? null
+    : { puesto: i + 1, total: ranking.length };
 }
