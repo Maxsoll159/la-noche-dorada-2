@@ -8,8 +8,9 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { IconoComentario, IconoEnviar, LogoGoogle } from "@/assets/icons";
-import { iniciarSesionConGoogle, useUsuario } from "@/lib/sesion";
+import { IconoComentario, IconoEnviar } from "@/assets/icons";
+import { iniciarSesion, useUsuario } from "@/lib/sesion";
+import { BotonesAcceso } from "@/components/pronosticos/boton-acceso";
 import { clienteNavegador } from "@/lib/supabase/cliente";
 
 type Comentario = {
@@ -401,7 +402,7 @@ export function Comentarios({
             </div>
           </form>
         ) : (
-          <div className="flex flex-col items-center gap-4 py-2 text-center sm:flex-row sm:text-left">
+          <div className="flex flex-col items-center gap-4 py-2 text-center lg:flex-row lg:text-left">
             <span className="grid size-12 shrink-0 place-items-center rounded-full border border-oro-profundo bg-noche/60 text-oro">
               <IconoComentario size={22} />
             </span>
@@ -410,21 +411,17 @@ export function Comentarios({
                 Únete a la conversación
               </p>
               <p className="mt-1 font-cond text-[12px] font-semibold tracking-[0.12em] text-tenue uppercase">
-                Entra con Google para comentar sobre {nombre}
+                Entra con Google o Discord para comentar sobre {nombre}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                iniciarSesionConGoogle(
+            <BotonesAcceso
+              onEntrar={(proveedor) =>
+                iniciarSesion(
+                  proveedor,
                   `${window.location.pathname}#comentarios`,
                 )
               }
-              className="flex shrink-0 items-center justify-center gap-2.5 rounded-sm bg-crema px-5 py-3 font-cond text-[13px] font-bold tracking-[0.13em] text-noche uppercase transition-colors hover:bg-white"
-            >
-              <LogoGoogle className="size-[17px] shrink-0" />
-              Entrar con Google
-            </button>
+            />
           </div>
         )}
       </div>

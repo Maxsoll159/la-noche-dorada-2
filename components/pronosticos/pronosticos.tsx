@@ -11,7 +11,7 @@ import {
 import { COMBATES, EVENTO, PRONOSTICOS_ACTIVOS } from "@/lib/evento";
 import { puntaje, useVotacion } from "@/lib/votacion";
 import { codigoDeVotos, textoCompartir } from "@/lib/compartir";
-import { BotonGoogle } from "./boton-google";
+import { BotonesAcceso } from "./boton-acceso";
 import { CardPronostico } from "./card-pronostico";
 import { ModalCompartir } from "./modal-compartir";
 
@@ -104,17 +104,17 @@ export function Pronosticos() {
                 </span>
               </p>
               <p className="font-cond text-[11px] font-semibold tracking-[0.1em] text-tenue uppercase sm:text-[13px] sm:tracking-[0.14em]">
-                Entra con Google y elige a tu favorito en los ocho combates
+                Entra con Google o Discord y elige a tu favorito en cada combate
               </p>
             </div>
 
-            <div className="relative shrink-0">
+            <div className="relative w-full shrink-0 sm:w-auto">
               <span
                 aria-hidden
                 className="pointer-events-none absolute -inset-1.5 latido rounded-md bg-oro/25 blur-md"
               />
               <div className="relative">
-                <BotonGoogle onClick={entrar}>Entrar con Google</BotonGoogle>
+                <BotonesAcceso onEntrar={entrar} />
               </div>
             </div>
           </div>

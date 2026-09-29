@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { clienteNavegador } from "./supabase/cliente";
 import { aMetodo, type Lado, type Metodo } from "./compartir";
-import { iniciarSesionConGoogle } from "./sesion";
+import { iniciarSesion, type Proveedor } from "./sesion";
 
 export type { Lado, Metodo };
 
@@ -176,12 +176,15 @@ export function useVotacion(activo: boolean) {
     };
   }, [activo, idUsuario]);
 
-  const entrar = useCallback(async () => {
+  // Tocar un lado sin sesión entra directo con Google; Discord se elige desde
+  // su botón.
+  const entrar = useCallback(async (proveedor: Proveedor = "google") => {
     const { pathname } = window.location;
-    const ok = await iniciarSesionConGoogle(
+    const ok = await iniciarSesion(
+      proveedor,
       pathname === "/" ? "/#pronosticos" : `${pathname}#pronostico`,
     );
-    if (!ok) setError("No pudimos abrir el acceso con Google.");
+    if (!ok) setError("No pudimos abrir el inicio de sesión.");
   }, []);
 
   const salir = useCallback(async () => {
@@ -285,7 +288,7 @@ export function useVotacion(activo: boolean) {
       `${window.location.pathname}${busqueda ? `?${busqueda}` : ""}${window.location.hash}`,
     );
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setError("No se pudo completar el acceso con Google. Inténtalo de nuevo.");
+    setError("No se pudo completar el inicio de sesión. Inténtalo de nuevo.");
   }, []);
 
   useEffect(() => {
