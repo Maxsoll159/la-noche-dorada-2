@@ -12,7 +12,12 @@ export async function iniciarSesion(proveedor: Proveedor, volverA: string) {
   document.cookie = `${COOKIE_VOLVER}=${encodeURIComponent(ruta)}; path=/; max-age=600; samesite=lax`;
   const { error } = await clienteNavegador().auth.signInWithOAuth({
     provider: proveedor,
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      // Supabase pide a Discord `prompt=consent`, que muestra la pantalla de
+      // autorizar en cada entrada. Con `none` solo sale la primera vez.
+      ...(proveedor === "discord" && { queryParams: { prompt: "none" } }),
+    },
   });
   return !error;
 }
