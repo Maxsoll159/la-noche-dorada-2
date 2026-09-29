@@ -25,12 +25,12 @@ export const PRESENTACION = {
 export const PRONOSTICOS_ACTIVOS = true;
 
 export const PREVENTAS = {
-  actual: { nombre: "Preventa 1", hasta: "30 de septiembre" },
-  siguiente: {
+  actual: {
     nombre: "Preventa 2",
-    desde: "1 de octubre",
-    hasta: "3 de noviembre",
+    desde: "28 de septiembre",
+    hasta: "28 de octubre",
   },
+  anterior: { nombre: "Preventa 1" },
 } as const;
 
 export const REDES_ACTUALIZADAS = "septiembre de 2026";
@@ -38,6 +38,7 @@ export const REDES_ACTUALIZADAS = "septiembre de 2026";
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
+  { href: "/#favoritos", label: "Favoritos" },
   { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },
   { href: "/#sede", label: "Sede" },

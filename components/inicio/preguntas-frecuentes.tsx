@@ -1,15 +1,12 @@
-import { COMBATES, EVENTO, PREVENTAS, ZONAS } from "@/lib/evento";
+import { COMBATES, EVENTO, PREVENTAS, ZONAS, precioNumero } from "@/lib/evento";
 import { Acordeon, type ItemAcordeon } from "@/components/ui/acordeon";
 import { Seccion } from "@/components/ui/seccion";
 
 const estelar = COMBATES.find((c) => c.estelar) ?? COMBATES[0];
 const semifondo = COMBATES.find((c) => c.billing === "Semifondo");
-const precioMinimo = ZONAS.reduce((min, z) =>
-  parseFloat(z.actual.replace(/[^\d.]/g, "")) <
-  parseFloat(min.actual.replace(/[^\d.]/g, ""))
-    ? z
-    : min,
-).actual;
+const precioMinimo = ZONAS.flatMap((z) => (z.actual ? [z.actual] : [])).reduce(
+  (min, p) => (precioNumero(p) < precioNumero(min) ? p : min),
+);
 const sillaDeRuedas = ZONAS.find((z) => z.nombre.includes("silla de ruedas"));
 const aforo = new Intl.NumberFormat("es-PE").format(EVENTO.aforo);
 
@@ -122,8 +119,23 @@ const PREGUNTAS: readonly ItemAcordeon[] = [
           respuesta: (
             <p>
               Sí. La <strong>{sillaDeRuedas.nombre.toLowerCase()}</strong> tiene{" "}
-              {sillaDeRuedas.detalle?.toLowerCase()} y cuesta{" "}
-              {sillaDeRuedas.actual} en la {PREVENTAS.actual.nombre}.
+              {sillaDeRuedas.detalle?.toLowerCase()}
+              {sillaDeRuedas.actual ? (
+                <>
+                  {" "}
+                  y cuesta {sillaDeRuedas.actual} en la{" "}
+                  {PREVENTAS.actual.nombre}.
+                </>
+              ) : (
+                <>
+                  , pero no está a la venta en la {PREVENTAS.actual.nombre}.
+                  Revisa su disponibilidad en{" "}
+                  <a href={EVENTO.entradasUrl} target="_blank" rel="noreferrer">
+                    Ticketmaster.pe
+                  </a>
+                  .
+                </>
+              )}
             </p>
           ),
         },

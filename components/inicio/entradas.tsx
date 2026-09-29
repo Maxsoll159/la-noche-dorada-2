@@ -34,7 +34,7 @@ export function Entradas() {
               {PREVENTAS.actual.nombre}
               <span className="hidden text-tenue sm:inline">
                 {" "}
-                · {PREVENTAS.siguiente.nombre}
+                · antes en {PREVENTAS.anterior.nombre}
               </span>
             </span>
           </div>
@@ -64,16 +64,21 @@ export function Entradas() {
                   </span>
                 </span>
                 <span className="flex shrink-0 flex-col items-end">
-                  <span className="font-display text-[22px] leading-none text-oro tabular-nums sm:text-[25px]">
-                    {z.actual}
-                  </span>
-                  <span className="mt-1 font-cond text-[11px] font-semibold tracking-[0.1em] text-tenue uppercase tabular-nums">
-                    <span className="hidden sm:inline">
-                      {PREVENTAS.siguiente.nombre}{" "}
+                  {z.actual ? (
+                    <span className="font-display text-[22px] leading-none text-oro tabular-nums sm:text-[25px]">
+                      {z.actual}
                     </span>
-                    <span className="sm:hidden">Luego </span>
-                    {z.siguiente}
-                  </span>
+                  ) : (
+                    <span className="font-display text-[18px] leading-none text-tenue uppercase sm:text-[20px]">
+                      No disponible
+                    </span>
+                  )}
+                  {z.anterior && (
+                    <span className="mt-1 font-cond text-[11px] font-semibold tracking-[0.1em] text-tenue uppercase tabular-nums">
+                      {z.actual ? "Antes " : `${PREVENTAS.anterior.nombre} `}
+                      <s className="decoration-oro-medio">{z.anterior}</s>
+                    </span>
+                  )}
                 </span>
               </li>
             ))}
@@ -82,14 +87,10 @@ export function Entradas() {
             <ul className="flex flex-col gap-1 font-cond text-[12px] leading-snug font-semibold tracking-[0.14em] text-tenue uppercase">
               <li>
                 <span className="text-oro">{PREVENTAS.actual.nombre}</span> ·
-                hasta el {PREVENTAS.actual.hasta}
+                del {PREVENTAS.actual.desde} al {PREVENTAS.actual.hasta}
               </li>
-              <li>
-                <span className="text-crema">{PREVENTAS.siguiente.nombre}</span>{" "}
-                · del {PREVENTAS.siguiente.desde} al {PREVENTAS.siguiente.hasta}
-              </li>
-              <li className="text-[11px] text-humo">
-                Preventa exclusiva agotada
+              <li className="text-[11px] text-tenue">
+                Preventa exclusiva agotada · {PREVENTAS.anterior.nombre} cerrada
               </li>
             </ul>
             <a

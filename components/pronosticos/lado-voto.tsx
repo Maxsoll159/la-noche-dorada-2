@@ -146,7 +146,7 @@ export function LadoVoto({
         </span>
         {pct !== null && (
           <span
-            className={`mt-1 font-cond text-[9px] font-bold tracking-[0.2em] uppercase sm:text-[10px] ${
+            className={`mt-1 font-cond text-[11px] font-bold tracking-[0.1em] uppercase drop-shadow-[0_1px_6px_rgba(0,0,0,0.95)] sm:tracking-[0.2em] ${
               lidera ? "text-oro" : "text-tenue"
             }`}
           >

@@ -17,7 +17,7 @@ function useOffsetLocal(inicioISO: string) {
 function Etiqueta({ children, viva }: { children: string; viva?: boolean }) {
   return (
     <span
-      className={`shrink-0 rounded-full border px-2.5 py-1 font-cond text-[10px] leading-none font-bold tracking-[0.18em] uppercase ${
+      className={`shrink-0 rounded-full border px-2.5 py-1 font-cond text-[11px] leading-none font-bold tracking-[0.18em] uppercase ${
         viva ? "border-oro bg-oro text-noche" : "border-oro-profundo text-oro"
       }`}
     >
@@ -61,11 +61,11 @@ function Fila({ grupo, esTuHora }: { grupo: GrupoHorario; esTuHora: boolean }) {
             {grupo.meridiano}
           </span>
         </p>
-        <p className="mt-1 font-cond text-[10px] font-bold tracking-[0.14em] text-tenue uppercase">
+        <p className="mt-1 font-cond text-[11px] font-bold tracking-[0.14em] text-tenue uppercase">
           {grupo.gmt}
         </p>
         {grupo.nota && (
-          <p className="mt-1 font-cond text-[10px] font-bold tracking-[0.12em] text-oro-medio uppercase">
+          <p className="mt-1 font-cond text-[11px] font-bold tracking-[0.12em] text-oro-medio uppercase">
             {grupo.nota}
           </p>
         )}

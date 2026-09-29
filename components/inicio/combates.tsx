@@ -15,9 +15,7 @@ function FrenteRapido({ c }: { c: Combate }) {
     <dl className="relative my-6 mr-10 hidden w-[320px] shrink-0 self-center overflow-hidden rounded-sm border border-oro-profundo/60 bg-noche/70 backdrop-blur-sm lg:block">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-linea bg-[#08080b] px-4 py-2.5 font-cond text-[11px] font-bold tracking-[0.14em] uppercase">
         <span className="truncate text-crema">{c.a.nombre}</span>
-        <span className="text-[10px] tracking-[0.2em] text-oro-medio">
-          Frente a frente
-        </span>
+        <span className="tracking-[0.2em] text-oro-medio">Frente a frente</span>
         <span className="truncate text-right text-crema">{c.b.nombre}</span>
       </div>
       {FILAS_TAPE.map((fila, i) => (
@@ -30,7 +28,7 @@ function FrenteRapido({ c }: { c: Combate }) {
           <dd className="font-display text-[20px] leading-none text-crema tabular-nums">
             {fila.valor(c.a) ?? "—"}
           </dd>
-          <dt className="w-[60px] text-center font-cond text-[10px] font-bold tracking-[0.2em] text-oro uppercase">
+          <dt className="w-[60px] text-center font-cond text-[11px] font-bold tracking-[0.2em] text-oro uppercase">
             {fila.etiqueta}
           </dt>
           <dd className="text-right font-display text-[20px] leading-none text-crema tabular-nums">
@@ -39,7 +37,7 @@ function FrenteRapido({ c }: { c: Combate }) {
         </div>
       ))}
       {(c.a.aprox || c.b.aprox) && (
-        <p className="border-t border-linea/70 px-4 py-2 text-center font-cond text-[10px] font-semibold tracking-[0.16em] text-oro-medio uppercase">
+        <p className="border-t border-linea/70 px-4 py-2 text-center font-cond text-[11px] font-semibold tracking-[0.16em] text-oro-medio uppercase">
           * Dato no oficial
         </p>
       )}
@@ -116,7 +114,7 @@ function CardCombate({ c }: { c: Combate }) {
               )}
               <Link
                 href={`/peleadores/${p.slug}`}
-                className="flex min-w-0 items-center gap-2.5 text-crema transition-colors hover:text-oro"
+                className="-my-1.5 flex min-w-0 items-center gap-2.5 py-1.5 text-crema transition-colors hover:text-oro"
               >
                 <Bandera
                   pais={p.pais}
@@ -137,7 +135,7 @@ function CardCombate({ c }: { c: Combate }) {
 
         <a
           href="#pronosticos"
-          className="flex w-fit items-center gap-2 rounded-sm border border-oro-profundo px-2.5 py-1.5 font-cond text-[10px] font-bold tracking-[0.14em] text-oro uppercase transition-colors hover:border-oro hover:bg-oro-tinte sm:px-3.5 sm:py-2 sm:text-[11px] sm:tracking-[0.16em]"
+          className="flex min-h-9 w-fit items-center gap-2 rounded-sm border border-oro-profundo px-2.5 py-1.5 font-cond text-[11px] font-bold tracking-[0.14em] text-oro uppercase transition-colors hover:border-oro hover:bg-oro-tinte sm:px-3.5 sm:py-2 sm:tracking-[0.16em]"
         >
           <span className="sm:hidden">Votar</span>
           <span className="hidden sm:inline">Votar pronóstico</span>

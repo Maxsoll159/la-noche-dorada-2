@@ -43,7 +43,7 @@ export function Turnos({
                   {p.nombre}
                 </span>
                 <span
-                  className={`block font-cond text-[10px] font-bold tracking-[0.16em] uppercase ${
+                  className={`block font-cond text-[11px] font-bold tracking-[0.16em] uppercase ${
                     activo ? "text-oro" : "text-tenue"
                   }`}
                 >

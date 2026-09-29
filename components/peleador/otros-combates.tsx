@@ -21,7 +21,7 @@ export function OtrosCombates({ combate }: { combate: Combate }) {
               aria-hidden
               className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-oro/0 to-transparent transition-colors duration-500 group-hover:via-oro-claro"
             />
-            <span className="flex items-center gap-2 font-cond text-[10px] font-bold tracking-[0.18em] text-oro-medio uppercase transition-colors duration-300 group-hover:text-oro sm:text-[11px]">
+            <span className="flex items-center gap-2 font-cond text-[11px] font-bold tracking-[0.18em] text-oro-medio uppercase transition-colors duration-300 group-hover:text-oro">
               <span
                 aria-hidden
                 className="size-1.5 rotate-45 bg-oro-profundo transition-colors duration-300 group-hover:bg-oro"

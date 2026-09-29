@@ -99,7 +99,7 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
                 ].map((c) => (
                   <li
                     key={c.etiqueta}
-                    className={`rounded-full border px-3.5 py-1.5 font-cond text-[10px] font-bold tracking-[0.14em] uppercase sm:text-[11px] ${
+                    className={`rounded-full border px-3.5 py-1.5 font-cond text-[11px] font-bold tracking-[0.14em] uppercase ${
                       c.fuerte
                         ? "border-oro bg-oro-tinte text-oro"
                         : "border-linea bg-carbon text-tenue"
@@ -207,7 +207,7 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
                               </span>
                             </span>
                             {metodo && (
-                              <span className="mt-1.5 inline-flex rounded-full border border-oro-profundo bg-oro-tinte px-2.5 py-[3px] font-cond text-[10px] leading-none font-bold tracking-[0.14em] text-oro uppercase">
+                              <span className="mt-1.5 inline-flex rounded-full border border-oro-profundo bg-oro-tinte px-2.5 py-[3px] font-cond text-[11px] leading-none font-bold tracking-[0.14em] text-oro uppercase">
                                 {METODO[metodo].nombre}
                               </span>
                             )}

@@ -111,13 +111,16 @@ export function CardPronostico({
             >
               {c.billing ?? `Combate ${c.n}`}
             </p>
-            <p className="truncate font-cond text-[10px] font-semibold tracking-[0.14em] text-tenue uppercase sm:text-[11px]">
-              {c.billing && `Combate ${c.n} · `}3 rounds × 2 min
+            <p className="truncate font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
+              {c.billing && (
+                <span className="hidden sm:inline">Combate {c.n} · </span>
+              )}
+              3 rounds × 2 min
             </p>
           </div>
         </div>
         <p
-          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 font-cond text-[10px] leading-none font-bold tracking-[0.12em] uppercase sm:text-[11px] sm:tracking-[0.14em] ${TONO[estado.tono].pildora}`}
+          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 font-cond text-[11px] leading-none font-bold tracking-[0.12em] uppercase sm:tracking-[0.14em] ${TONO[estado.tono].pildora}`}
         >
           <span
             aria-hidden

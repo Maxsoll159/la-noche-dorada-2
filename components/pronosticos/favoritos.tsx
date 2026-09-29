@@ -100,7 +100,7 @@ function TarjetaPodio({
         >
           {numero.format(favorito.votos)}
         </span>
-        <span className="font-cond text-[10px] font-bold tracking-[0.14em] text-oro-medio uppercase sm:text-[11px]">
+        <span className="font-cond text-[11px] font-bold tracking-[0.14em] text-oro-medio uppercase">
           {favorito.votos === 1 ? "voto" : "votos"} · {porcentaje(favorito.pct)}
         </span>
         <span className="flex max-w-full items-center gap-1.5 font-display text-[13px] leading-tight text-crema uppercase sm:text-[18px]">
@@ -110,7 +110,7 @@ function TarjetaPodio({
           />
           <span className="truncate">{peleador.nombre}</span>
         </span>
-        <span className="hidden truncate font-cond text-[10px] font-bold tracking-[0.14em] text-tenue uppercase sm:block sm:text-[11px]">
+        <span className="hidden truncate font-cond text-[11px] font-bold tracking-[0.14em] text-tenue uppercase sm:block">
           vs {rival.nombre}
         </span>
       </span>
@@ -153,7 +153,7 @@ function FilaRanking({
             <Bandera pais={peleador.pais} className="h-2.5 w-[15px] shrink-0" />
             <span className="truncate">{peleador.nombre}</span>
           </span>
-          <span className="block truncate font-cond text-[10px] font-bold tracking-[0.14em] text-tenue uppercase sm:text-[11px]">
+          <span className="block truncate font-cond text-[11px] font-bold tracking-[0.14em] text-tenue uppercase">
             vs {rival.nombre} · {porcentaje(pct)} en su combate
             <span className="hidden sm:inline">
               {" "}
@@ -265,7 +265,7 @@ export function Favoritos() {
                 onClick={() => setCompleto((v) => !v)}
                 aria-expanded={completo}
                 aria-controls="ranking-completo"
-                className="group flex cursor-pointer items-center gap-2 font-cond text-[12px] font-bold tracking-[0.18em] text-oro-medio uppercase transition-colors hover:text-oro"
+                className="group -my-3 flex cursor-pointer items-center gap-2 py-3 font-cond text-[12px] font-bold tracking-[0.18em] text-oro-medio uppercase transition-colors hover:text-oro"
               >
                 {completo
                   ? "Ver menos"

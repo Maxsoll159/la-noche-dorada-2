@@ -74,7 +74,7 @@ function VisorVideo({ onCerrar }: { onCerrar: () => void }) {
             href={EN_YOUTUBE}
             target="_blank"
             rel="noreferrer"
-            className="underline transition-colors hover:text-oro"
+            className="-my-2 inline-block py-2 underline transition-colors hover:text-oro"
           >
             Verlo en YouTube
           </a>
@@ -141,7 +141,7 @@ export function Presentacion() {
           href={EN_YOUTUBE}
           target="_blank"
           rel="noreferrer"
-          className="underline transition-colors hover:text-oro"
+          className="-my-2 inline-block py-2 underline transition-colors hover:text-oro"
         >
           Verlo en YouTube
         </a>

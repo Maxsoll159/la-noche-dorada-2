@@ -4,10 +4,13 @@ import {
   PATROCINADORES,
   PELEADORES,
   ZONAS,
+  precioNumero,
 } from "@/lib/evento";
 import { NOMBRES_ALTERNOS, SITIO } from "@/lib/sitio";
 
-const precios = ZONAS.map((z) => parseFloat(z.actual.replace(/[^\d.]/g, "")));
+const precios = ZONAS.flatMap((z) =>
+  z.actual ? [precioNumero(z.actual)] : [],
+);
 
 export function DatosEstructurados() {
   const sitio = SITIO;
@@ -73,7 +76,7 @@ export function DatosEstructurados() {
       priceCurrency: "PEN",
       lowPrice: Math.min(...precios),
       highPrice: Math.max(...precios),
-      offerCount: ZONAS.length,
+      offerCount: precios.length,
       category: "primary",
     },
     performer: PELEADORES.map((p) => ({

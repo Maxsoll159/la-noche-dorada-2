@@ -44,7 +44,7 @@ export function Ficha({
               key={fila.etiqueta}
               className={`flex flex-col gap-0.5 ${izq ? "items-start" : "items-end"}`}
             >
-              <dt className="font-cond text-[10px] font-bold tracking-[0.18em] text-oro-medio uppercase sm:text-[11px]">
+              <dt className="font-cond text-[11px] font-bold tracking-[0.18em] text-oro-medio uppercase">
                 {fila.etiqueta}
               </dt>
               <dd
@@ -114,7 +114,7 @@ export function FichaComparada({
             >
               {a ?? "—"}
             </dd>
-            <dt className="w-[68px] shrink-0 text-center font-cond text-[10px] font-bold tracking-[0.2em] text-oro uppercase">
+            <dt className="w-[68px] shrink-0 text-center font-cond text-[11px] font-bold tracking-[0.2em] text-oro uppercase">
               {fila.etiqueta}
             </dt>
             <dd

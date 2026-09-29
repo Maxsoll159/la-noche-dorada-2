@@ -116,7 +116,7 @@ function TarjetaComentario({
             {nombreOculto(comentario.autor_nombre)}
           </span>
           {propio && (
-            <span className="rounded-full bg-oro px-2 py-0.5 font-cond text-[9px] leading-none font-bold tracking-[0.16em] text-noche uppercase">
+            <span className="rounded-full bg-oro px-2 py-0.5 font-cond text-[11px] leading-none font-bold tracking-[0.16em] text-noche uppercase">
               Tú
             </span>
           )}
@@ -360,7 +360,7 @@ export function Comentarios({
                 maxLength={MAXIMO}
                 rows={3}
                 placeholder={`¿Qué opinas de ${nombre}?`}
-                className="field-sizing-content min-h-[84px] w-full resize-none rounded-sm border border-linea bg-noche/70 px-4 py-3 text-[15px] leading-relaxed text-crema placeholder:text-humo focus:border-oro-profundo focus:outline-none sm:text-[16px]"
+                className="field-sizing-content min-h-[84px] w-full resize-none rounded-sm border border-linea bg-noche/70 px-4 py-3 text-[15px] leading-relaxed text-crema placeholder:text-tenue/70 focus:border-oro-profundo focus:outline-none sm:text-[16px]"
               />
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 flex-1 items-center gap-3">

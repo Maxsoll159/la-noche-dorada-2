@@ -7,6 +7,7 @@ import { FileteOro } from "@/components/ui/filete-oro";
 const ENLACES = [
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
+  { href: "/#favoritos", label: "Favoritos" },
   { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },
   { href: "/#sede", label: "Sede" },
@@ -37,7 +38,7 @@ function Redes() {
             target="_blank"
             rel="noreferrer"
             aria-label={`${EVENTO.nombre} en ${r.plataforma}`}
-            className="group flex items-center gap-2.5 font-display text-[18px] tracking-wide text-crema uppercase transition-colors hover:text-oro-claro"
+            className="group flex items-center gap-2.5 py-1 font-display text-[18px] tracking-wide text-crema uppercase transition-colors hover:text-oro-claro"
           >
             <span
               style={{ color: r.color }}
@@ -61,7 +62,7 @@ function Franja() {
           href={CASA_APUESTAS.url}
           target="_blank"
           rel="noreferrer sponsored"
-          className={`group flex items-center gap-3 sm:px-7 ${ROTULO}`}
+          className={`group -my-2 flex items-center gap-3 py-2 sm:px-7 ${ROTULO}`}
         >
           Web patrocinada por
           <Image
@@ -78,7 +79,7 @@ function Franja() {
         href={EVENTO.entradasUrl}
         target="_blank"
         rel="noreferrer"
-        className={`sm:px-7 ${ROTULO} transition-colors hover:text-oro`}
+        className={`-my-2 py-2 sm:px-7 ${ROTULO} transition-colors hover:text-oro`}
       >
         Entradas en <span className="text-crema">Ticketmaster.pe</span>
       </a>
@@ -145,12 +146,12 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Secciones del sitio">
-          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3">
+          <ul className="flex flex-wrap justify-center gap-x-6">
             {ENLACES.map((e) => (
               <li key={e.href}>
                 <a
                   href={e.href}
-                  className="font-cond text-[13px] font-semibold tracking-[0.14em] text-tenue uppercase transition-colors hover:text-oro"
+                  className="block py-2 font-cond text-[13px] font-semibold tracking-[0.14em] text-tenue uppercase transition-colors hover:text-oro"
                 >
                   {e.label}
                 </a>

@@ -31,7 +31,7 @@ export function SelectorMetodo({
     <div className="flex flex-col items-center gap-2.5 border-t border-linea/70 px-2.5 py-3 text-center sm:px-3.5">
       <p className="flex flex-col items-center gap-0.5 font-cond text-[11px] font-bold tracking-[0.16em] uppercase">
         <span className="text-oro">¿Cómo termina?</span>
-        <span className="text-[10px] tracking-[0.12em] text-tenue">{nota}</span>
+        <span className="tracking-[0.12em] text-tenue">{nota}</span>
       </p>
       <ul className="grid w-full grid-cols-6 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:justify-center">
         {METODOS.map((m, i) => {

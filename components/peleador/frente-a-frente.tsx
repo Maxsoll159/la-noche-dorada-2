@@ -91,7 +91,7 @@ export function FrenteAFrente({
                   {n === null ? "—" : fila.texto(n, p)}
                 </span>
                 {gana && distancia && (
-                  <span className="rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[2px] font-cond text-[10px] leading-none font-bold tracking-[0.1em] text-oro uppercase">
+                  <span className="rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[2px] font-cond text-[11px] leading-none font-bold tracking-[0.1em] text-oro uppercase">
                     {distancia}
                   </span>
                 )}
