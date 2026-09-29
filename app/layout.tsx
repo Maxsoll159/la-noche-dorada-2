@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NOMBRES_ALTERNOS, SITIO } from "@/lib/sitio";
 import { SCRIPT_CARGA } from "@/lib/carga";
 import { PantallaCarga } from "@/components/layout/pantalla-carga";
+import { ChatMascota } from "@/components/mascota/chat-mascota";
 import "./globals.css";
 
 const anton = Anton({
@@ -93,6 +94,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_CARGA }} />
         <PantallaCarga />
         {children}
+        <ChatMascota />
         <Analytics />
         <SpeedInsights />
       </body>
