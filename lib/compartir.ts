@@ -2,22 +2,38 @@ import { COMBATES, EVENTO, type Combate, type Peleador } from "./evento";
 
 export type Lado = "a" | "b";
 
+// `corto` es la etiqueta del botón en móvil, donde cada uno mide un tercio de
+// la tarjeta.
 export const METODOS = [
-  { id: "ko", nombre: "KO", frase: "por KO", letra: "k" },
-  { id: "kot", nombre: "KO técnico", frase: "por KO técnico", letra: "t" },
+  { id: "ko", nombre: "KO", corto: "KO", frase: "por KO", letra: "k" },
+  {
+    id: "kot",
+    nombre: "KO técnico",
+    corto: "KO técnico",
+    frase: "por KO técnico",
+    letra: "t",
+  },
   {
     id: "unanime",
     nombre: "Decisión unánime",
+    corto: "Decisión",
     frase: "por decisión unánime",
     letra: "u",
   },
   {
     id: "descalificacion",
     nombre: "Descalificación",
+    corto: "Descalificación",
     frase: "por descalificación",
     letra: "d",
   },
-  { id: "empate", nombre: "Empate", frase: "empate", letra: "e" },
+  {
+    id: "empate",
+    nombre: "Empate",
+    corto: "Empate",
+    frase: "empate",
+    letra: "e",
+  },
 ] as const;
 
 export type Metodo = (typeof METODOS)[number]["id"];

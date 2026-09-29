@@ -28,12 +28,15 @@ export function SelectorMetodo({
         : "Opcional · Suma un punto más";
 
   return (
-    <div className="flex flex-col items-center gap-2.5 border-t border-linea/70 px-2.5 py-3 text-center sm:px-3.5">
-      <p className="flex flex-col items-center gap-0.5 font-cond text-[11px] font-bold tracking-[0.16em] uppercase">
+    <div className="flex flex-col items-center gap-2 border-t border-linea/70 px-2.5 py-2.5 text-center sm:px-3.5">
+      <p className="flex flex-wrap items-center justify-center gap-x-1.5 font-cond text-[11px] leading-tight font-bold tracking-[0.12em] uppercase">
         <span className="text-oro">¿Cómo termina?</span>
-        <span className="tracking-[0.12em] text-tenue">{nota}</span>
+        <span aria-hidden className="text-oro-profundo">
+          ·
+        </span>
+        <span className="text-tenue">{nota}</span>
       </p>
-      <ul className="grid w-full grid-cols-6 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:justify-center">
+      <ul className="grid w-full grid-cols-6 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:justify-center sm:gap-1">
         {METODOS.map((m, i) => {
           const elegido = metodo === m.id;
           const n = votos[m.id];
@@ -46,7 +49,7 @@ export function SelectorMetodo({
                 onClick={() => onElegir(m.id)}
                 aria-pressed={puedeElegir ? elegido : undefined}
                 aria-label={`${m.nombre}: ${pct(n)} % de la comunidad`}
-                className={`relative isolate flex size-full min-h-11 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[10px] border px-1.5 py-1.5 text-center font-cond text-[11px] leading-tight font-bold tracking-[0.1em] uppercase transition-colors duration-300 sm:min-h-8 sm:w-auto sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-3 sm:py-1 sm:text-[12px] ${
+                className={`relative isolate flex size-full min-h-11 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[10px] border px-1.5 py-1.5 text-center font-cond text-[11px] leading-tight font-bold tracking-[0.1em] uppercase transition-colors duration-300 sm:min-h-8 sm:w-auto sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-2.5 sm:py-1 sm:text-[12px] sm:tracking-[0.06em] ${
                   puedeElegir
                     ? "cursor-pointer disabled:cursor-wait disabled:opacity-60"
                     : "cursor-default"
@@ -69,7 +72,7 @@ export function SelectorMetodo({
                     }`}
                   />
                 )}
-                <span>{m.nombre}</span>
+                <span>{m.corto}</span>
                 {total > 0 && (
                   <span
                     className={`tabular-nums ${
