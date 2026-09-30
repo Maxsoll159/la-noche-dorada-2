@@ -53,6 +53,17 @@ export async function clienteServidor() {
   const galleta = await cookies();
   const { url, clave } = credenciales();
 
+  // Las cookies de antes del BFF (`sb-<ref>-auth-token*`) no son HttpOnly y
+  // el servidor ya no las lee: se borran en cuanto el navegador vuelve a
+  // pasar por aquí para que no sigan viajando ni sean legibles por scripts.
+  for (const { name } of galleta.getAll()) {
+    if (/^sb-.*-auth-token/.test(name)) {
+      try {
+        galleta.delete(name);
+      } catch {}
+    }
+  }
+
   return createServerClient<Database>(url, clave, {
     cookieOptions: COOKIE_SESION,
     cookies: {

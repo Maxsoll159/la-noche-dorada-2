@@ -17,9 +17,22 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await clienteServidor();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${base}${volver ?? DESTINO}`);
-    console.error("auth: no se pudo canjear el código", error);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.session) {
+      // La sesión que devuelve el canje trae también el token de Google o
+      // Discord (`provider_token`). La web no lo usa: se vuelve a guardar la
+      // sesión solo con lo nuestro para que la cookie no lo lleve.
+      const { access_token, refresh_token } = data.session;
+      const { error: errorSesion } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+      if (!errorSesion)
+        return NextResponse.redirect(`${base}${volver ?? DESTINO}`);
+      console.error("auth: no se pudo guardar la sesión", errorSesion);
+    } else {
+      console.error("auth: no se pudo canjear el código", error);
+    }
   }
 
   return NextResponse.redirect(`${base}/?error=sesion#pronosticos`);
