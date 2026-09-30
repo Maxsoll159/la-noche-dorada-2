@@ -1,41 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
-import { clienteNavegador } from "./supabase/cliente";
-import { COOKIE_VOLVER, rutaSegura } from "./volver";
+import { useSyncExternalStore } from "react";
+import { pedir } from "./api/cliente";
+import type { RespuestaYo, Usuario } from "./api/tipos";
+import { rutaSegura } from "./volver";
 
+export type { Usuario };
 export type Proveedor = "google" | "discord";
 
-export async function iniciarSesion(proveedor: Proveedor, volverA: string) {
-  const ruta = rutaSegura(volverA) ?? "/";
-  document.cookie = `${COOKIE_VOLVER}=${encodeURIComponent(ruta)}; path=/; max-age=600; samesite=lax`;
-  const { error } = await clienteNavegador().auth.signInWithOAuth({
-    provider: proveedor,
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-      // Supabase pide a Discord `prompt=consent`, que muestra la pantalla de
-      // autorizar en cada entrada. Con `none` solo sale la primera vez.
-      ...(proveedor === "discord" && { queryParams: { prompt: "none" } }),
-    },
-  });
-  return !error;
+// Un solo estado de sesión para toda la página: cada componente que lo usa se
+// suscribe aquí y `/api/auth/yo` se pide una vez, no una por componente.
+type Estado = { usuario: Usuario | null; listo: boolean };
+
+const SIN_CARGAR: Estado = { usuario: null, listo: false };
+const INACTIVO: Estado = { usuario: null, listo: true };
+
+let estado: Estado = SIN_CARGAR;
+let pedido: Promise<void> | null = null;
+const oyentes = new Set<() => void>();
+
+function publicar(nuevo: Estado) {
+  estado = nuevo;
+  for (const oyente of oyentes) oyente();
 }
 
+function cargar() {
+  pedido ??= pedir<RespuestaYo>("/api/auth/yo")
+    .then(({ usuario }) => publicar({ usuario, listo: true }))
+    .catch(() => publicar({ usuario: null, listo: true }));
+  return pedido;
+}
+
+function suscribir(oyente: () => void) {
+  oyentes.add(oyente);
+  cargar();
+  return () => {
+    oyentes.delete(oyente);
+  };
+}
+
+const sinSuscripcion = () => () => {};
+const leer = () => estado;
+const leerEnServidor = () => SIN_CARGAR;
+
 export function useUsuario(activo = true) {
-  const [usuario, setUsuario] = useState<User | null>(null);
-  const [listo, setListo] = useState(!activo);
+  const actual = useSyncExternalStore(
+    activo ? suscribir : sinSuscripcion,
+    leer,
+    leerEnServidor,
+  );
+  return activo ? actual : INACTIVO;
+}
 
-  useEffect(() => {
-    if (!activo) return;
-    const { data } = clienteNavegador().auth.onAuthStateChange(
-      (_evento, sesion) => {
-        setUsuario(sesion?.user ?? null);
-        setListo(true);
-      },
-    );
-    return () => data.subscription.unsubscribe();
-  }, [activo]);
+// El servidor guarda a dónde volver, pide la URL del proveedor a Supabase y
+// redirige. El navegador solo navega.
+export function iniciarSesion(proveedor: Proveedor, volverA: string) {
+  const volver = rutaSegura(volverA) ?? "/";
+  const destino = new URL("/api/auth/entrar", window.location.origin);
+  destino.searchParams.set("proveedor", proveedor);
+  destino.searchParams.set("volver", volver);
+  window.location.assign(destino);
+}
 
-  return { usuario, listo };
+// Cuando el servidor responde 401 la cookie ya no sirve: se refleja aquí para
+// que la interfaz vuelva al estado sin sesión.
+export function marcarSinSesion() {
+  if (estado.usuario === null && estado.listo) return;
+  publicar({ usuario: null, listo: true });
+}
+
+export async function cerrarSesion() {
+  marcarSinSesion();
+  pedido = Promise.resolve();
+  try {
+    await pedir<void>("/api/auth/salir", { method: "POST" });
+  } catch {}
 }

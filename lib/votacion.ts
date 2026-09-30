@@ -1,132 +1,133 @@
-﻿"use client";
+"use client";
 
-import { useCallback, useEffect, useId, useState } from "react";
-import type { User } from "@supabase/supabase-js";
-import { clienteNavegador } from "./supabase/cliente";
-import { aMetodo, type Lado, type Metodo } from "./compartir";
-import { iniciarSesion, type Proveedor } from "./sesion";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { ErrorApi, mensajeDe, pedir } from "./api/cliente";
+import type {
+  RespuestaConteo,
+  RespuestaConteos,
+  RespuestaVotos,
+} from "./api/tipos";
+import {
+  estaAbierto,
+  puntaje,
+  type Conteo,
+  type Lado,
+  type Metodo,
+} from "./conteo";
+import {
+  cerrarSesion,
+  iniciarSesion,
+  marcarSinSesion,
+  useUsuario,
+  type Proveedor,
+} from "./sesion";
 
-export type { Lado, Metodo };
-
-export type Conteo = {
-  votosA: number;
-  votosB: number;
-  pctA: number | null;
-  cierraEn: string;
-  ganador: Lado | null;
-  metodo: Metodo | null;
-  resuelto: boolean;
-  votosMetodo: Record<Metodo, number>;
-};
-
-type FilaCombate = {
-  numero: string;
-  votos_a: number;
-  votos_b: number;
-  pct_a: number | null;
-  cierra_en: string;
-  ganador: string | null;
-  metodo: string | null;
-  metodo_ko: number;
-  metodo_kot: number;
-  metodo_unanime: number;
-  metodo_descalificacion: number;
-  metodo_empate: number;
-};
-
-const COLUMNAS =
-  "numero, votos_a, votos_b, pct_a, cierra_en, ganador, metodo, metodo_ko, metodo_kot, metodo_unanime, metodo_descalificacion, metodo_empate";
+export { estaAbierto, puntaje };
+export type { Conteo, Lado, Metodo };
 
 const PENDIENTE = "nd2:voto-pendiente";
 
-function aConteo(fila: FilaCombate): Conteo {
-  const ganador =
-    fila.ganador === "a" || fila.ganador === "b" ? fila.ganador : null;
-  const metodo = aMetodo(fila.metodo);
-  return {
-    votosA: fila.votos_a,
-    votosB: fila.votos_b,
-    pctA: fila.pct_a,
-    cierraEn: fila.cierra_en,
-    ganador,
-    metodo,
-    resuelto: ganador !== null || metodo === "empate",
-    votosMetodo: {
-      ko: fila.metodo_ko ?? 0,
-      kot: fila.metodo_kot ?? 0,
-      unanime: fila.metodo_unanime ?? 0,
-      descalificacion: fila.metodo_descalificacion ?? 0,
-      empate: fila.metodo_empate ?? 0,
-    },
+// Los conteos ya no llegan por Realtime (el navegador no habla con Supabase):
+// se piden al BFF cada tanto mientras la pestaña está visible. El estado es
+// uno para toda la página, así el ranking y las tarjetas se mueven a la vez y
+// un voto propio se refleja en todos sin esperar al siguiente sondeo.
+const INTERVALO_MS = 15_000;
+
+type EstadoConteos = {
+  conteos: Record<string, Conteo>;
+  cargando: boolean;
+  errorCarga: boolean;
+};
+
+const SIN_CARGAR: EstadoConteos = {
+  conteos: {},
+  cargando: true,
+  errorCarga: false,
+};
+const INACTIVO: EstadoConteos = {
+  conteos: {},
+  cargando: false,
+  errorCarga: false,
+};
+
+let estado: EstadoConteos = SIN_CARGAR;
+let pidiendo: Promise<void> | null = null;
+let temporizador: ReturnType<typeof setTimeout> | undefined;
+let suscritos = 0;
+const oyentes = new Set<() => void>();
+
+function publicar(parcial: Partial<EstadoConteos>) {
+  estado = { ...estado, ...parcial };
+  for (const oyente of oyentes) oyente();
+}
+
+function pedirConteos() {
+  pidiendo ??= pedir<RespuestaConteos>("/api/combates")
+    .then(({ conteos }) =>
+      publicar({ conteos, cargando: false, errorCarga: false }),
+    )
+    .catch(() =>
+      publicar({
+        cargando: false,
+        // Si ya hay conteos en pantalla, un sondeo fallido no los borra.
+        errorCarga: Object.keys(estado.conteos).length === 0,
+      }),
+    )
+    .finally(() => {
+      pidiendo = null;
+    });
+  return pidiendo;
+}
+
+function programar() {
+  clearTimeout(temporizador);
+  temporizador = setTimeout(async () => {
+    if (suscritos === 0) return;
+    if (document.visibilityState === "visible") await pedirConteos();
+    programar();
+  }, INTERVALO_MS);
+}
+
+function alVolverALaPestana() {
+  if (document.visibilityState === "visible") pedirConteos();
+}
+
+function suscribir(oyente: () => void) {
+  oyentes.add(oyente);
+  if (suscritos++ === 0) {
+    pedirConteos();
+    programar();
+    document.addEventListener("visibilitychange", alVolverALaPestana);
+  }
+  return () => {
+    oyentes.delete(oyente);
+    if (--suscritos === 0) {
+      clearTimeout(temporizador);
+      document.removeEventListener("visibilitychange", alVolverALaPestana);
+    }
   };
 }
 
-export function estaAbierto(conteo: Conteo | undefined) {
-  return conteo ? new Date(conteo.cierraEn).getTime() > Date.now() : false;
-}
+const sinSuscripcion = () => () => {};
+const leer = () => estado;
+const leerEnServidor = () => SIN_CARGAR;
 
-export function puntaje(
-  conteos: Record<string, Conteo>,
-  votos: Record<string, Lado>,
-  metodos: Record<string, Metodo> = {},
-) {
-  let resueltos = 0;
-  let aciertos = 0;
-  let aciertosMetodo = 0;
-  for (const [numero, conteo] of Object.entries(conteos)) {
-    if (!conteo.resuelto) continue;
-    resueltos += 1;
-    if (conteo.ganador && votos[numero] === conteo.ganador) aciertos += 1;
-    if (conteo.metodo && votos[numero] && metodos[numero] === conteo.metodo)
-      aciertosMetodo += 1;
-  }
-  return { resueltos, aciertos, aciertosMetodo };
+export function actualizarConteo(numero: string, conteo: Conteo) {
+  publicar({ conteos: { ...estado.conteos, [numero]: conteo } });
 }
 
 export function useConteos(activo: boolean) {
-  const idCanal = useId();
-  const [conteos, setConteos] = useState<Record<string, Conteo>>({});
-  const [cargando, setCargando] = useState(activo);
-  const [errorCarga, setErrorCarga] = useState(false);
-
-  useEffect(() => {
-    if (!activo) return;
-    const supabase = clienteNavegador();
-    let vivo = true;
-
-    (async () => {
-      const { data, error } = await supabase.from("combates").select(COLUMNAS);
-      if (!vivo) return;
-      if (error) setErrorCarga(true);
-      else
-        setConteos(Object.fromEntries(data.map((f) => [f.numero, aConteo(f)])));
-      setCargando(false);
-    })();
-
-    const canal = supabase
-      .channel(`conteo-combates-${idCanal}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "combates" },
-        ({ new: fila }) => {
-          const f = fila as FilaCombate;
-          setConteos((prev) => ({ ...prev, [f.numero]: aConteo(f) }));
-        },
-      )
-      .subscribe();
-
-    return () => {
-      vivo = false;
-      supabase.removeChannel(canal);
-    };
-  }, [activo, idCanal]);
-
-  return { conteos, setConteos, cargando, errorCarga };
+  const actual = useSyncExternalStore(
+    activo ? suscribir : sinSuscripcion,
+    leer,
+    leerEnServidor,
+  );
+  return activo ? actual : INACTIVO;
 }
 
 export function useVotacion(activo: boolean) {
-  const { conteos, setConteos, cargando, errorCarga } = useConteos(activo);
-  const [usuario, setUsuario] = useState<User | null>(null);
+  const { conteos, cargando, errorCarga } = useConteos(activo);
+  const { usuario } = useUsuario(activo);
   const [votos, setVotos] = useState<Record<string, Lado>>({});
   const [metodos, setMetodos] = useState<Record<string, Metodo>>({});
   const [enviando, setEnviando] = useState<string | null>(null);
@@ -136,61 +137,49 @@ export function useVotacion(activo: boolean) {
     ? "No pudimos cargar los pronósticos. Recarga la página."
     : errorAccion;
 
-  useEffect(() => {
-    if (!activo) return;
-    const supabase = clienteNavegador();
-    const { data } = supabase.auth.onAuthStateChange((_evento, sesion) => {
-      setUsuario(sesion?.user ?? null);
-      if (!sesion?.user) {
-        setVotos({});
-        setMetodos({});
-      }
-    });
-    return () => data.subscription.unsubscribe();
-  }, [activo]);
-
   const idUsuario = usuario?.id;
   useEffect(() => {
     if (!activo || !idUsuario) return;
-    const supabase = clienteNavegador();
     let vivo = true;
 
-    (async () => {
-      const { data, error } = await supabase
-        .from("votos")
-        .select("combate_numero, lado, metodo");
-      if (!vivo || error || !data) return;
-      setVotos(
-        Object.fromEntries(data.map((v) => [v.combate_numero, v.lado as Lado])),
-      );
-      const elegidos: Record<string, Metodo> = {};
-      for (const v of data) {
-        const m = aMetodo(v.metodo);
-        if (m) elegidos[v.combate_numero] = m;
-      }
-      setMetodos(elegidos);
-    })();
+    pedir<RespuestaVotos>("/api/votos")
+      .then((r) => {
+        if (!vivo) return;
+        setVotos(r.votos);
+        setMetodos(r.metodos);
+      })
+      .catch((e) => {
+        if (e instanceof ErrorApi && e.status === 401) marcarSinSesion();
+      });
 
     return () => {
       vivo = false;
     };
   }, [activo, idUsuario]);
 
+  const fallo = useCallback((e: unknown) => {
+    if (e instanceof ErrorApi && e.status === 401) {
+      marcarSinSesion();
+      setError("Tu sesión expiró. Vuelve a entrar para votar.");
+      return;
+    }
+    setError(mensajeDe(e));
+  }, []);
+
   // Tocar un lado sin sesión entra directo con Google; Discord se elige desde
   // su botón.
-  const entrar = useCallback(async (proveedor: Proveedor = "google") => {
+  const entrar = useCallback((proveedor: Proveedor = "google") => {
     const { pathname } = window.location;
-    const ok = await iniciarSesion(
+    iniciarSesion(
       proveedor,
       pathname === "/" ? "/#pronosticos" : `${pathname}#pronostico`,
     );
-    if (!ok) setError("No pudimos abrir el inicio de sesión.");
   }, []);
 
   const salir = useCallback(async () => {
-    await clienteNavegador().auth.signOut();
     setVotos({});
     setMetodos({});
+    await cerrarSesion();
   }, []);
 
   const votar = useCallback(
@@ -201,40 +190,39 @@ export function useVotacion(activo: boolean) {
         try {
           sessionStorage.setItem(PENDIENTE, `${numero}:${lado}`);
         } catch {}
-        await entrar();
+        entrar();
         return;
       }
 
-      const supabase = clienteNavegador();
       const retira = votos[numero] === lado;
       setEnviando(numero);
-
-      const { data, error } = retira
-        ? await supabase.rpc("quitar_voto", { p_combate: numero })
-        : await supabase.rpc("votar", { p_combate: numero, p_lado: lado });
-
-      setEnviando(null);
-
-      if (error) {
-        setError(error.message);
-        return;
-      }
-
-      if (data) setConteos((prev) => ({ ...prev, [numero]: aConteo(data) }));
-      setVotos((prev) => {
-        const siguiente = { ...prev };
-        if (retira) delete siguiente[numero];
-        else siguiente[numero] = lado;
-        return siguiente;
-      });
-      if (retira)
-        setMetodos((prev) => {
+      try {
+        const { conteo } = await pedir<RespuestaConteo>(
+          "/api/votos",
+          retira
+            ? { method: "DELETE", json: { combate: numero } }
+            : { method: "POST", json: { combate: numero, lado } },
+        );
+        actualizarConteo(numero, conteo);
+        setVotos((prev) => {
           const siguiente = { ...prev };
-          delete siguiente[numero];
+          if (retira) delete siguiente[numero];
+          else siguiente[numero] = lado;
           return siguiente;
         });
+        if (retira)
+          setMetodos((prev) => {
+            const siguiente = { ...prev };
+            delete siguiente[numero];
+            return siguiente;
+          });
+      } catch (e) {
+        fallo(e);
+      } finally {
+        setEnviando(null);
+      }
     },
-    [entrar, setConteos, usuario, votos],
+    [entrar, fallo, usuario, votos],
   );
 
   // Tocar el método ya elegido lo quita. Solo se puede con voto hecho: la
@@ -246,34 +234,25 @@ export function useVotacion(activo: boolean) {
       const nuevo = metodos[numero] === metodo ? null : metodo;
       setEnviandoMetodo(numero);
 
-      const supabase = clienteNavegador();
-      const { error } = await supabase
-        .from("votos")
-        .update({ metodo: nuevo })
-        .eq("usuario_id", usuario.id)
-        .eq("combate_numero", numero);
-
-      if (error) {
+      try {
+        const { conteo } = await pedir<RespuestaConteo>("/api/votos", {
+          method: "PATCH",
+          json: { combate: numero, metodo: nuevo },
+        });
+        actualizarConteo(numero, conteo);
+        setMetodos((prev) => {
+          const siguiente = { ...prev };
+          if (nuevo) siguiente[numero] = nuevo;
+          else delete siguiente[numero];
+          return siguiente;
+        });
+      } catch (e) {
+        fallo(e);
+      } finally {
         setEnviandoMetodo(null);
-        setError(error.message);
-        return;
       }
-
-      const { data: fila } = await supabase
-        .from("combates")
-        .select(COLUMNAS)
-        .eq("numero", numero)
-        .single();
-      setEnviandoMetodo(null);
-      if (fila) setConteos((prev) => ({ ...prev, [numero]: aConteo(fila) }));
-      setMetodos((prev) => {
-        const siguiente = { ...prev };
-        if (nuevo) siguiente[numero] = nuevo;
-        else delete siguiente[numero];
-        return siguiente;
-      });
     },
-    [metodos, setConteos, usuario, votos],
+    [fallo, metodos, usuario, votos],
   );
 
   useEffect(() => {

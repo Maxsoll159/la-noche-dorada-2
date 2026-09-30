@@ -9,22 +9,22 @@ import {
   type FormEvent,
 } from "react";
 import { IconoComentario, IconoEnviar } from "@/assets/icons";
-import { iniciarSesion, useUsuario } from "@/lib/sesion";
+import { ErrorApi, mensajeDe, pedir } from "@/lib/api/cliente";
+import {
+  MAX_COMENTARIO,
+  type Comentario,
+  type RespuestaComentario,
+  type RespuestaComentarios,
+} from "@/lib/api/tipos";
+import { iniciarSesion, marcarSinSesion, useUsuario } from "@/lib/sesion";
 import { BotonesAcceso } from "@/components/pronosticos/boton-acceso";
-import { clienteNavegador } from "@/lib/supabase/cliente";
 
-type Comentario = {
-  id: number;
-  usuario_id: string;
-  autor_nombre: string;
-  autor_avatar: string | null;
-  texto: string;
-  creado_en: string;
-};
+const MAXIMO = MAX_COMENTARIO;
 
-const POR_PAGINA = 20;
-const MAXIMO = 500;
-const COLUMNAS = "id, usuario_id, autor_nombre, autor_avatar, texto, creado_en";
+// Sin Realtime (el navegador ya no habla con Supabase), los comentarios
+// nuevos de otras personas se buscan cada tanto mientras la pestaña está
+// visible: se pide la primera página y se suman los ids que no se tenían.
+const INTERVALO_MS = 20_000;
 
 const relativo = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
 const UNIDADES: [Intl.RelativeTimeFormatUnit, number][] = [
@@ -49,6 +49,14 @@ function nombreOculto(nombre: string) {
   const [primero, ...resto] = nombre.trim().split(/\s+/);
   const oculto = resto.join(" ");
   return oculto ? `${primero} ${"*".repeat(oculto.length)}` : primero;
+}
+
+function rutaPagina(slug: string, desde: number) {
+  const parametros = new URLSearchParams({
+    peleador: slug,
+    desde: String(desde),
+  });
+  return `/api/comentarios?${parametros}`;
 }
 
 function Avatar({
@@ -86,15 +94,14 @@ function Avatar({
 
 function TarjetaComentario({
   comentario,
-  propio,
   onEliminar,
 }: {
   comentario: Comentario;
-  propio: boolean;
   onEliminar: (id: number) => Promise<void>;
 }) {
   const [confirmando, setConfirmando] = useState(false);
   const [borrando, setBorrando] = useState(false);
+  const { propio } = comentario;
 
   return (
     <li
@@ -225,66 +232,69 @@ export function Comentarios({
     setTotal((t) => Math.max((t ?? 1) - 1, 0));
   }, []);
 
+  // `desde === 0` reinicia la lista; con otro valor, añade la página al final.
   const cargar = useCallback(
     async (desde: number) => {
-      const { data, error, count } = await clienteNavegador()
-        .from("comentarios")
-        .select(COLUMNAS, { count: "exact" })
-        .eq("peleador", slug)
-        .order("creado_en", { ascending: false })
-        .range(desde, desde + POR_PAGINA);
-      if (error) {
+      try {
+        const r = await pedir<RespuestaComentarios>(rutaPagina(slug, desde));
+        setTotal(r.total);
+        setHayMas(r.hayMas);
+        if (desde === 0) vistos.current = new Set();
+        const pagina = r.comentarios.filter((c) => !vistos.current.has(c.id));
+        for (const c of pagina) vistos.current.add(c.id);
+        setComentarios((prev) => (desde === 0 ? pagina : [...prev, ...pagina]));
+      } catch {
         setError("No pudimos cargar los comentarios.");
-        return;
       }
-      if (count !== null) setTotal(count);
-      setHayMas(data.length > POR_PAGINA);
-      if (desde === 0) vistos.current = new Set();
-      const pagina = data
-        .slice(0, POR_PAGINA)
-        .filter((c) => !vistos.current.has(c.id));
-      for (const c of pagina) vistos.current.add(c.id);
-      setComentarios((prev) => (desde === 0 ? pagina : [...prev, ...pagina]));
     },
     [slug],
   );
 
-  useEffect(() => {
-    const supabase = clienteNavegador();
-    let vivo = true;
+  // Trae la primera página y suma arriba lo que no se había visto. No toca lo
+  // ya cargado: las páginas siguientes siguen donde estaban.
+  const refrescar = useCallback(async () => {
+    try {
+      const r = await pedir<RespuestaComentarios>(rutaPagina(slug, 0));
+      const nuevos = r.comentarios.filter((c) => !vistos.current.has(c.id));
+      for (const c of nuevos) vistos.current.add(c.id);
+      setTotal(r.total);
+      if (nuevos.length > 0) setComentarios((prev) => [...nuevos, ...prev]);
+    } catch {}
+  }, [slug]);
 
-    const canal = supabase
-      .channel(`comentarios-${slug}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "comentarios",
-          filter: `peleador=eq.${slug}`,
-        },
-        ({ new: fila }) => agregar(fila as Comentario),
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "comentarios" },
-        ({ old: fila }) => {
-          const id = (fila as Partial<Comentario>).id;
-          if (id !== undefined) quitar(id);
-        },
-      )
-      .subscribe();
+  // Se espera a saber si hay sesión para que el servidor marque los propios
+  // desde la primera carga; al entrar o salir se vuelve a pedir la lista.
+  const idUsuario = usuario?.id;
+  useEffect(() => {
+    if (!listo) return;
+    let vivo = true;
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+
+    const programar = () => {
+      temporizador = setTimeout(async () => {
+        if (!vivo) return;
+        if (document.visibilityState === "visible") await refrescar();
+        programar();
+      }, INTERVALO_MS);
+    };
+    const alVolver = () => {
+      if (document.visibilityState === "visible") refrescar();
+    };
 
     (async () => {
       await cargar(0);
-      if (vivo) setCargando(false);
+      if (!vivo) return;
+      setCargando(false);
+      programar();
     })();
+    document.addEventListener("visibilitychange", alVolver);
 
     return () => {
       vivo = false;
-      supabase.removeChannel(canal);
+      clearTimeout(temporizador);
+      document.removeEventListener("visibilitychange", alVolver);
     };
-  }, [agregar, cargar, quitar, slug]);
+  }, [cargar, refrescar, listo, idUsuario]);
 
   const enviar = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -292,36 +302,32 @@ export function Comentarios({
     if (!usuario || !limpio || enviando) return;
     setEnviando(true);
     setError(null);
-    const { data, error } = await clienteNavegador()
-      .from("comentarios")
-      .insert({ peleador: slug, texto: limpio })
-      .select(COLUMNAS)
-      .single();
-    setEnviando(false);
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      const { comentario } = await pedir<RespuestaComentario>(
+        "/api/comentarios",
+        { method: "POST", json: { peleador: slug, texto: limpio } },
+      );
+      setTexto("");
+      agregar(comentario);
+    } catch (err) {
+      if (err instanceof ErrorApi && err.status === 401) marcarSinSesion();
+      setError(mensajeDe(err));
+    } finally {
+      setEnviando(false);
     }
-    setTexto("");
-    agregar(data);
   };
 
   const eliminar = async (id: number) => {
-    const { error } = await clienteNavegador()
-      .from("comentarios")
-      .delete()
-      .eq("id", id);
-    if (error) {
+    try {
+      await pedir<void>(`/api/comentarios/${id}`, { method: "DELETE" });
+      quitar(id);
+    } catch (err) {
+      if (err instanceof ErrorApi && err.status === 401) marcarSinSesion();
       setError("No pudimos eliminar el comentario.");
-      return;
     }
-    quitar(id);
   };
 
   const usados = texto.length;
-  const avatarPropio = usuario?.user_metadata?.avatar_url as string | undefined;
-  const nombrePropio =
-    (usuario?.user_metadata?.full_name as string | undefined) ?? "Tú";
 
   return (
     <div className="mx-auto flex w-full max-w-[820px] flex-col gap-5">
@@ -345,7 +351,7 @@ export function Comentarios({
         ) : usuario ? (
           <form onSubmit={enviar} className="flex gap-3.5 sm:gap-4">
             <span className="hidden sm:block">
-              <Avatar nombre={nombrePropio} url={avatarPropio} grande />
+              <Avatar nombre={usuario.nombre} url={usuario.avatar} grande />
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-3">
               <label htmlFor={`comentario-${slug}`} className="sr-only">
@@ -459,7 +465,6 @@ export function Comentarios({
               <TarjetaComentario
                 key={c.id}
                 comentario={c}
-                propio={c.usuario_id === usuario?.id}
                 onEliminar={eliminar}
               />
             ))}

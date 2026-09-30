@@ -12,7 +12,8 @@ npm run dev
 ```
 
 El contenido editorial del cartel (peleadores, fotos, fichas, arte, fechas) vive
-en `lib/evento.ts`. La votación vive en Supabase.
+en `lib/evento.ts`. La votación vive en Supabase, y el navegador solo llega a
+ella a través de `app/api` (ver [El BFF](#el-bff-el-navegador-nunca-habla-con-supabase)).
 
 ## La votación
 
@@ -55,7 +56,7 @@ columna generada y se recalcula sola: nunca se escribe a mano.
 - **RLS:** el cartel y el conteo son públicos; los votos y los perfiles, solo
   los propios. Nadie ve a quién votó otra persona, ni estando logueado.
 
-### API
+### API de la base
 
 Dos funciones, ambas solo para usuarios con sesión. Devuelven el combate ya
 recontado, así la barra queda al día en el mismo clic:
@@ -63,8 +64,51 @@ recontado, así la barra queda al día en el mismo clic:
 - `votar(p_combate, p_lado)` — vota o cambia el voto.
 - `quitar_voto(p_combate)` — lo retira.
 
-`combates` está en la publicación de Realtime: los porcentajes se mueven solos
-en las pestañas abiertas. `votos` nunca se emite.
+## El BFF: el navegador nunca habla con Supabase
+
+Todo lo que la web pide a Supabase pasa por los route handlers de `app/api`
+(un _backend for frontend_). La URL y la clave del proyecto viven solo en el
+servidor: no llevan prefijo `NEXT_PUBLIC_`, ningún archivo del cliente las
+nombra y no entran en el bundle. En la pestaña Network solo se ven llamadas al
+mismo dominio.
+
+| Ruta                       | Método              | Qué hace                                                            |
+| -------------------------- | ------------------- | ------------------------------------------------------------------- |
+| `/api/auth/entrar`         | GET                 | `?proveedor=google\|discord&volver=/ruta`. Guarda la vuelta y redirige al proveedor. |
+| `/auth/callback`           | GET                 | Canjea el `code` por sesión (cookie) y vuelve a `volver`.           |
+| `/api/auth/yo`             | GET                 | `{ usuario: { id, nombre, avatar } \| null }`.                       |
+| `/api/auth/salir`          | POST                | Cierra la sesión.                                                   |
+| `/api/combates`            | GET                 | Conteo público de los 8 combates, ya convertido a `Conteo`.         |
+| `/api/votos`               | GET                 | Votos y métodos propios. Pide sesión.                               |
+| `/api/votos`               | POST / DELETE       | `{ combate, lado }` vota; `{ combate }` retira. Devuelven el conteo. |
+| `/api/votos`               | PATCH               | `{ combate, metodo \| null }` elige o quita el método.               |
+| `/api/comentarios`         | GET                 | `?peleador=slug&desde=0`. Página de 20, del más nuevo al más viejo. |
+| `/api/comentarios`         | POST                | `{ peleador, texto }`. Pide sesión.                                 |
+| `/api/comentarios/[id]`    | DELETE              | Elimina uno propio. Pide sesión.                                    |
+| `/api/mascota`             | POST                | El chat del Calvo (OpenAI). Lee el conteo con el cliente público.   |
+
+Cómo está armado:
+
+- `lib/supabase/servidor.ts` tiene los dos clientes: `clientePublico()` (sin
+  sesión, para lo que la RLS deja ver a un anónimo) y `clienteServidor()`
+  (con la sesión leída de las cookies). `sesion()` verifica el JWT de la
+  cookie con `getClaims()` y devuelve el `Usuario` mínimo que la web usa.
+- `lib/api/tipos.ts` es el contrato: lo único que cruza la red. Los
+  comentarios de otras personas llegan sin `usuario_id`; solo traen `propio`.
+- `lib/api/cliente.ts` (`pedir`) es la única puerta del navegador al servidor.
+  Un 401 se refleja en `lib/sesion.ts` con `marcarSinSesion()`.
+- La sesión (`useUsuario`) y los conteos (`useConteos`) son un estado por
+  página con `useSyncExternalStore`: `/api/auth/yo` y `/api/combates` se piden
+  una vez aunque varios componentes los usen, y un voto propio actualiza el
+  ranking y las tarjetas a la vez.
+- Las reglas siguen en la base (RLS, triggers, la clave primaria de `votos`).
+  Las rutas validan la forma de la petición y traducen el error.
+
+**Sin Realtime.** Como el navegador ya no tiene cliente de Supabase, no hay
+suscripción a `postgres_changes`. Los conteos se sondean cada 15 s y los
+comentarios cada 20 s, solo con la pestaña visible, y al volver a ella. Un
+SSE desde el servidor no compensa en Vercel: cada visitante mantendría abierta
+una función y un websocket contra Supabase.
 
 ### Comentarios
 
@@ -207,10 +251,12 @@ entrar no lleva a ninguna parte.
 
 **3. Al desplegar**
 
-Las dos variables de `.env.local` van también en el hosting (en Vercel,
-*Settings → Environment Variables*). Son claves públicas a propósito: viajan al
-navegador y lo que se puede hacer con ellas lo decide la RLS. La `service_role`
-no se usa en este proyecto y no debe acabar en ninguna variable `NEXT_PUBLIC_`.
+Las variables de `.env.local` van también en el hosting (en Vercel,
+*Settings → Environment Variables*): `SUPABASE_URL`,
+`SUPABASE_PUBLISHABLE_KEY` y `OPENAI_API_KEY`. Solo las lee el servidor. Los
+nombres viejos con prefijo `NEXT_PUBLIC_` siguen funcionando como respaldo
+para no romper un deploy a medio migrar, pero conviene renombrarlos. La
+`service_role` no se usa en este proyecto.
 
 ## Dominio
 

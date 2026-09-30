@@ -1,9 +1,8 @@
 import { createHash } from "node:crypto";
 import OpenAI from "openai";
-import { createClient } from "@supabase/supabase-js";
 import { COMBATES } from "@/lib/evento";
 import { INSTRUCCIONES } from "@/lib/mascota/instrucciones";
-import type { Database } from "@/lib/supabase/tipos";
+import { clientePublico } from "@/lib/supabase/servidor";
 
 // gpt-5-nano salía tibio y sin gracia para el trash talk; gpt-4o-mini sigue
 // costando centavos. Los modelos gpt-5 piensan antes de responder: a esos hay
@@ -40,11 +39,7 @@ async function votosDeLaComunidad() {
   if (votosEnCache && votosEnCache.hasta > Date.now())
     return votosEnCache.texto;
   try {
-    const supabase = createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    );
-    const { data } = await supabase
+    const { data } = await clientePublico()
       .from("combates")
       .select("numero, pct_a, votos_a, votos_b");
     const lineas = (data ?? []).flatMap((fila) => {

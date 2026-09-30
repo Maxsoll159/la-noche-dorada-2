@@ -175,9 +175,9 @@ export function Pronosticos() {
 
           <p className="flex flex-wrap items-center justify-end gap-3 font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
             <span className="flex items-center gap-2">
-              {usuario.user_metadata.avatar_url && (
+              {usuario.avatar && (
                 <Image
-                  src={usuario.user_metadata.avatar_url}
+                  src={usuario.avatar}
                   alt=""
                   width={22}
                   height={22}
@@ -185,7 +185,7 @@ export function Pronosticos() {
                   className="rounded-full border border-oro-profundo"
                 />
               )}
-              {usuario.user_metadata.full_name ?? usuario.email}
+              {usuario.nombre}
             </span>
             <button
               type="button"
