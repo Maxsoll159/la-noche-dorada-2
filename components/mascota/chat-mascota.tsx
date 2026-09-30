@@ -36,8 +36,21 @@ export function ChatMascota() {
   ]);
   const [texto, setTexto] = useState("");
   const [pensando, setPensando] = useState(false);
+  // En móvil la burbuja "Pregúntale al Calvo" se muestra unos segundos y se esconde.
+  const [llamado, setLlamado] = useState<"visible" | "saliendo" | "oculto">(
+    "visible",
+  );
   const entrada = useRef<HTMLInputElement>(null);
   const lista = useRef<HTMLOListElement>(null);
+
+  useEffect(() => {
+    const salir = setTimeout(() => setLlamado("saliendo"), 7000);
+    const ocultar = setTimeout(() => setLlamado("oculto"), 7500);
+    return () => {
+      clearTimeout(salir);
+      clearTimeout(ocultar);
+    };
+  }, []);
 
   useEffect(() => {
     if (!abierto) return;
@@ -210,17 +223,48 @@ export function ChatMascota() {
         className="group fixed right-3 bottom-3 z-40 flex cursor-pointer items-center gap-1 sm:right-5 sm:bottom-5"
       >
         {!abierto && (
-          <span className="rounded-full border border-oro bg-noche/95 px-3.5 py-2 font-cond text-[13px] font-bold tracking-[0.1em] whitespace-nowrap text-oro-claro uppercase shadow-[0_8px_24px_-6px_rgba(0,0,0,0.9)] transition-colors group-hover:bg-oro group-hover:text-noche">
+          <span
+            className={`burbuja-chat relative rounded-full border border-oro bg-noche/95 px-3 py-1.5 font-cond text-[12px] font-bold tracking-[0.1em] whitespace-nowrap text-oro-claro uppercase shadow-[0_8px_24px_-6px_rgba(0,0,0,0.9)] transition-colors group-hover:bg-oro group-hover:text-noche sm:px-3.5 sm:py-2 sm:text-[13px] ${
+              llamado === "saliendo"
+                ? "max-sm:burbuja-sale"
+                : llamado === "oculto"
+                  ? "max-sm:hidden"
+                  : ""
+            }`}
+          >
             {MASCOTA.llamado}
+            {/* Colita de la burbuja apuntando al Calvo */}
+            <span
+              aria-hidden
+              className="absolute top-1/2 -right-[5px] size-2.5 -translate-y-1/2 rotate-45 border-t border-r border-oro bg-noche/95 transition-colors group-hover:bg-oro"
+            />
           </span>
         )}
-        <span className="grid size-[88px] place-items-center transition-transform duration-300 group-hover:scale-105 sm:size-[100px]">
+        <span className="relative grid size-[68px] place-items-center transition-transform duration-300 group-hover:scale-105 sm:size-[100px]">
           {abierto ? (
             <span className="grid size-14 place-items-center rounded-full border-2 border-oro bg-noche text-oro">
               <IconoCerrar size={24} />
             </span>
           ) : (
-            <Avatar tamano={100} />
+            <>
+              {/* Onda dorada que se expande detrás del Calvo */}
+              <span
+                aria-hidden
+                className="calvo-aura pointer-events-none absolute inset-[14%] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.45)_0%,rgba(212,175,55,0)_70%)]"
+              />
+              <span className="calvo-saluda relative size-full group-hover:[animation-play-state:paused]">
+                <Avatar tamano={100} />
+              </span>
+              {/* Globito de chat con puntitos "escribiendo" */}
+              <span
+                aria-hidden
+                className="globito-chat absolute top-0 right-0 inline-flex h-[18px] items-center gap-[3px] rounded-full rounded-bl-[3px] border border-oro bg-oro-claro px-1.5 shadow-[0_6px_16px_-4px_rgba(0,0,0,0.8)] sm:h-6 sm:gap-1 sm:px-2"
+              >
+                <span className="size-1 latido rounded-full bg-noche sm:size-1.5" />
+                <span className="size-1 latido rounded-full bg-noche [animation-delay:150ms] sm:size-1.5" />
+                <span className="size-1 latido rounded-full bg-noche [animation-delay:300ms] sm:size-1.5" />
+              </span>
+            </>
           )}
         </span>
       </button>
