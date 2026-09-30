@@ -102,7 +102,20 @@ Cómo está armado:
   una vez aunque varios componentes los usen, y un voto propio actualiza el
   ranking y las tarjetas a la vez.
 - Las reglas siguen en la base (RLS, triggers, la clave primaria de `votos`).
-  Las rutas validan la forma de la petición y traducen el error.
+  Las rutas validan la forma de la petición y traducen el error: solo llega a
+  la persona el mensaje de un `RAISE EXCEPTION` de los triggers (código
+  `P0001`); cualquier otro error de Postgres se queda en el log.
+- La sesión va en la cookie `nd2-sesion`, `HttpOnly`, `Secure` y
+  `SameSite=Lax`. El nombre es propio para no delatar el ref del proyecto
+  (el de `@supabase/ssr` sería `sb-<ref>-auth-token`). Las rutas que cambian
+  algo rechazan además peticiones con `Sec-Fetch-Site` o `Origin` de otro
+  sitio.
+- Los comentarios llegan con el nombre ya enmascarado (primer nombre y
+  asteriscos) y sin `usuario_id`: solo `propio`.
+- Lo que sí se ve: durante el login el navegador pasa por
+  `https://<ref>.supabase.co/auth/v1/authorize`, así que el ref del proyecto
+  aparece en la barra de direcciones. Es inevitable con OAuth de Supabase sin
+  dominio propio y no sirve de nada sin la clave.
 
 **Sin Realtime.** Como el navegador ya no tiene cliente de Supabase, no hay
 suscripción a `postgres_changes`. Los conteos se sondean cada 15 s y los

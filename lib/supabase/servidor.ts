@@ -35,6 +35,17 @@ export function clientePublico() {
   return publico;
 }
 
+// Como el navegador ya no lee la sesión, las cookies van HttpOnly: un script
+// inyectado no puede robar el token. El nombre es propio para que no delate el
+// ref del proyecto (por defecto sería `sb-<ref>-auth-token`).
+const COOKIE_SESION = {
+  name: "nd2-sesion",
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
+
 // Cliente con la sesión del visitante, leída de las cookies. Solo para route
 // handlers: es donde Next deja escribir cookies, y el refresco del token las
 // escribe.
@@ -43,12 +54,17 @@ export async function clienteServidor() {
   const { url, clave } = credenciales();
 
   return createServerClient<Database>(url, clave, {
+    cookieOptions: COOKIE_SESION,
     cookies: {
       getAll: () => galleta.getAll(),
       setAll: (porEscribir) => {
         try {
           for (const { name, value, options } of porEscribir) {
-            galleta.set(name, value, options);
+            galleta.set(name, value, {
+              ...options,
+              httpOnly: true,
+              secure: COOKIE_SESION.secure,
+            });
           }
         } catch {}
       },

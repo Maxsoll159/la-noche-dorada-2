@@ -1,8 +1,11 @@
 import type { NextRequest } from "next/server";
 import {
+  esOrigenAjeno,
   fallo,
   json,
   leerJson,
+  mensajeDeBase,
+  origenAjeno,
   peticionInvalida,
   sinSesion,
   slugDePeleador,
@@ -27,11 +30,19 @@ type Fila = {
   creado_en: string;
 };
 
+// El nombre que devuelve Google es el completo. A la web solo va el primero:
+// se enmascara aquí, no en el navegador, para que el resto nunca viaje.
+function nombreOculto(nombre: string) {
+  const [primero, ...resto] = nombre.trim().split(/\s+/);
+  const oculto = resto.join(" ");
+  return oculto ? `${primero} ${"*".repeat(oculto.length)}` : primero;
+}
+
 // El navegador no recibe el id de otros usuarios: solo si el comentario es
 // suyo, que es lo que necesita para mostrar el botón de eliminar.
 const publico = (fila: Fila, propioDe: string | undefined): Comentario => ({
   id: fila.id,
-  autor_nombre: fila.autor_nombre,
+  autor_nombre: nombreOculto(fila.autor_nombre),
   autor_avatar: fila.autor_avatar,
   texto: fila.texto,
   creado_en: fila.creado_en,
@@ -71,6 +82,7 @@ export async function GET(request: NextRequest) {
 // Publica un comentario. El trigger de la base pone autor, nombre y foto, y
 // rechaza el texto vacío o un segundo comentario antes de 20 segundos.
 export async function POST(request: Request) {
+  if (esOrigenAjeno(request)) return origenAjeno();
   const cuerpo = await leerJson(request);
   const peleador = slugDePeleador(cuerpo?.peleador);
   const texto =
@@ -88,7 +100,7 @@ export async function POST(request: Request) {
     .select(COLUMNAS)
     .single();
   if (error || !data)
-    return fallo(error?.message ?? "No se pudo publicar.", 400);
+    return fallo(mensajeDeBase(error, "No se pudo publicar."), 400);
 
   return json<RespuestaComentario>(
     { comentario: publico(data, usuario.id) },

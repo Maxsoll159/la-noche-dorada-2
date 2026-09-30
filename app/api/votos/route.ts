@@ -1,10 +1,13 @@
 import {
+  esOrigenAjeno,
   fallo,
   json,
   ladoValido,
   leerJson,
+  mensajeDeBase,
   metodoValido,
   numeroDeCombate,
+  origenAjeno,
   peticionInvalida,
   sinSesion,
 } from "@/lib/api/servidor";
@@ -48,6 +51,7 @@ export async function GET() {
 // Vota o cambia el voto. Devuelve el combate ya recontado.
 export async function POST(request: Request) {
   if (!PRONOSTICOS_ACTIVOS) return cerrado();
+  if (esOrigenAjeno(request)) return origenAjeno();
   const cuerpo = await leerJson(request);
   const combate = numeroDeCombate(cuerpo?.combate);
   const lado = ladoValido(cuerpo?.lado);
@@ -60,7 +64,8 @@ export async function POST(request: Request) {
     p_combate: combate,
     p_lado: lado,
   });
-  if (error || !data) return fallo(error?.message ?? "No se pudo votar.", 400);
+  if (error || !data)
+    return fallo(mensajeDeBase(error, "No se pudo registrar el voto."), 400);
 
   return json<RespuestaConteo>({ conteo: aConteo(data) });
 }
@@ -68,6 +73,7 @@ export async function POST(request: Request) {
 // Retira el voto (y con él, el método).
 export async function DELETE(request: Request) {
   if (!PRONOSTICOS_ACTIVOS) return cerrado();
+  if (esOrigenAjeno(request)) return origenAjeno();
   const cuerpo = await leerJson(request);
   const combate = numeroDeCombate(cuerpo?.combate);
   if (!combate) return peticionInvalida();
@@ -79,7 +85,7 @@ export async function DELETE(request: Request) {
     p_combate: combate,
   });
   if (error || !data)
-    return fallo(error?.message ?? "No se pudo quitar el voto.", 400);
+    return fallo(mensajeDeBase(error, "No se pudo quitar el voto."), 400);
 
   return json<RespuestaConteo>({ conteo: aConteo(data) });
 }
@@ -88,6 +94,7 @@ export async function DELETE(request: Request) {
 // fila que actualizar y la base no cambia nada.
 export async function PATCH(request: Request) {
   if (!PRONOSTICOS_ACTIVOS) return cerrado();
+  if (esOrigenAjeno(request)) return origenAjeno();
   const cuerpo = await leerJson(request);
   const combate = numeroDeCombate(cuerpo?.combate);
   const crudo = cuerpo?.metodo;
@@ -103,7 +110,8 @@ export async function PATCH(request: Request) {
     .update({ metodo })
     .eq("usuario_id", usuario.id)
     .eq("combate_numero", combate);
-  if (error) return fallo(error.message, 400);
+  if (error)
+    return fallo(mensajeDeBase(error, "No se pudo guardar el método."), 400);
 
   const { data: fila, error: errorFila } = await supabase
     .from("combates")
