@@ -121,7 +121,7 @@ export function ChatMascota() {
         <section
           id="chat-mascota"
           aria-label={`Chat con ${MASCOTA.nombre}`}
-          className="fixed inset-x-3 bottom-28 z-40 flex max-h-[min(560px,calc(100dvh-9.5rem))] flex-col overflow-hidden rounded-md border border-oro-profundo bg-carbon shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9),0_0_40px_-18px_rgba(212,175,55,0.5)] sm:inset-x-auto sm:right-6 sm:bottom-32 sm:w-[370px]"
+          className="cambio fixed inset-x-3 top-[5.75rem] bottom-[5.5rem] z-40 flex flex-col overflow-hidden rounded-md border border-oro-profundo bg-carbon shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9),0_0_40px_-18px_rgba(212,175,55,0.5)] sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-32 sm:max-h-[min(560px,calc(100dvh-9.5rem))] sm:w-[370px]"
         >
           <header className="flex items-center gap-3 border-b border-linea bg-oro-tinte px-4 py-3">
             <span className="size-11 shrink-0">
@@ -150,24 +150,37 @@ export function ChatMascota() {
             aria-live="polite"
             className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-3 py-4"
           >
-            {mensajes.map((m, i) => (
-              <li
-                key={i}
-                className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-[15px] leading-snug ${
-                  m.rol === "usuario"
-                    ? "self-end rounded-br-sm bg-oro text-noche"
-                    : "self-start rounded-bl-sm border border-linea bg-noche text-crema"
-                }`}
-              >
-                {m.texto || (
-                  <span className="inline-flex gap-1" aria-label="Escribiendo">
-                    <span className="size-1.5 latido rounded-full bg-oro" />
-                    <span className="size-1.5 latido rounded-full bg-oro [animation-delay:150ms]" />
-                    <span className="size-1.5 latido rounded-full bg-oro [animation-delay:300ms]" />
+            {mensajes.map((m, i) =>
+              m.rol === "usuario" ? (
+                <li
+                  key={i}
+                  className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-oro px-3.5 py-2.5 text-[15px] leading-snug text-noche"
+                >
+                  {m.texto}
+                </li>
+              ) : (
+                <li key={i} className="flex max-w-[88%] items-end gap-2 self-start">
+                  <span
+                    aria-hidden
+                    className="size-8 shrink-0 overflow-hidden rounded-full border border-oro-profundo bg-noche"
+                  >
+                    <Avatar tamano={32} />
                   </span>
-                )}
-              </li>
-            ))}
+                  <div className="min-w-0 rounded-lg rounded-bl-sm border border-linea bg-noche px-3.5 py-2.5 text-[15px] leading-snug text-crema">
+                    {m.texto || (
+                      <span
+                        className="inline-flex gap-1"
+                        aria-label="Escribiendo"
+                      >
+                        <span className="size-1.5 latido rounded-full bg-oro" />
+                        <span className="size-1.5 latido rounded-full bg-oro [animation-delay:150ms]" />
+                        <span className="size-1.5 latido rounded-full bg-oro [animation-delay:300ms]" />
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ),
+            )}
           </ol>
 
           {soloSaludo && (
