@@ -24,6 +24,18 @@ export const PRESENTACION = {
 
 export const PRONOSTICOS_ACTIVOS = true;
 
+// Modal del hito de la comunidad en la portada: el contador sube hasta
+// `cifra`. Se muestra una vez por dispositivo; cambiar la cifra lo vuelve a
+// mostrar. `activo` en false lo esconde.
+export const HITO = {
+  activo: true,
+  cifra: 1000,
+  titulo: "¡Ya somos más de mil!",
+  texto: "Gracias por el apoyo",
+  detalle:
+    "Mil personas ya entraron, armaron sus pronósticos y eligieron a su favorito. La noche dorada se construye con ustedes.",
+} as const;
+
 export const PREVENTAS = {
   actual: {
     nombre: "Preventa 2",
