@@ -39,8 +39,8 @@ export const HITO = {
 export const PREVENTAS = {
   actual: {
     nombre: "Preventa 2",
-    desde: "28 de septiembre",
-    hasta: "28 de octubre",
+    desde: "1 de octubre",
+    hasta: "3 de noviembre",
   },
   anterior: { nombre: "Preventa 1" },
 } as const;

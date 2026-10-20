@@ -32,10 +32,12 @@ export function Entradas() {
             <span>Zona</span>
             <span className="text-right">
               {PREVENTAS.actual.nombre}
-              <span className="hidden text-tenue sm:inline">
-                {" "}
-                · antes en {PREVENTAS.anterior.nombre}
-              </span>
+              {ZONAS.some((z) => z.anterior) && (
+                <span className="hidden text-tenue sm:inline">
+                  {" "}
+                  · antes en {PREVENTAS.anterior.nombre}
+                </span>
+              )}
             </span>
           </div>
           <ul className="flex flex-1 flex-col">
@@ -90,7 +92,7 @@ export function Entradas() {
                 del {PREVENTAS.actual.desde} al {PREVENTAS.actual.hasta}
               </li>
               <li className="text-[11px] text-tenue">
-                Preventa exclusiva agotada · {PREVENTAS.anterior.nombre} cerrada
+                Preventa exclusiva y {PREVENTAS.anterior.nombre} agotadas
               </li>
             </ul>
             <a
