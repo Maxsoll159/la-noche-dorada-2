@@ -85,6 +85,11 @@ mismo dominio.
 | `/api/comentarios`         | GET                 | `?peleador=slug&desde=0`. Página de 20, del más nuevo al más viejo. |
 | `/api/comentarios`         | POST                | `{ peleador, texto }`. Pide sesión.                                 |
 | `/api/comentarios/[id]`    | DELETE              | Elimina uno propio. Pide sesión.                                    |
+| `/api/comunidad`           | GET                 | `?orden=recientes\|populares\|comentados&desde=0`. Página de 12 pronósticos publicados. |
+| `/api/comunidad`           | POST / DELETE       | `{ descripcion? }` publica o actualiza el propio (el código sale de los votos reales); DELETE lo quita. Piden sesión. |
+| `/api/comunidad/mio`       | GET                 | La publicación propia o `null`. Pide sesión.                        |
+| `/api/comunidad/[id]`      | GET                 | Un pronóstico publicado, con `propio` y la reacción de quien lo pide. |
+| `/api/comunidad/[id]/reaccion` | PUT / DELETE    | `{ tipo: "gusta" \| "no_gusta" }` pone la reacción; DELETE la quita. Devuelven los contadores. |
 | `/api/mascota`             | POST                | El chat del Calvo (OpenAI). Lee el conteo con el cliente público.   |
 
 Cómo está armado:
@@ -123,10 +128,45 @@ comentarios cada 20 s, solo con la pestaña visible, y al volver a ella. Un
 SSE desde el servidor no compensa en Vercel: cada visitante mantendría abierta
 una función y un websocket contra Supabase.
 
+### Comunidad
+
+`/comunidad` es el feed de pronósticos publicados y `/comunidad/[id]` el
+detalle de cada uno, con reacciones y comentarios. Tablas:
+
+| Tabla                    | Qué guarda                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------- |
+| `pronosticos_publicados` | Una fila por persona (`usuario_id` es único): `codigo` de la quiniela, `descripcion`, autor copiado de `perfiles`, contadores `me_gusta`, `no_me_gusta` y `comentarios`, y `oculto` para moderar. |
+| `pronostico_reacciones`  | Una reacción por persona y pronóstico, `tipo` = `gusta` o `no_gusta`.                       |
+
+Reglas en la base:
+
+- **Trigger `preparar_pronostico`:** fija el autor con `auth.uid()`, copia
+  nombre y foto de `perfiles`, limpia la `descripcion` (1 a 280 caracteres) y
+  no deja que el usuario toque contadores, `oculto` ni `creado_en`. Los
+  updates que vienen de otros triggers o del SQL Editor (sin sesión) pasan de
+  largo: así la moderación funciona.
+- **`codigo`** se valida con un check (`^[ab0]{8}([ktude0]{8})?$`, al menos un
+  voto) y lo arma siempre el servidor con los votos reales de la persona:
+  el navegador nunca lo manda.
+- **Contadores:** `contar_reacciones_pronostico` mantiene `me_gusta` y
+  `no_me_gusta`; `contar_comentarios_pronostico` mantiene `comentarios`
+  (solo los visibles).
+- **RLS:** los pronósticos no ocultos son públicos; publicar, editar y borrar
+  es solo propio. Las reacciones solo las ve, pone y quita su dueño.
+
+Moderar desde el SQL Editor:
+
+```sql
+-- esconder un pronóstico (con él desaparecen sus comentarios y reacciones de la web)
+update public.pronosticos_publicados set oculto = true where id = 12;
+```
+
 ### Comentarios
 
-Cada ficha de peleador tiene comentarios (tabla `comentarios`). Leerlos es
-público; comentar pide sesión con Google. Las reglas viven en la base:
+Cada ficha de peleador y cada pronóstico publicado tienen comentarios (tabla
+`comentarios`; un comentario cuelga de `peleador` o de `pronostico_id`,
+nunca de los dos). Leerlos es público; comentar pide sesión con Google o
+Discord. Las reglas viven en la base:
 
 - **RLS:** cualquiera ve los comentarios no ocultos; cada usuario solo inserta y
   borra los suyos. No hay edición.

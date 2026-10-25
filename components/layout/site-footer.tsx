@@ -8,6 +8,7 @@ const ENLACES = [
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
   { href: "/#favoritos", label: "Favoritos" },
+  { href: "/comunidad", label: "Comunidad" },
   { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },
   { href: "/#sede", label: "Sede" },

@@ -148,7 +148,12 @@ export default async function Page(props: PageProps<"/peleadores/[slug]">) {
       id: "comentarios",
       antetitulo: "La comunidad opina",
       titulo: "Comentarios",
-      cuerpo: <Comentarios slug={peleador.slug} nombre={peleador.nombre} />,
+      cuerpo: (
+        <Comentarios
+          destino={{ peleador: peleador.slug }}
+          nombre={peleador.nombre}
+        />
+      ),
     },
     {
       id: "otros-combates",

@@ -10,9 +10,9 @@ import {
   origenAjeno,
   peticionInvalida,
   sinSesion,
+  votosDeFilas,
 } from "@/lib/api/servidor";
 import type { RespuestaConteo, RespuestaVotos } from "@/lib/api/tipos";
-import { aMetodo, type Lado, type Metodo } from "@/lib/compartir";
 import { COLUMNAS_COMBATE, aConteo } from "@/lib/conteo";
 import { PRONOSTICOS_ACTIVOS } from "@/lib/evento";
 import { sesion } from "@/lib/supabase/servidor";
@@ -36,16 +36,7 @@ export async function GET() {
     return fallo("No pudimos cargar tus pronósticos.", 502);
   }
 
-  const votos: Record<string, Lado> = {};
-  const metodos: Record<string, Metodo> = {};
-  for (const v of data) {
-    const lado = ladoValido(v.lado);
-    if (!lado) continue;
-    votos[v.combate_numero] = lado;
-    const m = aMetodo(v.metodo);
-    if (m) metodos[v.combate_numero] = m;
-  }
-  return json<RespuestaVotos>({ votos, metodos });
+  return json<RespuestaVotos>(votosDeFilas(data));
 }
 
 // Vota o cambia el voto. Devuelve el combate ya recontado.

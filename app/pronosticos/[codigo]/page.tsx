@@ -3,14 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IconoExterno } from "@/assets/icons";
-import { BANDERAS, CASA_APUESTAS, COMBATES, EVENTO } from "@/lib/evento";
-import {
-  METODO,
-  eleccionesDe,
-  metodosDeCodigo,
-  votosDeCodigo,
-} from "@/lib/compartir";
-import { Bandera } from "@/components/ui/bandera";
+import { CASA_APUESTAS, COMBATES, EVENTO } from "@/lib/evento";
+import { eleccionesDe, metodosDeCodigo, votosDeCodigo } from "@/lib/compartir";
+import { ListaElecciones } from "@/components/pronosticos/lista-elecciones";
 import { FileteOro } from "@/components/ui/filete-oro";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -151,83 +146,7 @@ export default async function Page(props: PageProps<"/pronosticos/[codigo]">) {
               </p>
             </div>
 
-            <ul className="grid w-full gap-3 lg:grid-cols-2 lg:gap-4">
-              {elecciones.map((e) => {
-                const { combate, elegido, rival, metodo } = e;
-                return (
-                  <li key={combate.n}>
-                    <div
-                      className={`flex h-full items-center gap-4 rounded-sm border px-4 py-3.5 ${
-                        combate.estelar
-                          ? "border-oro bg-oro-tinte"
-                          : "border-linea bg-carbon"
-                      }`}
-                    >
-                      <span
-                        className={`grid size-11 shrink-0 place-items-center font-display text-[19px] leading-none ${
-                          elegido ? "bg-oro text-noche" : "bg-linea text-tenue"
-                        }`}
-                      >
-                        {combate.n}
-                      </span>
-
-                      {elegido ? (
-                        <>
-                          <span className="relative block h-[62px] w-[50px] shrink-0 overflow-hidden rounded-sm border border-oro-profundo bg-[#0e0e12]">
-                            <Image
-                              src={elegido.cuerpo ?? elegido.foto}
-                              alt=""
-                              fill
-                              sizes="50px"
-                              className={`object-cover object-top ${
-                                elegido.cuerpo
-                                  ? "brightness-125 contrast-[1.06]"
-                                  : ""
-                              }`}
-                            />
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <Link
-                              href={`/peleadores/${elegido.slug}`}
-                              className="group flex min-w-0 items-center gap-2"
-                            >
-                              <Bandera
-                                pais={elegido.pais}
-                                className="h-2.5 w-[15px] shrink-0"
-                              />
-                              <span className="min-w-0 truncate font-display text-[20px] leading-[1.2] text-crema uppercase transition-colors group-hover:text-oro sm:text-[23px]">
-                                {elegido.nombre}
-                              </span>
-                            </Link>
-                            <span className="mt-1 block truncate font-cond text-[11px] font-bold tracking-[0.16em] text-oro-medio uppercase">
-                              vs {rival?.nombre}
-                              <span className="text-tenue">
-                                {" "}
-                                · {BANDERAS[elegido.pais].nombre}
-                              </span>
-                            </span>
-                            {metodo && (
-                              <span className="mt-1.5 inline-flex rounded-full border border-oro-profundo bg-oro-tinte px-2.5 py-[3px] font-cond text-[11px] leading-none font-bold tracking-[0.14em] text-oro uppercase">
-                                {METODO[metodo].nombre}
-                              </span>
-                            )}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="min-w-0 flex-1">
-                          <span className="block font-display text-[20px] leading-[1.2] text-humo uppercase">
-                            Sin pronóstico
-                          </span>
-                          <span className="mt-1 block truncate font-cond text-[11px] font-bold tracking-[0.16em] text-tenue uppercase">
-                            {combate.a.nombre} vs {combate.b.nombre}
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            <ListaElecciones elecciones={elecciones} />
 
             <div className="flex w-full flex-col items-center gap-4 rounded-sm border border-oro-profundo bg-oro-tinte px-5 py-6 text-center sm:px-8">
               <p className="font-display text-[24px] leading-tight text-oro-claro uppercase sm:text-[30px]">

@@ -153,6 +153,24 @@ export function IconoMas(props: PropsIcono) {
   );
 }
 
+export function IconoPulgarArriba(props: PropsIcono) {
+  return (
+    <IconoTrazo {...props}>
+      <path d="M7 11v9H4.5a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 4.5 11H7Z" />
+      <path d="M7 11l3.6-7.2A2.2 2.2 0 0 1 14 5v4h4.6a2 2 0 0 1 2 2.3l-1.2 7a2 2 0 0 1-2 1.7H7" />
+    </IconoTrazo>
+  );
+}
+
+export function IconoPulgarAbajo(props: PropsIcono) {
+  return (
+    <IconoTrazo {...props}>
+      <path d="M17 13V4h2.5A1.5 1.5 0 0 1 21 5.5v6a1.5 1.5 0 0 1-1.5 1.5H17Z" />
+      <path d="M17 13l-3.6 7.2A2.2 2.2 0 0 1 10 19v-4H5.4a2 2 0 0 1-2-2.3l1.2-7a2 2 0 0 1 2-1.7H17" />
+    </IconoTrazo>
+  );
+}
+
 export function IconoPlay(props: PropsIcono) {
   return (
     <IconoRelleno {...props}>

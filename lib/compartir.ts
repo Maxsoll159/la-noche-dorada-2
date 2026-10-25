@@ -136,12 +136,15 @@ export function textoCompartir({
   resultados = {},
   aciertos = 0,
   resueltos = 0,
+  encabezado,
 }: {
   votos: Record<string, Lado>;
   metodos?: Record<string, Metodo>;
   resultados?: Record<string, { ganador: Lado | null; resuelto: boolean }>;
   aciertos?: number;
   resueltos?: number;
+  // Primera línea a medida (por ejemplo, el pronóstico de otra persona).
+  encabezado?: string;
 }): string {
   const lineas: string[] = [];
   for (const e of eleccionesDe(votos, metodos)) {
@@ -153,9 +156,10 @@ export function textoCompartir({
   }
 
   return [
-    resueltos > 0
-      ? `Acerté ${aciertos} de ${resueltos} en ${EVENTO.nombre}:`
-      : `Mis pronósticos para ${EVENTO.nombre}:`,
+    encabezado ??
+      (resueltos > 0
+        ? `Acerté ${aciertos} de ${resueltos} en ${EVENTO.nombre}:`
+        : `Mis pronósticos para ${EVENTO.nombre}:`),
     ...lineas,
   ].join("\n");
 }

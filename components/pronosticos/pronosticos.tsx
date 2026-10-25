@@ -5,12 +5,14 @@ import { useState } from "react";
 import {
   IconoCandado,
   IconoCompartir,
+  IconoPersonas,
   IconoTrofeo,
   LogoGoogle,
 } from "@/assets/icons";
 import { COMBATES, EVENTO, PRONOSTICOS_ACTIVOS } from "@/lib/evento";
 import { puntaje, useVotacion } from "@/lib/votacion";
 import { codigoDeVotos, textoCompartir } from "@/lib/compartir";
+import { ModalPublicar } from "@/components/comunidad/modal-publicar";
 import { BotonesAcceso } from "./boton-acceso";
 import { CardPronostico } from "./card-pronostico";
 import { ModalCompartir } from "./modal-compartir";
@@ -32,6 +34,7 @@ export function Pronosticos() {
     salir,
   } = useVotacion(activo);
   const [compartiendo, setCompartiendo] = useState(false);
+  const [publicando, setPublicando] = useState(false);
 
   const hechos = Object.keys(votos).length;
   const { resueltos, aciertos, aciertosMetodo } = puntaje(
@@ -158,19 +161,34 @@ export function Pronosticos() {
                 );
               })}
             </ol>
-            <button
-              type="button"
-              onClick={() => setCompartiendo(true)}
-              disabled={hechos === 0}
-              className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-6 py-3.5 font-cond text-[13px] font-bold tracking-[0.14em] text-noche uppercase transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-10 sm:py-3"
-            >
-              <IconoCompartir
-                size={15}
-                strokeWidth={2.2}
-                className="shrink-0"
-              />
-              Compartir
-            </button>
+            <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setPublicando(true)}
+                disabled={hechos === 0}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm border border-oro px-5 py-3.5 font-cond text-[13px] font-bold tracking-[0.14em] text-oro uppercase transition-colors hover:bg-oro-tinte disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:py-3"
+              >
+                <IconoPersonas
+                  size={15}
+                  strokeWidth={2.2}
+                  className="shrink-0"
+                />
+                Publicar
+              </button>
+              <button
+                type="button"
+                onClick={() => setCompartiendo(true)}
+                disabled={hechos === 0}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-oro px-6 py-3.5 font-cond text-[13px] font-bold tracking-[0.14em] text-noche uppercase transition-colors hover:bg-oro-claro disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8 sm:py-3"
+              >
+                <IconoCompartir
+                  size={15}
+                  strokeWidth={2.2}
+                  className="shrink-0"
+                />
+                Compartir
+              </button>
+            </div>
           </div>
 
           <p className="flex flex-wrap items-center justify-end gap-3 font-cond text-[11px] font-semibold tracking-[0.14em] text-tenue uppercase">
@@ -246,6 +264,8 @@ export function Pronosticos() {
                 ? `${resueltos} de ${COMBATES.length} combates resueltos · El resto sigue abierto`
                 : "Un voto por combate · Puedes cambiarlo hasta que cierre cada combate · Nadie ve a quién votaste"}
       </p>
+
+      {publicando && <ModalPublicar onCerrar={() => setPublicando(false)} />}
 
       {compartiendo && (
         <ModalCompartir

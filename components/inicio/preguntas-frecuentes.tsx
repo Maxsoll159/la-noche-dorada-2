@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { COMBATES, EVENTO, PREVENTAS, ZONAS, precioNumero } from "@/lib/evento";
 import { Acordeon, type ItemAcordeon } from "@/components/ui/acordeon";
 import { Seccion } from "@/components/ui/seccion";
@@ -151,6 +152,18 @@ const PREGUNTAS: readonly ItemAcordeon[] = [
         eliges <strong>cómo termina</strong> (KO, KO técnico, decisión unánime,
         descalificación o empate) para sumar un punto más. Al final puedes{" "}
         <a href="#pronosticos">compartir tus pronósticos</a>.
+      </p>
+    ),
+  },
+  {
+    pregunta: "¿Qué es la comunidad?",
+    respuesta: (
+      <p>
+        En <Link href="/comunidad">Comunidad</Link> cada persona puede publicar
+        sus pronósticos con una descripción, ver los de los demás, darles{" "}
+        <strong>me gusta</strong> o <strong>no me gusta</strong> y comentarlos.
+        Se publica una quiniela por persona y puedes actualizarla o quitarla
+        cuando quieras.
       </p>
     ),
   },

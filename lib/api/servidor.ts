@@ -78,6 +78,42 @@ export function slugDePeleador(valor: unknown): string | null {
     : null;
 }
 
+// Un id de fila: entero positivo. Vale tanto para el cuerpo JSON como para un
+// segmento de la URL o un parámetro de búsqueda (que llegan como texto).
+export function idValido(valor: unknown): number | null {
+  const n =
+    typeof valor === "number"
+      ? valor
+      : typeof valor === "string" && /^\d+$/.test(valor)
+        ? Number(valor)
+        : NaN;
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
+}
+
+// El nombre que devuelve Google es el completo. A la web solo va el primero:
+// se enmascara aquí, no en el navegador, para que el resto nunca viaje.
+export function nombreOculto(nombre: string) {
+  const [primero, ...resto] = nombre.trim().split(/\s+/);
+  const oculto = resto.join(" ");
+  return oculto ? `${primero} ${"*".repeat(oculto.length)}` : primero;
+}
+
+// Convierte las filas de `votos` de una persona en los mapas que usa la web.
+export function votosDeFilas(
+  filas: { combate_numero: string; lado: string; metodo: string | null }[],
+) {
+  const votos: Record<string, Lado> = {};
+  const metodos: Record<string, Metodo> = {};
+  for (const v of filas) {
+    const lado = ladoValido(v.lado);
+    if (!lado) continue;
+    votos[v.combate_numero] = lado;
+    const m = aMetodo(v.metodo);
+    if (m) metodos[v.combate_numero] = m;
+  }
+  return { votos, metodos };
+}
+
 // Hosts desde los que sirve la web: el dominio y los deploys de Vercel.
 const VERCEL_PREVIEW = /^la-noche-dorada-2(-[a-z0-9-]+)?\.vercel\.app$/;
 

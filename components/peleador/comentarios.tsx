@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -16,8 +15,10 @@ import {
   type RespuestaComentario,
   type RespuestaComentarios,
 } from "@/lib/api/tipos";
+import { haceCuanto } from "@/lib/formato";
 import { iniciarSesion, marcarSinSesion, useUsuario } from "@/lib/sesion";
 import { BotonesAcceso } from "@/components/pronosticos/boton-acceso";
+import { AvatarUsuario } from "@/components/ui/avatar-usuario";
 
 const MAXIMO = MAX_COMENTARIO;
 
@@ -26,64 +27,18 @@ const MAXIMO = MAX_COMENTARIO;
 // visible: se pide la primera página y se suman los ids que no se tenían.
 const INTERVALO_MS = 20_000;
 
-const relativo = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
-const UNIDADES: [Intl.RelativeTimeFormatUnit, number][] = [
-  ["year", 31536000],
-  ["month", 2592000],
-  ["week", 604800],
-  ["day", 86400],
-  ["hour", 3600],
-  ["minute", 60],
-];
+// Los comentarios cuelgan de la ficha de un peleador o de un pronóstico
+// publicado en la comunidad.
+export type DestinoComentarios = { peleador: string } | { pronostico: number };
 
-function haceCuanto(iso: string) {
-  const segundos = (new Date(iso).getTime() - Date.now()) / 1000;
-  for (const [unidad, tamano] of UNIDADES) {
-    if (Math.abs(segundos) >= tamano)
-      return relativo.format(Math.round(segundos / tamano), unidad);
-  }
-  return "ahora";
+function consultaDe(destino: DestinoComentarios) {
+  return "peleador" in destino
+    ? `peleador=${encodeURIComponent(destino.peleador)}`
+    : `pronostico=${destino.pronostico}`;
 }
 
-function rutaPagina(slug: string, desde: number) {
-  const parametros = new URLSearchParams({
-    peleador: slug,
-    desde: String(desde),
-  });
-  return `/api/comentarios?${parametros}`;
-}
-
-function Avatar({
-  nombre,
-  url,
-  grande = false,
-}: {
-  nombre: string;
-  url: string | null | undefined;
-  grande?: boolean;
-}) {
-  const tamano = grande ? "size-12" : "size-11";
-  if (url) {
-    return (
-      <Image
-        src={url}
-        alt=""
-        width={48}
-        height={48}
-        unoptimized
-        referrerPolicy="no-referrer"
-        className={`${tamano} shrink-0 rounded-full object-cover ring-2 ring-oro-profundo ring-offset-2 ring-offset-carbon`}
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden
-      className={`${tamano} grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-oro-claro to-oro-profundo font-display text-[18px] text-noche uppercase ring-2 ring-oro-profundo ring-offset-2 ring-offset-carbon`}
-    >
-      {nombre.charAt(0)}
-    </span>
-  );
+function rutaPagina(consulta: string, desde: number) {
+  return `/api/comentarios?${consulta}&desde=${desde}`;
 }
 
 function TarjetaComentario({
@@ -111,7 +66,10 @@ function TarjetaComentario({
           className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-oro-claro via-oro to-oro-profundo"
         />
       )}
-      <Avatar nombre={comentario.autor_nombre} url={comentario.autor_avatar} />
+      <AvatarUsuario
+        nombre={comentario.autor_nombre}
+        url={comentario.autor_avatar}
+      />
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-cond text-[15px] font-bold tracking-[0.04em] text-crema">
@@ -197,12 +155,14 @@ function Esqueleto() {
 }
 
 export function Comentarios({
-  slug,
+  destino,
   nombre,
 }: {
-  slug: string;
+  destino: DestinoComentarios;
   nombre: string;
 }) {
+  const consulta = consultaDe(destino);
+  const idCampo = `comentario-${consulta.replace(/\W+/g, "-")}`;
   const { usuario, listo } = useUsuario();
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [total, setTotal] = useState<number | null>(null);
@@ -230,7 +190,9 @@ export function Comentarios({
   const cargar = useCallback(
     async (desde: number) => {
       try {
-        const r = await pedir<RespuestaComentarios>(rutaPagina(slug, desde));
+        const r = await pedir<RespuestaComentarios>(
+          rutaPagina(consulta, desde),
+        );
         setTotal(r.total);
         setHayMas(r.hayMas);
         if (desde === 0) vistos.current = new Set();
@@ -241,20 +203,20 @@ export function Comentarios({
         setError("No pudimos cargar los comentarios.");
       }
     },
-    [slug],
+    [consulta],
   );
 
   // Trae la primera página y suma arriba lo que no se había visto. No toca lo
   // ya cargado: las páginas siguientes siguen donde estaban.
   const refrescar = useCallback(async () => {
     try {
-      const r = await pedir<RespuestaComentarios>(rutaPagina(slug, 0));
+      const r = await pedir<RespuestaComentarios>(rutaPagina(consulta, 0));
       const nuevos = r.comentarios.filter((c) => !vistos.current.has(c.id));
       for (const c of nuevos) vistos.current.add(c.id);
       setTotal(r.total);
       if (nuevos.length > 0) setComentarios((prev) => [...nuevos, ...prev]);
     } catch {}
-  }, [slug]);
+  }, [consulta]);
 
   // Se espera a saber si hay sesión para que el servidor marque los propios
   // desde la primera carga; al entrar o salir se vuelve a pedir la lista.
@@ -299,7 +261,7 @@ export function Comentarios({
     try {
       const { comentario } = await pedir<RespuestaComentario>(
         "/api/comentarios",
-        { method: "POST", json: { peleador: slug, texto: limpio } },
+        { method: "POST", json: { ...destino, texto: limpio } },
       );
       setTexto("");
       agregar(comentario);
@@ -345,14 +307,18 @@ export function Comentarios({
         ) : usuario ? (
           <form onSubmit={enviar} className="flex gap-3.5 sm:gap-4">
             <span className="hidden sm:block">
-              <Avatar nombre={usuario.nombre} url={usuario.avatar} grande />
+              <AvatarUsuario
+                nombre={usuario.nombre}
+                url={usuario.avatar}
+                className="size-12"
+              />
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-3">
-              <label htmlFor={`comentario-${slug}`} className="sr-only">
+              <label htmlFor={idCampo} className="sr-only">
                 Tu comentario sobre {nombre}
               </label>
               <textarea
-                id={`comentario-${slug}`}
+                id={idCampo}
                 value={texto}
                 onChange={(e) => setTexto(e.target.value.slice(0, MAXIMO))}
                 onKeyDown={(e) => {

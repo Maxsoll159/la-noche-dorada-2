@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -8,8 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -88,34 +89,95 @@ export type Database = {
           },
         ]
       }
+      comentario_apoyos: {
+        Row: {
+          comentario_id: number
+          creado_en: string
+          usuario_id: string
+        }
+        Insert: {
+          comentario_id: number
+          creado_en?: string
+          usuario_id?: string
+        }
+        Update: {
+          comentario_id?: number
+          creado_en?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comentario_apoyos_comentario_id_fkey"
+            columns: ["comentario_id"]
+            isOneToOne: false
+            referencedRelation: "comentarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comentario_reportes: {
+        Row: {
+          comentario_id: number
+          creado_en: string
+          usuario_id: string
+        }
+        Insert: {
+          comentario_id: number
+          creado_en?: string
+          usuario_id?: string
+        }
+        Update: {
+          comentario_id?: number
+          creado_en?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comentario_reportes_comentario_id_fkey"
+            columns: ["comentario_id"]
+            isOneToOne: false
+            referencedRelation: "comentarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comentarios: {
         Row: {
+          apoyos: number
           autor_avatar: string | null
           autor_nombre: string
           creado_en: string
           id: number
           oculto: boolean
-          peleador: string
+          peleador: string | null
+          pronostico_id: number | null
+          reportes: number
           texto: string
           usuario_id: string
         }
         Insert: {
+          apoyos?: number
           autor_avatar?: string | null
           autor_nombre?: string
           creado_en?: string
           id?: never
           oculto?: boolean
-          peleador: string
+          peleador?: string | null
+          pronostico_id?: number | null
+          reportes?: number
           texto: string
           usuario_id?: string
         }
         Update: {
+          apoyos?: number
           autor_avatar?: string | null
           autor_nombre?: string
           creado_en?: string
           id?: never
           oculto?: boolean
-          peleador?: string
+          peleador?: string | null
+          pronostico_id?: number | null
+          reportes?: number
           texto?: string
           usuario_id?: string
         }
@@ -126,6 +188,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "peleadores"
             referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "comentarios_pronostico_id_fkey"
+            columns: ["pronostico_id"]
+            isOneToOne: false
+            referencedRelation: "pronosticos_publicados"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -168,6 +237,80 @@ export type Database = {
           creado_en?: string
           id?: string
           nombre?: string | null
+        }
+        Relationships: []
+      }
+      pronostico_reacciones: {
+        Row: {
+          creado_en: string
+          pronostico_id: number
+          tipo: string
+          usuario_id: string
+        }
+        Insert: {
+          creado_en?: string
+          pronostico_id: number
+          tipo: string
+          usuario_id?: string
+        }
+        Update: {
+          creado_en?: string
+          pronostico_id?: number
+          tipo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pronostico_reacciones_pronostico_id_fkey"
+            columns: ["pronostico_id"]
+            isOneToOne: false
+            referencedRelation: "pronosticos_publicados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pronosticos_publicados: {
+        Row: {
+          actualizado_en: string
+          autor_avatar: string | null
+          autor_nombre: string
+          codigo: string
+          comentarios: number
+          creado_en: string
+          descripcion: string | null
+          id: number
+          me_gusta: number
+          no_me_gusta: number
+          oculto: boolean
+          usuario_id: string
+        }
+        Insert: {
+          actualizado_en?: string
+          autor_avatar?: string | null
+          autor_nombre?: string
+          codigo: string
+          comentarios?: number
+          creado_en?: string
+          descripcion?: string | null
+          id?: never
+          me_gusta?: number
+          no_me_gusta?: number
+          oculto?: boolean
+          usuario_id?: string
+        }
+        Update: {
+          actualizado_en?: string
+          autor_avatar?: string | null
+          autor_nombre?: string
+          codigo?: string
+          comentarios?: number
+          creado_en?: string
+          descripcion?: string | null
+          id?: never
+          me_gusta?: number
+          no_me_gusta?: number
+          oculto?: boolean
+          usuario_id?: string
         }
         Relationships: []
       }

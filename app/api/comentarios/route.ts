@@ -2,9 +2,11 @@ import type { NextRequest } from "next/server";
 import {
   esOrigenAjeno,
   fallo,
+  idValido,
   json,
   leerJson,
   mensajeDeBase,
+  nombreOculto,
   origenAjeno,
   peticionInvalida,
   sinSesion,
@@ -30,12 +32,19 @@ type Fila = {
   creado_en: string;
 };
 
-// El nombre que devuelve Google es el completo. A la web solo va el primero:
-// se enmascara aquí, no en el navegador, para que el resto nunca viaje.
-function nombreOculto(nombre: string) {
-  const [primero, ...resto] = nombre.trim().split(/\s+/);
-  const oculto = resto.join(" ");
-  return oculto ? `${primero} ${"*".repeat(oculto.length)}` : primero;
+// Un comentario cuelga de un peleador (`peleador=slug`) o de un pronóstico
+// publicado (`pronostico=id`): exactamente uno de los dos.
+type Destino = { peleador: string } | { pronostico_id: number };
+
+function destinoDe(
+  peleadorCrudo: unknown,
+  pronosticoCrudo: unknown,
+): Destino | null {
+  const peleador = slugDePeleador(peleadorCrudo);
+  const pronostico = idValido(pronosticoCrudo);
+  if (peleador && !pronostico) return { peleador };
+  if (pronostico && !peleador) return { pronostico_id: pronostico };
+  return null;
 }
 
 // El navegador no recibe el id de otros usuarios: solo si el comentario es
@@ -52,16 +61,23 @@ const publico = (fila: Fila, propioDe: string | undefined): Comentario => ({
 // Página de comentarios de un peleador, del más nuevo al más viejo.
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const peleador = slugDePeleador(searchParams.get("peleador"));
+  const destino = destinoDe(
+    searchParams.get("peleador"),
+    searchParams.get("pronostico"),
+  );
   const desde = Number(searchParams.get("desde") ?? "0");
-  if (!peleador || !Number.isInteger(desde) || desde < 0)
+  if (!destino || !Number.isInteger(desde) || desde < 0)
     return peticionInvalida();
 
   const { supabase, usuario } = await sesion();
-  const { data, error, count } = await supabase
+  const consulta = supabase
     .from("comentarios")
-    .select(COLUMNAS, { count: "exact" })
-    .eq("peleador", peleador)
+    .select(COLUMNAS, { count: "exact" });
+  const { data, error, count } = await (
+    "peleador" in destino
+      ? consulta.eq("peleador", destino.peleador)
+      : consulta.eq("pronostico_id", destino.pronostico_id)
+  )
     .order("creado_en", { ascending: false })
     .range(desde, desde + POR_PAGINA);
 
@@ -84,19 +100,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {
   if (esOrigenAjeno(request)) return origenAjeno();
   const cuerpo = await leerJson(request);
-  const peleador = slugDePeleador(cuerpo?.peleador);
+  const destino = destinoDe(cuerpo?.peleador, cuerpo?.pronostico);
   const texto =
     typeof cuerpo?.texto === "string"
       ? cuerpo.texto.trim().slice(0, MAXIMO)
       : "";
-  if (!peleador || !texto) return peticionInvalida();
+  if (!destino || !texto) return peticionInvalida();
 
   const { supabase, usuario } = await sesion();
   if (!usuario) return sinSesion();
 
   const { data, error } = await supabase
     .from("comentarios")
-    .insert({ peleador, texto })
+    .insert({ ...destino, texto })
     .select(COLUMNAS)
     .single();
   if (error || !data)

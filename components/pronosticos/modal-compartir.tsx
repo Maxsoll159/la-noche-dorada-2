@@ -42,19 +42,24 @@ const REDES = [
 
 type Red = (typeof REDES)[number]["id"];
 
+// `ruta` es la página que recibe quien abre el enlace. Por defecto es la del
+// código (`/pronosticos/[codigo]`); el detalle de la comunidad pasa la suya.
+// La imagen siempre sale del código: es la misma quiniela.
 export function ModalCompartir({
   codigo,
   texto,
   resumen,
+  ruta: rutaPropia,
   onCerrar,
 }: {
   codigo: string;
   texto: string;
   resumen: string;
+  ruta?: string;
   onCerrar: () => void;
 }) {
-  const ruta = rutaDePronostico(codigo);
-  const urlImagen = `${ruta}/opengraph-image`;
+  const ruta = rutaPropia ?? rutaDePronostico(codigo);
+  const urlImagen = `${rutaDePronostico(codigo)}/opengraph-image`;
 
   const panel = useRef<HTMLDivElement>(null);
   const cerrar = useRef<HTMLButtonElement>(null);

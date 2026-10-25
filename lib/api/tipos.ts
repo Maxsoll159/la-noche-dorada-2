@@ -39,4 +39,46 @@ export type RespuestaComentarios = {
 
 export type RespuestaComentario = { comentario: Comentario };
 
+// Comunidad: pronósticos publicados, uno por persona.
+export const COMUNIDAD_POR_PAGINA = 12;
+export const MAX_DESCRIPCION = 280;
+
+export type Reaccion = "gusta" | "no_gusta";
+
+export const ORDENES_COMUNIDAD = [
+  "recientes",
+  "populares",
+  "comentados",
+] as const;
+export type OrdenComunidad = (typeof ORDENES_COMUNIDAD)[number];
+
+export type PronosticoPublico = {
+  id: number;
+  codigo: string;
+  descripcion: string | null;
+  autor_nombre: string;
+  autor_avatar: string | null;
+  meGusta: number;
+  noMeGusta: number;
+  comentarios: number;
+  creado_en: string;
+  actualizado_en: string;
+  propio: boolean;
+  reaccion: Reaccion | null;
+};
+
+export type RespuestaComunidad = {
+  pronosticos: PronosticoPublico[];
+  total: number;
+  hayMas: boolean;
+};
+
+export type RespuestaPronostico = { pronostico: PronosticoPublico | null };
+
+export type RespuestaReaccion = {
+  meGusta: number;
+  noMeGusta: number;
+  reaccion: Reaccion | null;
+};
+
 export type RespuestaError = { error: string };
