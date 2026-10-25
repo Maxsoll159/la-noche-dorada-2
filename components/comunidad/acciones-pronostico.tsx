@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { IconoCompartir, IconoFlechaDerecha } from "@/assets/icons";
+import { createPortal } from "react-dom";
+import {
+  IconoComentario,
+  IconoCompartir,
+  IconoFlechaDerecha,
+} from "@/assets/icons";
 import { pedir } from "@/lib/api/cliente";
 import type { PronosticoPublico, RespuestaPronostico } from "@/lib/api/tipos";
 import {
@@ -41,6 +46,19 @@ export function AccionesPronostico({
   const metodos = metodosDeCodigo(p.codigo) ?? {};
   const hechos = Object.keys(votos).length;
 
+  // Mucha gente no baja: el botón lleva al formulario y lo deja listo para
+  // escribir (o al bloque de entrar, si no hay sesión).
+  const irAComentar = () => {
+    const seccion = document.getElementById("comentarios");
+    if (!seccion) return;
+    seccion.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      seccion.querySelector<HTMLTextAreaElement>("textarea")?.focus({
+        preventScroll: true,
+      });
+    }, 650);
+  };
+
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <Reacciones
@@ -61,6 +79,22 @@ export function AccionesPronostico({
         )}
         <button
           type="button"
+          onClick={irAComentar}
+          className="group relative flex cursor-pointer items-center gap-2 overflow-hidden rounded-sm border border-oro bg-oro-tinte px-5 py-2.5 font-cond text-[12px] font-bold tracking-[0.14em] text-oro uppercase transition-colors hover:bg-oro hover:text-noche"
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 brillo-boton bg-gradient-to-r from-transparent via-oro-claro/40 to-transparent group-hover:hidden"
+          />
+          <IconoComentario size={14} strokeWidth={2.2} className="relative" />
+          <span className="relative">
+            {p.comentarios === 0
+              ? "Sé el primero en comentar"
+              : `Comentar · ${p.comentarios}`}
+          </span>
+        </button>
+        <button
+          type="button"
           onClick={() => setCompartiendo(true)}
           className="flex cursor-pointer items-center gap-2 rounded-sm bg-oro px-5 py-2.5 font-cond text-[12px] font-bold tracking-[0.14em] text-noche uppercase transition-colors hover:bg-oro-claro"
         >
@@ -69,21 +103,25 @@ export function AccionesPronostico({
         </button>
       </div>
 
-      {compartiendo && (
-        <ModalCompartir
-          codigo={p.codigo}
-          ruta={`/comunidad/${p.id}`}
-          texto={textoCompartir({
-            votos,
-            metodos,
-            encabezado: p.propio
-              ? `Mis pronósticos para ${EVENTO.nombre}:`
-              : `Los pronósticos de ${p.autor_nombre} para ${EVENTO.nombre}:`,
-          })}
-          resumen={`${hechos} de ${COMBATES.length} combates elegidos`}
-          onCerrar={() => setCompartiendo(false)}
-        />
-      )}
+      {/* Va al body: el encabezado crea su propio contexto de apilamiento y
+          el modal quedaría debajo de lo que viene después en la página. */}
+      {compartiendo &&
+        createPortal(
+          <ModalCompartir
+            codigo={p.codigo}
+            ruta={`/comunidad/${p.id}`}
+            texto={textoCompartir({
+              votos,
+              metodos,
+              encabezado: p.propio
+                ? `Mis pronósticos para ${EVENTO.nombre}:`
+                : `Los pronósticos de ${p.autor_nombre} para ${EVENTO.nombre}:`,
+            })}
+            resumen={`${hechos} de ${COMBATES.length} combates elegidos`}
+            onCerrar={() => setCompartiendo(false)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

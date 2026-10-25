@@ -24,16 +24,23 @@ export const PRESENTACION = {
 
 export const PRONOSTICOS_ACTIVOS = true;
 
-// Modal del hito de la comunidad en la portada: el contador sube hasta
-// `cifra`. Se muestra una vez por dispositivo; cambiar la cifra lo vuelve a
-// mostrar. `activo` en false lo esconde.
+// Modal de anuncio en la portada. Se muestra una vez por dispositivo: cambiar
+// `clave` lo vuelve a mostrar. `activo` en false lo esconde.
+//
+// Dos modos: con `cifra` (un número) el modal cuenta hasta ella, como el hito
+// de "ya somos más de mil"; con `imagen` muestra esa foto (el Calvo) para
+// anunciar una novedad. `boton` es a dónde lleva el botón principal.
 export const HITO = {
   activo: true,
-  cifra: 1000,
-  titulo: "¡Ya somos más de mil!",
-  texto: "Gracias por el apoyo",
+  clave: "comunidad-1",
+  cifra: null as number | null,
+  imagen: "/bot/calvo.webp" as string | null,
+  antetitulo: "Nueva sección · Comunidad",
+  titulo: "¡Ahora puedes compartir e interactuar!",
+  texto: "Publica tus pronósticos",
   detalle:
-    "Mil personas ya entraron, armaron sus pronósticos y eligieron a su favorito. La noche dorada se construye con ustedes.",
+    "Escribe tu descripción, mira las quinielas de los demás, dales me gusta o no me gusta y comenta quién se equivoca. Una publicación por persona: la actualizas cuando quieras.",
+  boton: { texto: "Ir a la comunidad", href: "/comunidad" },
 } as const;
 
 export const PREVENTAS = {

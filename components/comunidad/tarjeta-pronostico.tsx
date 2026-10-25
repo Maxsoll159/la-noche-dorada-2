@@ -1,126 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { IconoComentario, IconoFlechaDerecha } from "@/assets/icons";
 import type { PronosticoPublico } from "@/lib/api/tipos";
-import {
-  METODO,
-  eleccionesDe,
-  metodosDeCodigo,
-  votosDeCodigo,
-  type Eleccion,
-} from "@/lib/compartir";
+import { eleccionesDeCodigo } from "@/lib/compartir";
 import { COMBATES } from "@/lib/evento";
 import { haceCuanto } from "@/lib/formato";
 import { AvatarUsuario } from "@/components/ui/avatar-usuario";
-import { Bandera } from "@/components/ui/bandera";
 import { Reacciones } from "./reacciones";
+import { RejillaElecciones } from "./rejilla-elecciones";
 
 const numero = new Intl.NumberFormat("es-PE");
-
-// Del combate 01 al estelar, como se leen en la noche.
-export function eleccionesDeCodigo(codigo: string): Eleccion[] {
-  const votos = votosDeCodigo(codigo) ?? {};
-  const metodos = metodosDeCodigo(codigo) ?? {};
-  return eleccionesDe(votos, metodos).sort((x, y) =>
-    x.combate.n.localeCompare(y.combate.n),
-  );
-}
-
-// Rejilla de 4 × 2 con el elegido de cada combate: cara, nombre, bandera y el
-// método si lo pronosticó. El estelar va con marco dorado.
-export function RejillaElecciones({ elecciones }: { elecciones: Eleccion[] }) {
-  return (
-    <ul className="grid grid-cols-4 gap-1.5 sm:gap-2">
-      {elecciones.map(({ combate, elegido, metodo }) => (
-        <li
-          key={combate.n}
-          className={`group/loseta relative isolate aspect-[3/4] overflow-hidden rounded-[4px] ${
-            elegido
-              ? `bg-[#0e0e12] ring-1 ring-inset ${
-                  combate.estelar
-                    ? "shadow-[0_0_18px_-6px_rgba(212,175,55,0.6)] ring-oro"
-                    : "ring-oro-profundo/60"
-                }`
-              : "bg-noche/50 ring-1 ring-linea ring-inset"
-          }`}
-        >
-          {elegido ? (
-            <>
-              <span
-                aria-hidden
-                className={`absolute inset-0 -z-10 ${
-                  combate.estelar
-                    ? "bg-[radial-gradient(95%_75%_at_50%_0%,rgba(212,175,55,0.35)_0%,rgba(14,14,18,0)_75%)]"
-                    : "bg-[radial-gradient(95%_75%_at_50%_0%,rgba(212,175,55,0.16)_0%,rgba(14,14,18,0)_75%)]"
-                }`}
-              />
-              <span className="absolute inset-x-0 top-[10%] bottom-0">
-                <Image
-                  src={elegido.cuerpo ?? elegido.foto}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 100px, (min-width: 640px) 22vw, 24vw"
-                  className={`object-contain object-bottom transition-transform duration-500 group-hover/loseta:scale-[1.05] ${
-                    elegido.cuerpo
-                      ? "brightness-125 contrast-[1.06] saturate-105"
-                      : "object-cover object-top"
-                  }`}
-                />
-              </span>
-              <span
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-noche via-noche/85 to-transparent"
-              />
-              <span className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 px-1 pb-1.5 text-center">
-                <span className="flex max-w-full items-center gap-1">
-                  <Bandera
-                    pais={elegido.pais}
-                    className="h-2 w-[12px] shrink-0"
-                  />
-                  <span
-                    className={`truncate font-display text-[11px] leading-tight uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-[12px] ${
-                      combate.estelar ? "text-oro-claro" : "text-crema"
-                    }`}
-                  >
-                    {elegido.nombre}
-                  </span>
-                </span>
-                {metodo && (
-                  <span className="rounded-full border border-oro-profundo bg-noche/85 px-1.5 py-[2px] font-cond text-[9px] leading-none font-bold tracking-[0.12em] text-oro uppercase">
-                    {METODO[metodo].corto}
-                  </span>
-                )}
-              </span>
-            </>
-          ) : (
-            <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-1 text-center">
-              <span className="font-display text-[20px] leading-none text-linea">
-                —
-              </span>
-              <span className="font-cond text-[9px] leading-tight font-bold tracking-[0.12em] text-humo uppercase">
-                Sin voto
-              </span>
-            </span>
-          )}
-          <span
-            aria-hidden
-            className={`absolute top-0 left-0 grid h-[18px] min-w-[18px] place-items-center rounded-br-[4px] px-1 font-display text-[11px] leading-none ${
-              elegido
-                ? combate.estelar
-                  ? "bg-oro text-noche"
-                  : "bg-oro-profundo text-crema"
-                : "bg-linea text-tenue"
-            }`}
-          >
-            {combate.n}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export function TarjetaPronostico({ p }: { p: PronosticoPublico }) {
   const elecciones = eleccionesDeCodigo(p.codigo);

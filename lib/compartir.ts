@@ -126,6 +126,16 @@ export function eleccionesDe(
   });
 }
 
+// Las elecciones de un código, del combate 01 al estelar, como se leen en la
+// noche. Un código inválido da los ocho combates sin pronóstico.
+export function eleccionesDeCodigo(codigo: string): Eleccion[] {
+  const votos = votosDeCodigo(codigo) ?? {};
+  const metodos = metodosDeCodigo(codigo) ?? {};
+  return eleccionesDe(votos, metodos).sort((x, y) =>
+    x.combate.n.localeCompare(y.combate.n),
+  );
+}
+
 export function rutaDePronostico(codigo: string): string {
   return `/pronosticos/${codigo}`;
 }

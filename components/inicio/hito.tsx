@@ -1,21 +1,25 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { IconoCerrar, IconoFlechaDerecha } from "@/assets/icons";
 import { HITO } from "@/lib/evento";
 import { LOGO } from "@/lib/imagenes";
 import { Estrellas } from "@/components/ui/estrellas";
 
-// Modal que celebra el hito en la portada. Aparece cuando la pantalla de
-// carga ya se fue, cuenta hasta la cifra y, al llegar, suelta confeti dorado.
-// Se muestra una vez por dispositivo: al cerrarlo se guarda la cifra, así que
-// cambiarla en `HITO` lo vuelve a mostrar.
+// Modal de anuncio en la portada. Aparece cuando la pantalla de carga ya se
+// fue. Con `HITO.cifra` cuenta hasta la cifra y suelta confeti al llegar (el
+// hito de "ya somos más de mil"); con `HITO.imagen` muestra la foto (el
+// Calvo) para anunciar una novedad. Se muestra una vez por dispositivo: al
+// cerrarlo se guarda `HITO.clave`, así que cambiarla lo vuelve a mostrar.
 const CLAVE = "nd2:hito";
 const ESPERA_MS = 700;
 const ARRANQUE_MS = 900;
 const DURACION_MS = 1900;
 const SALIDA_MS = 380;
+
+const CON_CIFRA = HITO.cifra !== null;
 
 const numero = new Intl.NumberFormat("es-PE");
 const suave = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -39,7 +43,7 @@ const CONFETI = Array.from({ length: 36 }, (_, i) => {
 
 function yaVisto() {
   try {
-    return localStorage.getItem(CLAVE) === String(HITO.cifra);
+    return localStorage.getItem(CLAVE) === HITO.clave;
   } catch {
     return false;
   }
@@ -47,7 +51,7 @@ function yaVisto() {
 
 function marcarVisto() {
   try {
-    localStorage.setItem(CLAVE, String(HITO.cifra));
+    localStorage.setItem(CLAVE, HITO.clave);
   } catch {}
 }
 
@@ -100,9 +104,15 @@ export function Hito() {
     };
   }, []);
 
-  // Contador: sube hasta la cifra y al llegar arranca la celebración.
+  // Contador: sube hasta la cifra y al llegar arranca la celebración. Sin
+  // cifra, la celebración arranca sola cuando la tarjeta terminó de entrar.
   useEffect(() => {
     if (fase !== "visible") return;
+    const cifra = HITO.cifra;
+    if (cifra === null) {
+      const id = setTimeout(() => setCelebrando(true), ARRANQUE_MS);
+      return () => clearTimeout(id);
+    }
     // Con movimiento reducido el primer cuadro ya es el último.
     const reducido = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -113,7 +123,7 @@ export function Hito() {
       : performance.now() + ARRANQUE_MS;
     const pintar = (ahora: number) => {
       const t = Math.min(1, Math.max(0, (ahora - inicio) / DURACION_MS));
-      setValor(Math.round(suave(t) * HITO.cifra));
+      setValor(Math.round(suave(t) * cifra));
       if (t < 1) cuadro = requestAnimationFrame(pintar);
       else setCelebrando(true);
     };
@@ -231,7 +241,7 @@ export function Hito() {
           <Escuadra x="left" y="bottom" />
           <Escuadra x="right" y="bottom" />
 
-          {/* Confeti dorado que cae al llegar a la cifra */}
+          {/* Confeti dorado que cae en la celebración */}
           {celebrando && (
             <span
               aria-hidden
@@ -259,20 +269,48 @@ export function Hito() {
           )}
 
           <div className="relative flex flex-col items-center gap-5">
-            <Image
-              {...LOGO}
-              alt=""
-              sizes="96px"
-              style={entra(150)}
-              className="w-[88px] entrada drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] sm:w-[96px]"
-            />
+            {CON_CIFRA || !HITO.imagen ? (
+              <Image
+                {...LOGO}
+                alt=""
+                sizes="96px"
+                style={entra(150)}
+                className="w-[88px] entrada drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] sm:w-[96px]"
+              />
+            ) : (
+              <span
+                style={entra(150)}
+                className="relative grid size-[150px] entrada place-items-center sm:size-[176px]"
+              >
+                <span
+                  aria-hidden
+                  className={`absolute inset-[6%] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.5)_0%,rgba(212,175,55,0)_70%)] transition-opacity duration-700 ${
+                    celebrando ? "calvo-aura opacity-100" : "opacity-60"
+                  }`}
+                />
+                <span
+                  aria-hidden
+                  className="absolute inset-[10%] rounded-full border border-oro/60 bg-[linear-gradient(135deg,#2a2010_0%,#0b0b0d_75%)] shadow-[0_0_34px_rgba(212,175,55,0.35)]"
+                />
+                <Image
+                  src={HITO.imagen}
+                  alt=""
+                  width={256}
+                  height={256}
+                  sizes="176px"
+                  className={`relative size-[82%] object-contain drop-shadow-[0_14px_30px_rgba(0,0,0,0.8)] ${
+                    celebrando ? "calvo-saluda" : ""
+                  }`}
+                />
+              </span>
+            )}
 
             <p
               style={entra(260)}
               className="flex entrada items-center gap-3 font-cond text-[12px] font-bold tracking-[0.3em] text-oro uppercase"
             >
               <span aria-hidden className="h-px w-8 bg-oro-profundo" />
-              Hito de la comunidad
+              {HITO.antetitulo}
               <span aria-hidden className="h-px w-8 bg-oro-profundo" />
             </p>
 
@@ -280,24 +318,30 @@ export function Hito() {
               style={entra(380)}
               className="flex entrada flex-col items-center"
             >
-              <p
-                aria-hidden
-                className={`relative texto-oro -skew-x-6 font-display text-[96px] leading-none tabular-nums transition-[filter] duration-700 sm:text-[124px] ${
-                  celebrando
-                    ? "drop-shadow-[0_0_34px_rgba(212,175,55,0.8)]"
-                    : "drop-shadow-[0_0_14px_rgba(212,175,55,0.25)]"
-                }`}
-              >
-                {numero.format(valor)}
-                <span className="text-[0.5em]">+</span>
-              </p>
+              {CON_CIFRA && (
+                <p
+                  aria-hidden
+                  className={`relative texto-oro -skew-x-6 font-display text-[96px] leading-none tabular-nums transition-[filter] duration-700 sm:text-[124px] ${
+                    celebrando
+                      ? "drop-shadow-[0_0_34px_rgba(212,175,55,0.8)]"
+                      : "drop-shadow-[0_0_14px_rgba(212,175,55,0.25)]"
+                  }`}
+                >
+                  {numero.format(valor)}
+                  <span className="text-[0.5em]">+</span>
+                </p>
+              )}
               <h2
                 id="titulo-hito"
-                className="-mt-1 text-[30px] leading-none tracking-wide text-crema sm:text-[38px]"
+                className={`-mt-1 text-[30px] leading-[1.05] tracking-wide text-crema sm:text-[38px] ${
+                  CON_CIFRA ? "" : "texto-oro"
+                }`}
               >
-                <span className="sr-only">
-                  Más de {numero.format(HITO.cifra)}.{" "}
-                </span>
+                {CON_CIFRA && (
+                  <span className="sr-only">
+                    Más de {numero.format(HITO.cifra ?? 0)}.{" "}
+                  </span>
+                )}
                 {HITO.titulo}
               </h2>
             </div>
@@ -316,8 +360,8 @@ export function Hito() {
               style={entra(620)}
               className="flex w-full entrada flex-col items-center gap-3"
             >
-              <a
-                href="#pronosticos"
+              <Link
+                href={HITO.boton.href}
                 onClick={cerrar}
                 className="group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-sm bg-oro px-6 py-4 font-cond text-[14px] font-bold tracking-[0.14em] text-noche uppercase shadow-[0_8px_26px_rgba(212,175,55,0.3)] transition-colors hover:bg-oro-claro sm:w-auto sm:px-10"
               >
@@ -325,13 +369,13 @@ export function Hito() {
                   aria-hidden
                   className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 brillo-boton bg-gradient-to-r from-transparent via-white/60 to-transparent"
                 />
-                <span className="relative">Súmate y vota</span>
+                <span className="relative">{HITO.boton.texto}</span>
                 <IconoFlechaDerecha
                   size={15}
                   strokeWidth={2.4}
                   className="relative transition-transform group-hover:translate-x-0.5"
                 />
-              </a>
+              </Link>
               <button
                 type="button"
                 onClick={cerrar}
