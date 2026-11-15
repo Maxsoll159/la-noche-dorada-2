@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { IconoFlechaDerecha } from "@/assets/icons";
+import {
+  IconoCandado,
+  IconoFlechaDerecha,
+  LogoDiscord,
+  LogoGoogle,
+} from "@/assets/icons";
 import {
   COMBATES,
   PRONOSTICOS_ACTIVOS,
@@ -38,6 +43,7 @@ export function ApoyoPeleador({
     error,
     votar,
     elegirMetodo,
+    entrar,
   } = useVotacion(activo);
   const conteo = conteos[combate.n];
   const ladoRival: Lado = lado === "a" ? "b" : "a";
@@ -85,6 +91,8 @@ export function ApoyoPeleador({
   );
 
   const pctPropio = pctDe(lado);
+  // Sin sesión y con la votación abierta: se recuerda que hay que entrar.
+  const pideAcceso = puedeVotar && !cargando && !usuario;
 
   return (
     <article className="mx-auto w-full max-w-[780px] overflow-hidden rounded-sm border border-oro-profundo bg-oro-tinte">
@@ -112,6 +120,37 @@ export function ApoyoPeleador({
                     : `${totalVotos} ${totalVotos === 1 ? "voto" : "votos"}`}
         </p>
       </header>
+
+      {pideAcceso && (
+        <div className="flex items-center justify-between gap-3 border-b border-oro-profundo/50 bg-[linear-gradient(90deg,#1f180a_0%,#120f09_100%)] px-3 py-2 sm:px-5">
+          <p className="flex min-w-0 items-center gap-2 font-cond text-[12px] font-bold tracking-[0.12em] text-oro-claro uppercase sm:text-[13px]">
+            <IconoCandado
+              size={14}
+              strokeWidth={2.4}
+              className="shrink-0 text-oro"
+            />
+            <span className="truncate">Inicia sesión para votar</span>
+          </p>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => entrar("google")}
+              className="flex cursor-pointer items-center gap-1.5 rounded-sm bg-crema px-2.5 py-1.5 font-cond text-[11px] font-bold tracking-[0.1em] text-noche uppercase transition-colors hover:bg-white"
+            >
+              <LogoGoogle className="size-3.5 shrink-0" />
+              Google
+            </button>
+            <button
+              type="button"
+              onClick={() => entrar("discord")}
+              className="flex cursor-pointer items-center gap-1.5 rounded-sm bg-[#5865F2] px-2.5 py-1.5 font-cond text-[11px] font-bold tracking-[0.1em] text-white uppercase transition-colors hover:bg-[#4752C4]"
+            >
+              <LogoDiscord className="size-3.5 shrink-0" />
+              Discord
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="relative grid grid-cols-2 gap-1.5 p-1.5 sm:gap-2 sm:p-2">
         {loseta(peleador, lado, "a")}
@@ -223,11 +262,6 @@ export function ApoyoPeleador({
           ) : (
             <>
               <span>Toca un lado para votar</span>
-              {!usuario && (
-                <span className="text-oro-medio">
-                  Te pediremos entrar con Google
-                </span>
-              )}
             </>
           )}
         </span>
