@@ -43,6 +43,24 @@ export const HITO = {
   boton: { texto: "Ir a la comunidad", href: "/comunidad" },
 } as const;
 
+// Franja de anuncio fija sobre el header, en todas las páginas. `activo` en
+// false la quita. `dia` (en hora de Lima) alimenta el "Faltan 3 días /
+// Mañana / Hoy"; pasado ese día la franja se esconde sola. Los `mensajes`
+// rotan en escritorio.
+export const ANUNCIO = {
+  activo: true,
+  dia: "2026-11-18",
+  fecha: "Miércoles 18 de noviembre",
+  titulo: "La Charla Dorada",
+  mensajes: [
+    "No te la pierdas",
+    "En vivo y en directo por Kick",
+    "Sigue el canal y activa las notificaciones",
+  ],
+  url: EVENTO.streamUrl,
+  canal: EVENTO.streamCanal,
+} as const;
+
 export const PREVENTAS = {
   actual: {
     nombre: "Preventa 2",

@@ -6,6 +6,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { IconoExterno } from "@/assets/icons";
 import { EVENTO, NAV } from "@/lib/evento";
+import {
+  ALTO_FRANJA,
+  FranjaAnuncio,
+  useAnuncioVisible,
+} from "./franja-anuncio";
 
 function Etiqueta({
   children,
@@ -31,6 +36,7 @@ export function SiteHeader() {
   const barra = useRef<HTMLSpanElement>(null);
   const enInicio = usePathname() === "/";
   const [activa, setActiva] = useState<string | null>(null);
+  const anuncio = useAnuncioVisible();
 
   useEffect(() => {
     if (!enInicio) return;
@@ -96,6 +102,9 @@ export function SiteHeader() {
 
   return (
     <>
+      {/* La franja va dentro del header fijo; este hueco empuja la página
+          para que la franja no tape el comienzo del contenido. */}
+      {anuncio.visible && <div aria-hidden className={ALTO_FRANJA} />}
       <div
         aria-hidden
         onClick={() => setAbierto(false)}
@@ -110,6 +119,8 @@ export function SiteHeader() {
             : "border-transparent bg-transparent"
         }`}
       >
+        {anuncio.visible && <FranjaAnuncio dias={anuncio.dias} />}
+
         <div
           aria-hidden
           className={`pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b from-noche/80 to-transparent transition-opacity duration-300 ${
