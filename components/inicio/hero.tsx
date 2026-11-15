@@ -169,7 +169,7 @@ export function Hero() {
             />
             {PREVENTAS.actual.nombre} abierta
             <span className="text-tenue">
-              · hasta el {PREVENTAS.actual.hasta}
+              · {PREVENTAS.actual.vigencia}
             </span>
           </p>
         </div>

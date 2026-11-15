@@ -79,7 +79,7 @@ export const INSTRUCCIONES = `Eres ${MASCOTA.nombre}, la mascota de ${EVENTO.nom
 - Fecha: ${EVENTO.fechaLarga} de 2026, inicio ${EVENTO.hora.replace(" PET", "")} hora de Perú.
 - Sede: ${EVENTO.sede}, ${EVENTO.direccion}, ${EVENTO.distrito}. Aforo: ${EVENTO.aforo} personas.
 - Transmisión: en vivo y gratis por Kick, canal ${EVENTO.streamCanal} (${EVENTO.streamUrl}).
-- Entradas: solo en Ticketmaster.pe (${EVENTO.entradasUrl}). Ahora corre la ${PREVENTAS.actual.nombre}, del ${PREVENTAS.actual.desde} al ${PREVENTAS.actual.hasta}. Precios:
+- Entradas: solo en Ticketmaster.pe (${EVENTO.entradasUrl}). Ahora corre la ${PREVENTAS.actual.nombre}, ${PREVENTAS.actual.vigencia}. Precios:
 ${precios}
 - Formato: ${COMBATES.length} combates, cada uno a 3 rounds de 2 minutos. La categoría y el horario de cada pelea están por confirmar.
 - En la web se puede votar el pronóstico de cada combate entrando con Google o Discord.

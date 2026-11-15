@@ -8,7 +8,7 @@ export function Entradas() {
     <Seccion
       id="entradas"
       fondo="superficie"
-      antetitulo={`${PREVENTAS.actual.nombre} · hasta el ${PREVENTAS.actual.hasta}`}
+      antetitulo={`${PREVENTAS.actual.nombre} · ${PREVENTAS.actual.vigencia}`}
       titulo="Entradas"
       bajada={`La venta es exclusiva en Ticketmaster.pe. Estas son las zonas y precios del ${EVENTO.sede}.`}
     >
@@ -88,8 +88,8 @@ export function Entradas() {
           <div className="flex flex-col items-center gap-3.5 border-t border-linea bg-oro-tinte px-5 py-6 text-center sm:px-7">
             <ul className="flex flex-col gap-1 font-cond text-[12px] leading-snug font-semibold tracking-[0.14em] text-tenue uppercase">
               <li>
-                <span className="text-oro">{PREVENTAS.actual.nombre}</span> ·
-                del {PREVENTAS.actual.desde} al {PREVENTAS.actual.hasta}
+                <span className="text-oro">{PREVENTAS.actual.nombre}</span> ·{" "}
+                {PREVENTAS.actual.vigencia}
               </li>
               <li className="text-[11px] text-tenue">
                 Preventa exclusiva y {PREVENTAS.anterior.nombre} agotadas

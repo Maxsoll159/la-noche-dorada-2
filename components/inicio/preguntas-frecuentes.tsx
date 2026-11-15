@@ -96,8 +96,8 @@ const PREGUNTAS: readonly ItemAcordeon[] = [
         <a href={EVENTO.entradasUrl} target="_blank" rel="noreferrer">
           Ticketmaster.pe
         </a>
-        . Hoy corre la <strong>{PREVENTAS.actual.nombre}</strong> hasta el{" "}
-        {PREVENTAS.actual.hasta}, con precios desde{" "}
+        . Hoy corre la <strong>{PREVENTAS.actual.nombre}</strong>,{" "}
+        {PREVENTAS.actual.vigencia}, con precios desde{" "}
         <strong>{precioMinimo}</strong>. Mira todas las zonas en{" "}
         <a href="#entradas">Entradas</a>.
       </p>

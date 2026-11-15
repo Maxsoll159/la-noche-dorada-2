@@ -61,11 +61,12 @@ export const ANUNCIO = {
   canal: EVENTO.streamCanal,
 } as const;
 
+// `vigencia` se lee tras el nombre ("Preventa 3 · desde el 7 de noviembre"),
+// así sirve tanto para una fase con cierre como para una sin fecha de fin.
 export const PREVENTAS = {
   actual: {
-    nombre: "Preventa 2",
-    desde: "1 de octubre",
-    hasta: "3 de noviembre",
+    nombre: "Preventa 3",
+    vigencia: "desde el 7 de noviembre",
   },
   anterior: { nombre: "Preventa 1" },
 } as const;
