@@ -24,3 +24,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Da acceso a los bindings de Cloudflare (KV, Images…) durante `next dev`.
+import("@opennextjs/cloudflare").then((m) => m.initOpenNextCloudflareForDev());

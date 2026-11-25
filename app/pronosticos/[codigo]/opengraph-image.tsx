@@ -1,8 +1,11 @@
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import sharp from "sharp";
 import { COMBATES, EVENTO, type Peleador } from "@/lib/evento";
+import {
+  ANTON_BASE64,
+  BARLOW_COND_BASE64,
+  CARAS,
+  LOGO,
+} from "@/lib/og/recursos.generado";
 import { SITIO } from "@/lib/sitio";
 import {
   METODO,
@@ -21,44 +24,20 @@ export function generateStaticParams() {
 
 export const revalidate = 604800;
 
-const anton = await readFile(join(process.cwd(), "assets/Anton-Regular.ttf"));
-const barlowCond = await readFile(
-  join(process.cwd(), "assets/BarlowCondensed-SemiBold.ttf"),
-);
+// Logo, caras y fuentes vienen precalculados en `lib/og/recursos.generado.ts`
+// (npm run og:recursos): en Cloudflare Workers no hay `sharp` ni sistema de
+// archivos en tiempo de ejecución.
+const desdeBase64 = (b64: string) =>
+  Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
 
-const ruta = (publico: string) => join(process.cwd(), "public", publico);
-
-const logo = `data:image/png;base64,${(
-  await sharp(ruta("/marca/logo-noche-dorada.webp"))
-    .resize({ height: 180 })
-    .png({ compressionLevel: 9 })
-    .toBuffer()
-).toString("base64")}`;
+const anton = desdeBase64(ANTON_BASE64);
+const barlowCond = desdeBase64(BARLOW_COND_BASE64);
+const logo = LOGO;
 
 const ANCHO_CARA = 51;
 const ALTO_CARA = 68;
 
-const cacheCaras = new Map<string, string | null>();
-
-async function caraDe(p: Peleador): Promise<string | null> {
-  const guardada = cacheCaras.get(p.slug);
-  if (guardada !== undefined) return guardada;
-
-  let uri: string | null = null;
-  try {
-    const jpeg = await sharp(ruta(p.foto))
-      .resize(ANCHO_CARA * 2, ALTO_CARA * 2, { fit: "cover", position: "top" })
-      .jpeg({ quality: 84 })
-      .toBuffer();
-
-    uri = `data:image/jpeg;base64,${jpeg.toString("base64")}`;
-  } catch {
-    uri = null;
-  }
-
-  cacheCaras.set(p.slug, uri);
-  return uri;
-}
+const caraDe = (p: Peleador): string | null => CARAS[p.slug] ?? null;
 
 const ORO = "#d4af37";
 const ORO_CLARO = "#f7e3a1";
@@ -121,13 +100,7 @@ export default async function Image({
   const hechos = elecciones.filter((e) => e.elegido).length;
 
   const caras = new Map<string, string | null>(
-    await Promise.all(
-      elecciones.map(async (e) =>
-        e.elegido
-          ? ([e.combate.n, await caraDe(e.elegido)] as const)
-          : ([e.combate.n, null] as const),
-      ),
-    ),
+    elecciones.map((e) => [e.combate.n, e.elegido ? caraDe(e.elegido) : null]),
   );
 
   const filas = [0, 1, 2, 3].map((i) => elecciones.slice(i * 2, i * 2 + 2));

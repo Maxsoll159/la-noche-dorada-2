@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "la-noche-dorada",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-25",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [
+    {
+      // Autorreferencia que usa OpenNext para la caché; debe coincidir con "name".
+      // https://opennext.js.org/cloudflare/caching
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "la-noche-dorada",
+    },
+  ],
+  "kv_namespaces": [
+    {
+      // Caché ISR (pronosticos/[codigo] revalida cada 7 días). KV en vez de R2
+      // porque entra en el plan gratis sin registrar tarjeta.
+      // Crear con: npx wrangler kv namespace create NEXT_INC_CACHE_KV
+      // y pegar aquí el id que devuelve.
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "a79c7edd0ac54d5e8f2319e5ad50b188",
+    },
+  ],
+  "images": {
+    // Optimización de next/image con Cloudflare Images (5000 transformaciones
+    // únicas al mes gratis). https://opennext.js.org/cloudflare/howtos/image
+    "binding": "IMAGES",
+  },
+  "observability": {
+    "enabled": true,
+  },
+}

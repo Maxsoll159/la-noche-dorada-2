@@ -3,3 +3,4 @@ node_modules
 package-lock.json
 lib/supabase/tipos.ts
 *.md
+lib/og/recursos.generado.ts

@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Barlow, Barlow_Condensed } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NOMBRES_ALTERNOS, SITIO } from "@/lib/sitio";
 import { SCRIPT_CARGA } from "@/lib/carga";
 import { PantallaCarga } from "@/components/layout/pantalla-carga";
@@ -28,6 +26,16 @@ const barlowCondensed = Barlow_Condensed({
 
 const DESCRIPCION =
   "Boxeo entre creadores de contenido: 8 combates el sábado 28 de noviembre de 2026 en el Coliseo Eduardo Dibós, Lima. Cartelera, pronósticos y entradas.";
+
+// La imagen OG y los íconos viven en `public/` y no como archivos especiales de
+// `app/`: Next incrusta esos en el código del servidor (unos 500 KiB
+// comprimidos) y el Worker gratis de Cloudflare tiene un tope de 3 MiB.
+const IMAGEN_OG = {
+  url: "/opengraph-image.jpg",
+  width: 1200,
+  height: 630,
+  type: "image/jpeg",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITIO),
@@ -70,11 +78,20 @@ export const metadata: Metadata = {
     siteName: "La Noche Dorada II",
     title: "La Noche Dorada II · Boxeo entre creadores · Lima, 28 de noviembre",
     description: DESCRIPCION,
+    images: [IMAGEN_OG],
   },
   twitter: {
     card: "summary_large_image",
     title: "La Noche Dorada II · Boxeo entre creadores · Lima, 28 de noviembre",
     description: DESCRIPCION,
+    images: [IMAGEN_OG],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "64x64", type: "image/x-icon" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -95,8 +112,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PantallaCarga />
         {children}
         <ChatMascota />
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

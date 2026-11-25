@@ -114,22 +114,30 @@ export function votosDeFilas(
   return { votos, metodos };
 }
 
-// Hosts desde los que sirve la web: el dominio y los deploys de Vercel.
+// Hosts desde los que sirve la web: el dominio, los deploys de Vercel (mientras
+// dure la migración) y el Worker de Cloudflare, incluidas sus URLs de versión
+// (`<version>-la-noche-dorada.<cuenta>.workers.dev`).
 const VERCEL_PREVIEW = /^la-noche-dorada-2(-[a-z0-9-]+)?\.vercel\.app$/;
+const WORKER_CLOUDFLARE =
+  /^([a-z0-9-]+-)?la-noche-dorada\.[a-z0-9-]+\.workers\.dev$/;
 
 export function esHostPropio(host: string) {
   return (
-    host === DOMINIO || host === `www.${DOMINIO}` || VERCEL_PREVIEW.test(host)
+    host === DOMINIO ||
+    host === `www.${DOMINIO}` ||
+    VERCEL_PREVIEW.test(host) ||
+    WORKER_CLOUDFLARE.test(host)
   );
 }
 
-// Detrás del proxy de Vercel el origen de la petición es interno: la URL
-// pública viene en `x-forwarded-host`. Solo se confía en ella si es uno de
-// nuestros hosts; si no, se vuelve al dominio fijo y nunca se redirige a un
-// host que alguien haya metido en la cabecera.
+// URL pública desde la que llegó la petición. Detrás del proxy de Vercel viene
+// en `x-forwarded-host`; en Cloudflare Workers, `request.url` ya es la pública.
+// Solo se usa si es uno de nuestros hosts; si no, se vuelve al dominio fijo y
+// nunca se redirige a un host que alguien haya metido en una cabecera.
 export function basePublica(request: Request) {
-  const { origin } = new URL(request.url);
+  const { origin, host } = new URL(request.url);
   if (process.env.NODE_ENV === "development") return origin;
   const reenviado = request.headers.get("x-forwarded-host");
-  return reenviado && esHostPropio(reenviado) ? `https://${reenviado}` : SITIO;
+  if (reenviado && esHostPropio(reenviado)) return `https://${reenviado}`;
+  return esHostPropio(host) ? `https://${host}` : SITIO;
 }
