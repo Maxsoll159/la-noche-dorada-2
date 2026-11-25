@@ -95,7 +95,10 @@ export async function POST(request: Request) {
     return respuesta("El Dorado está calentando, vuelve en un rato. 🥊", 503);
   }
 
+  // Cloudflare pone la IP real en `cf-connecting-ip`; `x-forwarded-for` queda
+  // de respaldo. Sin IP, todos compartirían el mismo contador del límite.
   const ip =
+    request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "desconocida";
   if (excedeLimite(ip)) {
