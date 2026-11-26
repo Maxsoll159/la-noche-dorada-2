@@ -49,11 +49,11 @@ export const HITO = {
 // rotan en escritorio.
 export const ANUNCIO = {
   activo: true,
-  dia: "2026-11-18",
-  fecha: "Miércoles 18 de noviembre",
-  titulo: "La Charla Dorada",
+  dia: "2026-11-27",
+  fecha: "Viernes 27 de noviembre",
+  titulo: "Pesaje oficial",
   mensajes: [
-    "No te la pierdas",
+    "No te lo pierdas",
     "En vivo y en directo por Kick",
     "Sigue el canal y activa las notificaciones",
   ],
