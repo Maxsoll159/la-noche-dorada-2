@@ -29,18 +29,20 @@ export const PRONOSTICOS_ACTIVOS = true;
 //
 // Dos modos: con `cifra` (un número) el modal cuenta hasta ella, como el hito
 // de "ya somos más de mil"; con `imagen` muestra esa foto (el Calvo) para
-// anunciar una novedad. `boton` es a dónde lleva el botón principal.
+// anunciar una novedad. `fotoRedonda` recorta la imagen en círculo (para
+// fotos; el Calvo va sin recortar). `boton` es a dónde lleva el botón.
 export const HITO = {
   activo: true,
-  clave: "comunidad-1",
+  clave: "artistas-1",
   cifra: null as number | null,
-  imagen: "/bot/calvo.webp" as string | null,
-  antetitulo: "Nueva sección · Comunidad",
-  titulo: "¡Ahora puedes compartir e interactuar!",
-  texto: "Publica tus pronósticos",
+  imagen: "/artistas/bareto.webp" as string | null,
+  fotoRedonda: true,
+  antetitulo: "Nueva sección · Artistas",
+  titulo: "¡Ya se están anunciando los artistas!",
+  texto: "Bareto ya está confirmado",
   detalle:
-    "Escribe tu descripción, mira las quinielas de los demás, dales me gusta o no me gusta y comenta quién se equivoca. Una publicación por persona: la actualizas cuando quieras.",
-  boton: { texto: "Ir a la comunidad", href: "/comunidad" },
+    "La música de la noche también se pelea. Escucha sus canciones y descubre quiénes son los artistas secretos que vamos revelando.",
+  boton: { texto: "Ver los artistas", href: "/artistas" },
 } as const;
 
 // Franja de anuncio fija sobre el header, en todas las páginas. `activo` en

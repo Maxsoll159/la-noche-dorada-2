@@ -298,9 +298,11 @@ export function Hito() {
                   width={256}
                   height={256}
                   sizes="176px"
-                  className={`relative size-[82%] object-contain drop-shadow-[0_14px_30px_rgba(0,0,0,0.8)] ${
-                    celebrando ? "calvo-saluda" : ""
-                  }`}
+                  className={`relative size-[82%] drop-shadow-[0_14px_30px_rgba(0,0,0,0.8)] ${
+                    HITO.fotoRedonda
+                      ? "rounded-full border-2 border-oro object-cover"
+                      : "object-contain"
+                  } ${celebrando ? "calvo-saluda" : ""}`}
                 />
               </span>
             )}
