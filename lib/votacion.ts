@@ -31,7 +31,9 @@ const PENDIENTE = "nd2:voto-pendiente";
 // se piden al BFF cada tanto mientras la pestaña está visible. El estado es
 // uno para toda la página, así el ranking y las tarjetas se mueven a la vez y
 // un voto propio se refleja en todos sin esperar al siguiente sondeo.
-const INTERVALO_MS = 15_000;
+// Cada 60 s y no 15: /api/combates llegó a pedirse más que la portada y
+// cada sondeo es una petición al Worker.
+const INTERVALO_MS = 60_000;
 
 type EstadoConteos = {
   conteos: Record<string, Conteo>;
