@@ -2,3 +2,7 @@
 # https://opennext.js.org/cloudflare/caching#static-assets-caching
 /_next/static/*
   Cache-Control: public,max-age=31536000,immutable
+
+# Llevan el hash del original en el nombre: si la imagen cambia, cambia la URL.
+/_img/*
+  Cache-Control: public,max-age=31536000,immutable

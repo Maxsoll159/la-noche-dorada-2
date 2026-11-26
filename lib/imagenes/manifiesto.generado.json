@@ -1,0 +1,1066 @@
+{
+  "/apple-icon.png": {
+    "b": "/_img/apple-icon.65ce8194",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      180
+    ]
+  },
+  "/artistas/bareto.webp": {
+    "b": "/_img/artistas/bareto.2623f223",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1000
+    ]
+  },
+  "/banderas/ar.webp": {
+    "b": "/_img/banderas/ar.fa8667dc",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/bo.webp": {
+    "b": "/_img/banderas/bo.15dc6f92",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/cl.webp": {
+    "b": "/_img/banderas/cl.d2cdae42",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/co.webp": {
+    "b": "/_img/banderas/co.1dc73607",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/cr.webp": {
+    "b": "/_img/banderas/cr.c70beeb7",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/do.webp": {
+    "b": "/_img/banderas/do.bac611a0",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/ec.webp": {
+    "b": "/_img/banderas/ec.12dad7fe",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/es.webp": {
+    "b": "/_img/banderas/es.ba2c6300",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/gt.webp": {
+    "b": "/_img/banderas/gt.cd1d5f1c",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/hn.webp": {
+    "b": "/_img/banderas/hn.2e483c14",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/mx.webp": {
+    "b": "/_img/banderas/mx.6f892d16",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/ni.webp": {
+    "b": "/_img/banderas/ni.29cb5273",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/pa.webp": {
+    "b": "/_img/banderas/pa.cdfdcaff",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/pe.webp": {
+    "b": "/_img/banderas/pe.8147b6b5",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/pr.webp": {
+    "b": "/_img/banderas/pr.6c1b5aa8",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/py.webp": {
+    "b": "/_img/banderas/py.254f01a0",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/sv.webp": {
+    "b": "/_img/banderas/sv.052af9c1",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/us.webp": {
+    "b": "/_img/banderas/us.ba2ddbbc",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/uy.webp": {
+    "b": "/_img/banderas/uy.b7d48378",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/banderas/ve.webp": {
+    "b": "/_img/banderas/ve.f4d55ac6",
+    "w": [
+      32,
+      48
+    ]
+  },
+  "/bot/calvo.webp": {
+    "b": "/_img/bot/calvo.764f12b1",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256
+    ]
+  },
+  "/bot/Imagen Bot.png": {
+    "b": "/_img/bot/imagen-bot.65737f2e",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1254
+    ]
+  },
+  "/cartel-oficial-v2.webp": {
+    "b": "/_img/cartel-oficial-v2.6451c10b",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1088
+    ]
+  },
+  "/combates/bebote-kingteka.webp": {
+    "b": "/_img/combates/bebote-kingteka.572f86d5",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/emetsuki-daniela.webp": {
+    "b": "/_img/combates/emetsuki-daniela.80c315df",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/jeque-jota.webp": {
+    "b": "/_img/combates/jeque-jota.8db1aa4d",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/jh-canita.webp": {
+    "b": "/_img/combates/jh-canita.3cb0a707",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/pepita-pauchikita.webp": {
+    "b": "/_img/combates/pepita-pauchikita.2eaa4918",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/pulsera-ismael-sanchez.webp": {
+    "b": "/_img/combates/pulsera-ismael-sanchez.4ba27fb6",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/sacha-neutro.webp": {
+    "b": "/_img/combates/sacha-neutro.1f1d06bf",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/combates/shelao-piero.webp": {
+    "b": "/_img/combates/shelao-piero.7a698962",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080
+    ]
+  },
+  "/icon.png": {
+    "b": "/_img/icon.dd2e21ce",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      512
+    ]
+  },
+  "/loading/fondo.webp": {
+    "b": "/_img/loading/fondo.e6163fd3",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1920
+    ]
+  },
+  "/loading/roca1.webp": {
+    "b": "/_img/loading/roca1.000364de",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      669
+    ]
+  },
+  "/loading/roca2.webp": {
+    "b": "/_img/loading/roca2.7b57bb5e",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      560
+    ]
+  },
+  "/marca/kick.webp": {
+    "b": "/_img/marca/kick.17fea736",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      568
+    ]
+  },
+  "/marca/logo-noche-dorada.webp": {
+    "b": "/_img/marca/logo-noche-dorada.a8a3bfa1",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      455
+    ]
+  },
+  "/marca/pragmatic-play.webp": {
+    "b": "/_img/marca/pragmatic-play.b91c197a",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1600
+    ]
+  },
+  "/marca/stake-logo.webp": {
+    "b": "/_img/marca/stake-logo.8175b7ca",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      260
+    ]
+  },
+  "/opengraph-image.jpg": {
+    "b": "/_img/opengraph-image.810a9e90",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1200
+    ]
+  },
+  "/peleadores/bebote.webp": {
+    "b": "/_img/peleadores/bebote.e6ecdc25",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/canita-medio.webp": {
+    "b": "/_img/peleadores/canita-medio.d8d565ed",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      820
+    ]
+  },
+  "/peleadores/canita.webp": {
+    "b": "/_img/peleadores/canita.8c6bfff0",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/cuerpo-bebote.webp": {
+    "b": "/_img/peleadores/cuerpo-bebote.8928bc70",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1274
+    ]
+  },
+  "/peleadores/cuerpo-canita.webp": {
+    "b": "/_img/peleadores/cuerpo-canita.05bb8104",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1289
+    ]
+  },
+  "/peleadores/cuerpo-daniela.webp": {
+    "b": "/_img/peleadores/cuerpo-daniela.cfc4c5d5",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1086
+    ]
+  },
+  "/peleadores/cuerpo-emetsuki.webp": {
+    "b": "/_img/peleadores/cuerpo-emetsuki.358fee83",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      904
+    ]
+  },
+  "/peleadores/cuerpo-ismael-sanchez.webp": {
+    "b": "/_img/peleadores/cuerpo-ismael-sanchez.241b1b06",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      720
+    ]
+  },
+  "/peleadores/cuerpo-jeque.webp": {
+    "b": "/_img/peleadores/cuerpo-jeque.ae9d90a2",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1087
+    ]
+  },
+  "/peleadores/cuerpo-jh.webp": {
+    "b": "/_img/peleadores/cuerpo-jh.e70545e4",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      768
+    ]
+  },
+  "/peleadores/cuerpo-jota.webp": {
+    "b": "/_img/peleadores/cuerpo-jota.5fb14356",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1249
+    ]
+  },
+  "/peleadores/cuerpo-kingteka.webp": {
+    "b": "/_img/peleadores/cuerpo-kingteka.0a20d6b4",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      936
+    ]
+  },
+  "/peleadores/cuerpo-may.webp": {
+    "b": "/_img/peleadores/cuerpo-may.02507abe",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      648
+    ]
+  },
+  "/peleadores/cuerpo-neutro.webp": {
+    "b": "/_img/peleadores/cuerpo-neutro.15a99b31",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      720
+    ]
+  },
+  "/peleadores/cuerpo-pauchikita.webp": {
+    "b": "/_img/peleadores/cuerpo-pauchikita.108c7bb1",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      941
+    ]
+  },
+  "/peleadores/cuerpo-pepita.webp": {
+    "b": "/_img/peleadores/cuerpo-pepita.8bc5c4b8",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      800
+    ]
+  },
+  "/peleadores/cuerpo-piero.webp": {
+    "b": "/_img/peleadores/cuerpo-piero.3f1a8e2b",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1146
+    ]
+  },
+  "/peleadores/cuerpo-pulsera.webp": {
+    "b": "/_img/peleadores/cuerpo-pulsera.702499a4",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1086
+    ]
+  },
+  "/peleadores/cuerpo-sacha.webp": {
+    "b": "/_img/peleadores/cuerpo-sacha.cca7c902",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1298
+    ]
+  },
+  "/peleadores/cuerpo-shelao.webp": {
+    "b": "/_img/peleadores/cuerpo-shelao.76288753",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1500
+    ]
+  },
+  "/peleadores/cuerpo-zully.webp": {
+    "b": "/_img/peleadores/cuerpo-zully.a5e9c445",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      677
+    ]
+  },
+  "/peleadores/daniela.webp": {
+    "b": "/_img/peleadores/daniela.3a66ff68",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/emetsuki.webp": {
+    "b": "/_img/peleadores/emetsuki.c38271d5",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/ismael-sanchez.webp": {
+    "b": "/_img/peleadores/ismael-sanchez.7b4acaed",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/jeque.webp": {
+    "b": "/_img/peleadores/jeque.be02dcbd",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/jh-cuerpo.webp": {
+    "b": "/_img/peleadores/jh-cuerpo.6c1e3522",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      300
+    ]
+  },
+  "/peleadores/jh-medio.webp": {
+    "b": "/_img/peleadores/jh-medio.c9002ba1",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      820
+    ]
+  },
+  "/peleadores/jh.webp": {
+    "b": "/_img/peleadores/jh.cd129c94",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/jota.webp": {
+    "b": "/_img/peleadores/jota.18a438c3",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/kingteka.webp": {
+    "b": "/_img/peleadores/kingteka.a4b4220b",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/may.webp": {
+    "b": "/_img/peleadores/may.01b1196d",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/neutro.webp": {
+    "b": "/_img/peleadores/neutro.a5dccd60",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/pauchikita.webp": {
+    "b": "/_img/peleadores/pauchikita.4e86204f",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/pepita.webp": {
+    "b": "/_img/peleadores/pepita.0b04ca51",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/piero.webp": {
+    "b": "/_img/peleadores/piero.defe90a8",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/pulsera.webp": {
+    "b": "/_img/peleadores/pulsera.b97b2932",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/sacha.webp": {
+    "b": "/_img/peleadores/sacha.35db5dd9",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/shelao.webp": {
+    "b": "/_img/peleadores/shelao.0e5a786c",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/peleadores/zully.webp": {
+    "b": "/_img/peleadores/zully.6d484ad7",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      250
+    ]
+  },
+  "/plano-dibos.webp": {
+    "b": "/_img/plano-dibos.a01311be",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      768
+    ]
+  },
+  "/sponsor/alavista.webp": {
+    "b": "/_img/sponsor/alavista.cccb7261",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1401
+    ]
+  },
+  "/sponsor/cineplanet.webp": {
+    "b": "/_img/sponsor/cineplanet.2ecc3b00",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1646
+    ]
+  },
+  "/sponsor/claro.webp": {
+    "b": "/_img/sponsor/claro.dc16e10c",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1024
+    ]
+  },
+  "/sponsor/maniak.webp": {
+    "b": "/_img/sponsor/maniak.92816e90",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      496
+    ]
+  },
+  "/sponsor/monster.webp": {
+    "b": "/_img/sponsor/monster.5f426d76",
+    "w": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      384,
+      640,
+      828,
+      1080,
+      1280,
+      1713
+    ]
+  }
+}

@@ -35,6 +35,9 @@ yarn-error.log*
 # La plantilla sí se versiona: no lleva valores, solo los nombres de variable.
 !.env.example
 
+# imágenes preparadas por scripts/optimizar-imagenes.mjs (se generan en el build)
+/public/_img/
+
 # vercel
 .vercel
 
