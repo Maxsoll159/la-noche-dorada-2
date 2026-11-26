@@ -76,7 +76,7 @@ export const REDES_ACTUALIZADAS = "septiembre de 2026";
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
-  { href: "/#favoritos", label: "Favoritos" },
+  { href: "/artistas", label: "Artistas", tag: "Nuevo" },
   { href: "/comunidad", label: "Comunidad" },
   { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },

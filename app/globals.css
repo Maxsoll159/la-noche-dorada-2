@@ -911,6 +911,76 @@ html[data-cargando] .entrada-flotante {
   }
 }
 
+/* Página /artistas: focos de escenario, ecualizador, zoom lento y cinta. */
+@keyframes foco {
+  0%,
+  100% {
+    transform: rotate(var(--desde, -14deg));
+  }
+  50% {
+    transform: rotate(var(--hasta, 14deg));
+  }
+}
+
+@utility foco {
+  transform-origin: 50% 0;
+  animation: foco var(--dur, 9s) ease-in-out infinite;
+}
+
+@keyframes ecualizador {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@utility ecualizador {
+  transform-origin: 50% 100%;
+  animation: ecualizador var(--dur, 0.9s) ease-in-out infinite;
+}
+
+@keyframes acercar {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.09);
+  }
+}
+
+@utility acercar {
+  animation: acercar 14s ease-in-out infinite alternate;
+}
+
+@keyframes cinta {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@utility cinta {
+  animation: cinta 28s linear infinite;
+}
+
+@keyframes incognito {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.35));
+  }
+  50% {
+    transform: translateY(-6px) scale(1.04);
+    filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.75));
+  }
+}
+
+@utility incognito {
+  animation: incognito 3.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

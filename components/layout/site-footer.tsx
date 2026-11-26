@@ -7,7 +7,7 @@ import { FileteOro } from "@/components/ui/filete-oro";
 const ENLACES = [
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
-  { href: "/#favoritos", label: "Favoritos" },
+  { href: "/artistas", label: "Artistas" },
   { href: "/comunidad", label: "Comunidad" },
   { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },

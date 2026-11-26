@@ -1,3 +1,4 @@
+export * from "./artistas";
 export * from "./banderas";
 export * from "./combates";
 export * from "./entradas";

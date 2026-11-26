@@ -22,7 +22,7 @@ function Etiqueta({
   return (
     <span
       className={`rounded-full border border-oro-profundo bg-oro-tinte px-2 py-[3px] font-cond text-[11px] leading-none font-bold tracking-[0.12em] whitespace-nowrap text-oro uppercase ${
-        esquina ? "absolute -top-5 -right-10" : ""
+        esquina ? "absolute -top-3.5 -right-7 px-1.5 py-[2px] text-[10px]" : ""
       }`}
     >
       {children}
@@ -159,6 +159,7 @@ export function SiteHeader() {
                   }`}
                 >
                   {item.label}
+                  {item.tag && <Etiqueta esquina>{item.tag}</Etiqueta>}
                   <span
                     aria-hidden
                     className={`absolute inset-x-0 -bottom-0.5 h-[2px] origin-center rounded-full bg-oro transition-transform duration-300 ${
