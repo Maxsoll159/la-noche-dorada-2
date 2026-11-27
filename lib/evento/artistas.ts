@@ -24,7 +24,8 @@ export const ARTISTAS: readonly Artista[] = [
     slug: "hermanos-yaipen",
     foto: "/artistas/hermanos-yaipen.webp",
     genero: "Cumbia peruana",
-    spotify: "7gCVcfGK5Op2AA5KcD7zuq",
+    // Perfil oficial "Hnos Yaipén"; hay otro "Hermanos Yaipen" casi vacío.
+    spotify: "1MD1SEYZh3dbCa2M7YVjPg",
   },
   { nombre: null },
   { nombre: null },
