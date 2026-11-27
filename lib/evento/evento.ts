@@ -33,15 +33,15 @@ export const PRONOSTICOS_ACTIVOS = true;
 // fotos; el Calvo va sin recortar). `boton` es a dónde lleva el botón.
 export const HITO = {
   activo: true,
-  clave: "artistas-1",
+  clave: "artistas-2",
   cifra: null as number | null,
-  imagen: "/artistas/bareto.webp" as string | null,
+  imagen: "/artistas/hermanos-yaipen.webp" as string | null,
   fotoRedonda: true,
-  antetitulo: "Nueva sección · Artistas",
-  titulo: "¡Ya se están anunciando los artistas!",
-  texto: "Bareto ya está confirmado",
+  antetitulo: "Nuevo artista confirmado",
+  titulo: "¡Hermanos Yaipén se suma a la noche!",
+  texto: "Ya son dos: Bareto y Hermanos Yaipén",
   detalle:
-    "La música de la noche también se pelea. Escucha sus canciones y descubre quiénes son los artistas secretos que vamos revelando.",
+    "La cumbia también sube al ring. Escucha sus canciones en la web y atento, que todavía quedan artistas secretos por revelar.",
   boton: { texto: "Ver los artistas", href: "/artistas" },
 } as const;
 
