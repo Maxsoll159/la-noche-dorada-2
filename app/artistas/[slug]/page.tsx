@@ -318,21 +318,42 @@ export default async function Page(props: PageProps<"/artistas/[slug]">) {
                   <li key={a.slug ?? `incognito-${a.i}`}>
                     <Link
                       href={a.slug ? `/artistas/${a.slug}` : "/artistas"}
-                      className="group relative isolate flex aspect-[4/3] flex-col items-center justify-center gap-1 overflow-hidden rounded-sm border border-dashed border-oro-profundo bg-[radial-gradient(circle_at_50%_35%,#3a2c12_0%,#17120a_50%,#0b0b0d_100%)] transition duration-300 hover:-translate-y-1 hover:border-solid hover:border-oro"
+                      className={`group relative isolate flex aspect-[4/3] flex-col items-center justify-center gap-1 overflow-hidden rounded-sm border ${a.nombre ? "border-oro-profundo" : "border-dashed border-oro-profundo"} bg-[radial-gradient(circle_at_50%_35%,#3a2c12_0%,#17120a_50%,#0b0b0d_100%)] transition duration-300 hover:-translate-y-1 hover:border-solid hover:border-oro`}
                     >
-                      <span className="absolute top-2.5 left-3 font-display text-[20px] leading-none text-crema/20">
+                      <span className="absolute top-2.5 left-3 font-display text-[20px] leading-none text-crema/40">
                         {String(a.i + 1).padStart(2, "0")}
                       </span>
-                      <span
-                        aria-hidden
-                        className="texto-oro incognito font-display text-[56px] leading-none"
-                        style={{ animationDelay: `${-a.i * 0.6}s` }}
-                      >
-                        {a.nombre ? "★" : "?"}
-                      </span>
-                      <span className="font-display text-[18px] leading-none tracking-[0.06em] text-crema">
-                        {a.nombre ?? "Incógnito"}
-                      </span>
+                      {a.nombre && a.foto ? (
+                        <>
+                          <Image
+                            src={a.foto}
+                            alt=""
+                            fill
+                            sizes="(min-width: 640px) 320px, 50vw"
+                            className="-z-10 object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <span
+                            aria-hidden
+                            className="absolute inset-0 -z-10 bg-gradient-to-t from-noche via-noche/30 to-transparent"
+                          />
+                          <span className="texto-oro mt-auto mb-3 px-2 text-center font-display text-[22px] leading-none tracking-[0.04em] drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                            {a.nombre}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span
+                            aria-hidden
+                            className="texto-oro incognito font-display text-[56px] leading-none"
+                            style={{ animationDelay: `${-a.i * 0.6}s` }}
+                          >
+                            ?
+                          </span>
+                          <span className="font-display text-[18px] leading-none tracking-[0.06em] text-crema">
+                            Incógnito
+                          </span>
+                        </>
+                      )}
                     </Link>
                   </li>
                 ))}

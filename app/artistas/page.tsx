@@ -74,7 +74,7 @@ function TarjetaArtista({
   return (
     <Link
       href={`/artistas/${artista.slug}`}
-      className="group relative isolate col-span-2 block aspect-square overflow-hidden rounded-sm border border-oro-profundo bg-carbon shadow-[0_0_60px_-12px_rgba(212,175,55,0.45)] transition-shadow duration-300 hover:shadow-[0_0_80px_-8px_rgba(212,175,55,0.7)] lg:row-span-2"
+      className="group relative isolate col-span-6 block aspect-square overflow-hidden rounded-sm border border-oro-profundo bg-carbon shadow-[0_0_60px_-12px_rgba(212,175,55,0.45)] transition-shadow duration-300 hover:shadow-[0_0_80px_-8px_rgba(212,175,55,0.7)] sm:col-span-3"
     >
       {artista.foto && (
         <Image
@@ -82,7 +82,7 @@ function TarjetaArtista({
           alt={artista.nombre}
           fill
           priority
-          sizes="(min-width: 1024px) 640px, 100vw"
+          sizes="(min-width: 1280px) 640px, (min-width: 640px) 50vw, 100vw"
           className="-z-10 acercar object-cover"
         />
       )}
@@ -114,7 +114,7 @@ function TarjetaArtista({
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:p-8">
         <div className="flex items-end gap-4">
-          <h3 className="texto-oro font-display text-[56px] leading-none tracking-[0.03em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.9)] sm:text-[88px]">
+          <h3 className="texto-oro font-display text-[48px] leading-[0.95] tracking-[0.03em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.9)] sm:text-[52px] lg:text-[72px] xl:text-[84px]">
             {artista.nombre}
           </h3>
           <Ecualizador className="mb-2 h-8 sm:mb-3 sm:h-12" />
@@ -154,11 +154,11 @@ function Silueta() {
   );
 }
 
-function TarjetaIncognito({ i }: { i: number }) {
+function TarjetaIncognito({ i, ancha }: { i: number; ancha: boolean }) {
   return (
     <article
       aria-label={`Artista ${numero(i)}, por anunciar`}
-      className="group relative isolate flex aspect-square flex-col items-center justify-center overflow-hidden rounded-sm border border-dashed border-oro-profundo bg-[radial-gradient(circle_at_50%_38%,#3a2c12_0%,#17120a_45%,#0b0b0d_100%)] p-4 text-center transition duration-300 hover:-translate-y-1 hover:border-solid hover:border-oro hover:shadow-[0_0_40px_-8px_rgba(212,175,55,0.55)]"
+      className={`group relative isolate flex ${ancha ? "aspect-[2/1] sm:aspect-square" : "aspect-square"} flex-col items-center justify-center overflow-hidden rounded-sm border border-dashed border-oro-profundo bg-[radial-gradient(circle_at_50%_38%,#3a2c12_0%,#17120a_45%,#0b0b0d_100%)] p-4 text-center transition duration-300 hover:-translate-y-1 hover:border-solid hover:border-oro hover:shadow-[0_0_40px_-8px_rgba(212,175,55,0.55)]`}
     >
       <Silueta />
       <span
@@ -226,6 +226,13 @@ function Cinta() {
   );
 }
 
+const INCOGNITOS = ARTISTAS.flatMap((a, i) => (a.nombre ? [] : [i]));
+
+// En el celular los incógnitos van de a 2: si son impares, el último ocupa
+// la fila entera.
+const sueltoEnCelular = (i: number) =>
+  INCOGNITOS.length % 2 === 1 && i === INCOGNITOS.at(-1);
+
 export default function Page() {
   return (
     <>
@@ -240,7 +247,9 @@ export default function Page() {
         >
           <div className="relative flex w-full flex-col gap-10">
             <Focos />
-            <div className="grid w-full grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+            {/* 6 columnas: confirmados de a 2 por fila, incógnitos de a 3
+                (de a 2 en el celular; si sobra uno, va a lo ancho). */}
+            <div className="grid w-full grid-cols-6 gap-4 sm:gap-5">
               {ARTISTAS.map((a, i) =>
                 a.nombre ? (
                   <TarjetaArtista
@@ -249,8 +258,16 @@ export default function Page() {
                     i={i}
                   />
                 ) : (
-                  <Revelar key={`incognito-${i}`} retardo={i * 90}>
-                    <TarjetaIncognito i={i} />
+                  <Revelar
+                    key={`incognito-${i}`}
+                    retardo={i * 90}
+                    className={
+                      sueltoEnCelular(i)
+                        ? "col-span-6 sm:col-span-2"
+                        : "col-span-3 sm:col-span-2"
+                    }
+                  >
+                    <TarjetaIncognito i={i} ancha={sueltoEnCelular(i)} />
                   </Revelar>
                 ),
               )}
