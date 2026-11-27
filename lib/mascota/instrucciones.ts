@@ -50,7 +50,7 @@ const horarios = horariosPorPais()
 
 const precios = ZONAS.map(
   (z) =>
-    `- ${z.nombre}: ${z.actual ?? `no está a la venta en la ${PREVENTAS.actual.nombre}`}`,
+    `- ${z.nombre}: ${z.actual ? `${z.actual}${z.anterior ? ` (antes ${z.anterior} en la ${PREVENTAS.anterior.nombre})` : ""}` : z.agotado ? "AGOTADO" : `no está a la venta en la ${PREVENTAS.actual.nombre}`}`,
 ).join("\n");
 
 // Solo los confirmados con nombre; los incógnito se cuentan, nunca se nombran.

@@ -67,10 +67,10 @@ export const ANUNCIO = {
 // así sirve tanto para una fase con cierre como para una sin fecha de fin.
 export const PREVENTAS = {
   actual: {
-    nombre: "Preventa 3",
-    vigencia: "desde el 7 de noviembre",
+    nombre: "Black Friday",
+    vigencia: "hasta agotar stock",
   },
-  anterior: { nombre: "Preventa 1" },
+  anterior: { nombre: "Preventa 3" },
 } as const;
 
 export const REDES_ACTUALIZADAS = "septiembre de 2026";

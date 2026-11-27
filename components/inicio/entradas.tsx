@@ -70,6 +70,10 @@ export function Entradas() {
                     <span className="font-display text-[22px] leading-none text-oro tabular-nums sm:text-[25px]">
                       {z.actual}
                     </span>
+                  ) : z.agotado ? (
+                    <span className="font-display text-[18px] leading-none text-lado-a uppercase sm:text-[20px]">
+                      Agotado
+                    </span>
                   ) : (
                     <span className="font-display text-[18px] leading-none text-tenue uppercase sm:text-[20px]">
                       No disponible
@@ -92,7 +96,7 @@ export function Entradas() {
                 {PREVENTAS.actual.vigencia}
               </li>
               <li className="text-[11px] text-tenue">
-                Preventa exclusiva y {PREVENTAS.anterior.nombre} agotadas
+                Preventas anteriores cerradas · Golden agotadas
               </li>
             </ul>
             <a
