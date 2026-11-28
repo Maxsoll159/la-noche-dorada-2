@@ -50,7 +50,7 @@ export const HITO = {
 // Mañana / Hoy"; pasado ese día la franja se esconde sola. Los `mensajes`
 // rotan en escritorio.
 export const ANUNCIO = {
-  activo: true,
+  activo: false,
   dia: "2026-11-27",
   fecha: "Viernes 27 de noviembre",
   titulo: "Pesaje oficial",
@@ -76,7 +76,7 @@ export const PREVENTAS = {
 export const REDES_ACTUALIZADAS = "septiembre de 2026";
 
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
-  { href: "/pesaje", label: "Pesaje", tag: "En vivo" },
+  { href: "/pesaje", label: "Pesaje", tag: "Nuevo" },
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
   { href: "/artistas", label: "Artistas", tag: "Nuevo" },

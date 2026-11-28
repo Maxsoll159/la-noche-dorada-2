@@ -11,7 +11,7 @@
 // El peso oficial reemplaza al de la ficha (`peso` del peleador) y le quita
 // el asterisco de "dato no oficial".
 export const PESAJE = {
-  enVivo: true,
+  enVivo: false,
   dia: "Viernes 27 de noviembre",
   youtube: null as string | null,
 } as const;
@@ -35,4 +35,6 @@ export const PESOS_OFICIALES: Record<
   kingteka: { ahora: 113 },
   shelao: { ahora: 96 },
   piero: { ahora: 91.6 },
+  canita: { ahora: 67 },
+  jh: { ahora: 64.7 },
 };
