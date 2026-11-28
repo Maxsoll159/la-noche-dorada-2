@@ -9,10 +9,12 @@ const CARTELERA = [...COMBATES].sort((x, y) => x.n.localeCompare(y.n));
 const PESADOS = Object.keys(PESOS_OFICIALES).length;
 const TOTAL = CARTELERA.length * 2;
 
-// El último combate que pasó por la balanza (el pesaje va del 01 al 08).
-const ULTIMO = CARTELERA.filter(
-  (c) => PESOS_OFICIALES[c.a.slug] || PESOS_OFICIALES[c.b.slug],
-).at(-1);
+// El último combate que pasó por la balanza: el del último peso agregado en
+// PESOS_OFICIALES (el pesaje no siempre va en orden de cartelera).
+const ULTIMO_SLUG = Object.keys(PESOS_OFICIALES).at(-1);
+const ULTIMO = CARTELERA.find(
+  (c) => c.a.slug === ULTIMO_SLUG || c.b.slug === ULTIMO_SLUG,
+);
 
 // Anuncio en la portada que lleva a /pesaje.
 export function Pesaje() {
