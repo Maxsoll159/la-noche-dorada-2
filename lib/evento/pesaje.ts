@@ -31,4 +31,6 @@ export const PESOS_OFICIALES: Record<
   pulsera: { antes: 68, ahora: 73 },
   // Sin peso previo conocido.
   "ismael-sanchez": { ahora: 73 },
+  bebote: { ahora: 77 },
+  kingteka: { ahora: 113 },
 };
