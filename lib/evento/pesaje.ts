@@ -28,4 +28,7 @@ export const PESOS_OFICIALES: Record<
   neutro: { antes: 81, ahora: 73 },
   emetsuki: { antes: 55, ahora: 55 },
   daniela: { antes: 53, ahora: 55 },
+  pulsera: { antes: 68, ahora: 73 },
+  // Sin peso previo conocido.
+  "ismael-sanchez": { ahora: 73 },
 };
