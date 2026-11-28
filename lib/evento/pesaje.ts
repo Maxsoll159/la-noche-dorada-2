@@ -24,4 +24,6 @@ export const PESOS_OFICIALES: Record<
   pauchikita: { antes: 56, ahora: 52 },
   jeque: { antes: 78, ahora: 77.4 },
   jota: { antes: 81, ahora: 77.9 },
+  sacha: { antes: 85, ahora: 74 },
+  neutro: { antes: 81, ahora: 73 },
 };
