@@ -33,4 +33,6 @@ export const PESOS_OFICIALES: Record<
   "ismael-sanchez": { ahora: 73 },
   bebote: { ahora: 77 },
   kingteka: { ahora: 113 },
+  shelao: { ahora: 96 },
+  piero: { ahora: 91.6 },
 };
