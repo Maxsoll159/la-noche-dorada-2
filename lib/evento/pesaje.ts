@@ -26,4 +26,6 @@ export const PESOS_OFICIALES: Record<
   jota: { antes: 81, ahora: 77.9 },
   sacha: { antes: 85, ahora: 74 },
   neutro: { antes: 81, ahora: 73 },
+  emetsuki: { antes: 55, ahora: 55 },
+  daniela: { antes: 53, ahora: 55 },
 };
