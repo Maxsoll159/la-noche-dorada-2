@@ -27,7 +27,7 @@ const FILAS_FRENTE: {
   {
     etiqueta: "Peso",
     valor: (p) => p.peso ?? null,
-    texto: (n, p) => `${coma(n, 1)} kg${p.aprox ? "*" : ""}`,
+    texto: (n, p) => `${coma(n, 1)} kg${p.aprox && !p.pesoOficial ? "*" : ""}`,
     ventaja: "mayor",
     diferencia: (d) => `+${coma(d, 1)} kg`,
   },

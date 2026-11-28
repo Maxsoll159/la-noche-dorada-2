@@ -2,6 +2,7 @@ import { EVENTO, PELEADORES, edadEn, type Peleador } from "@/lib/evento";
 import { coma } from "@/lib/formato";
 
 const marca = (p: Peleador) => (p.aprox ? "*" : "");
+const marcaPeso = (p: Peleador) => (p.aprox && !p.pesoOficial ? "*" : "");
 
 export const FILAS_TAPE: {
   etiqueta: string;
@@ -18,7 +19,7 @@ export const FILAS_TAPE: {
   },
   {
     etiqueta: "Peso",
-    valor: (p) => (p.peso ? `${coma(p.peso, 1)} kg${marca(p)}` : null),
+    valor: (p) => (p.peso ? `${coma(p.peso, 1)} kg${marcaPeso(p)}` : null),
   },
 ];
 

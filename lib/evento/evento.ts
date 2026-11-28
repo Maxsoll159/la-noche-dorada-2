@@ -55,8 +55,8 @@ export const ANUNCIO = {
   fecha: "Viernes 27 de noviembre",
   titulo: "Pesaje oficial",
   mensajes: [
-    "No te lo pierdas",
-    "En vivo y en directo por Kick",
+    "En vivo ahora",
+    "Los pesos se actualizan en la web",
     "Sigue el canal y activa las notificaciones",
   ],
   url: EVENTO.streamUrl,
@@ -76,13 +76,13 @@ export const PREVENTAS = {
 export const REDES_ACTUALIZADAS = "septiembre de 2026";
 
 export const NAV: readonly { href: string; label: string; tag?: string }[] = [
+  { href: "/#pesaje", label: "Pesaje", tag: "En vivo" },
   { href: "/#cara-a-cara", label: "Cara a cara" },
   { href: "/#pronosticos", label: "Pronósticos" },
   { href: "/artistas", label: "Artistas", tag: "Nuevo" },
   { href: "/comunidad", label: "Comunidad" },
   { href: "/#combates", label: "Combates" },
   { href: "/#entradas", label: "Entradas" },
-  { href: "/#sede", label: "Sede" },
   { href: "/#donde-verlo", label: "Dónde verlo" },
 ];
 

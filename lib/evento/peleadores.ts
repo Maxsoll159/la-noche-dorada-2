@@ -1,3 +1,5 @@
+import { PESOS_OFICIALES } from "./pesaje";
+
 export type Pais = "PE" | "CO" | "CL" | "EC";
 
 export type Peleador = {
@@ -11,6 +13,8 @@ export type Peleador = {
   altura?: number;
   peso?: number;
   aprox?: boolean;
+  // El peso salió del pesaje oficial: no lleva asterisco aunque `aprox` sí.
+  pesoOficial?: boolean;
   resena?: string;
   redes?: {
     plataforma: string;
@@ -195,4 +199,8 @@ export const crearPeleador = (
     redes: REDES[slug].map((r) => ({ ...r, usuario: usuarioDeUrl(r.url) })),
   }),
   ...FICHAS[slug],
+  ...(PESOS_OFICIALES[slug] && {
+    peso: PESOS_OFICIALES[slug].ahora,
+    pesoOficial: true,
+  }),
 });

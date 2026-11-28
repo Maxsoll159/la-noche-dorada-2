@@ -4,5 +4,6 @@ export * from "./combates";
 export * from "./entradas";
 export * from "./evento";
 export * from "./patrocinadores";
+export * from "./pesaje";
 export { edadEn } from "../formato";
 export type { Pais, Peleador } from "./peleadores";

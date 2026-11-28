@@ -38,7 +38,7 @@ export function useAnuncioVisible() {
 
 function textoCuenta(dias: number | null) {
   if (dias === null) return "Muy pronto";
-  if (dias === 0) return "¡Es hoy!";
+  if (dias === 0) return "En vivo";
   if (dias === 1) return "Mañana";
   return `Faltan ${dias} días`;
 }

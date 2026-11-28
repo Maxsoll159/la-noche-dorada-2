@@ -26,7 +26,10 @@ function ficha(p: Peleador) {
     datos.push(`${edad} años${p.aprox ? " aprox." : ""}`);
   }
   if (p.altura) datos.push(`${p.altura.toFixed(2)} m`);
-  if (p.peso) datos.push(`${p.peso} kg${p.aprox ? " aprox." : ""}`);
+  if (p.peso)
+    datos.push(
+      `${p.peso} kg${p.pesoOficial ? " (pesaje oficial)" : p.aprox ? " aprox." : ""}`,
+    );
   return `${p.nombre} (${datos.join(", ")})`;
 }
 

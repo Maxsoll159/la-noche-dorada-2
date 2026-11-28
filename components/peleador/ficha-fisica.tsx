@@ -24,9 +24,9 @@ export function FichaFisica({
       unidad: `m${asterisco}`,
     },
     peleador.peso && {
-      etiqueta: "Peso",
+      etiqueta: peleador.pesoOficial ? "Peso oficial" : "Peso",
       valor: coma(peleador.peso, 1),
-      unidad: `kg${asterisco}`,
+      unidad: `kg${peleador.pesoOficial ? "" : asterisco}`,
     },
   ].filter(Boolean) as { etiqueta: string; valor: string; unidad: string }[];
 

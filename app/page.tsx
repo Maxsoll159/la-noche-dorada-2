@@ -5,6 +5,7 @@ import { DondeVerlo } from "@/components/inicio/donde-verlo";
 import { Entradas } from "@/components/inicio/entradas";
 import { Hero } from "@/components/inicio/hero";
 import { Hito } from "@/components/inicio/hito";
+import { Pesaje } from "@/components/inicio/pesaje";
 import { Patrocinador } from "@/components/inicio/patrocinador";
 import { PreguntasFrecuentes } from "@/components/inicio/preguntas-frecuentes";
 import { Presentacion } from "@/components/inicio/presentacion";
@@ -22,6 +23,7 @@ export default function Page() {
       <SiteHeader />
       <main>
         <Hero />
+        <Pesaje />
         <Seccion
           id="cara-a-cara"
           ancho="amplio"
